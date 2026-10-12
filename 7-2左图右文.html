@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>左图右文案例</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+
+        body{
+            padding: 10px;
+        }
+
+        .card{
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .zitem{
+            width: 120px;
+            flex-shrink: 0;
+        }
+
+        .zitem img{
+            width: 100%;
+            display: block;
+        }
+
+        .ytext{
+            flex-grow: 1;
+        }
+
+        .ytext h3{
+            font-size: 24px;
+            padding: 10px 0;
+            color: #000;
+        }
+
+        .ytext .meta{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ytext span{
+            font-size: 16px;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 第1组卡片 -->
+    <div class="card">
+        <div class="zitem">
+            <img src="OIP-C (1).png" alt="图片1">
+        </div>
+        <div class="ytext">
+            <h3>宁瑞祥的左图右文</h3>
+            <div class="meta">
+                <span class="author">作者：宁瑞祥</span>
+                <span class="time">时间：2023-08-01</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 第2组卡片 -->
+    <div class="card">
+        <div class="zitem">
+            <img src="OIP-C (2).png" alt="图片2">
+        </div>
+        <div class="ytext">
+            <h3>标题2</h3>
+            <div class="meta">
+                <span class="author">作者：宁瑞祥</span>
+                <span class="time">时间：2023-08-02</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 第3组卡片 -->
+    <div class="card">
+        <div class="zitem">
+            <img src="OIP-C.png" alt="图片3">
+        </div>
+        <div class="ytext">
+            <h3>标题3</h3>
+            <div class="meta">
+                <span class="author">作者：宁瑞祥</span>
+                <span class="time">时间：2023-08-03</span>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

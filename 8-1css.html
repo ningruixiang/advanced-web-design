@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS3 选择器实验室 · 宁瑞祥</title>
+    <style>
+        /* =========================================================
+           设计 Token（苹果风格，与 index/5-1/5-2/6-1/6-2 统一）
+           ========================================================= */
+        :root{
+            --bg-1:#f5f7fa;
+            --bg-2:#e9edf3;
+            --ink-1:#1d1d1f;
+            --ink-2:#6e6e73;
+            --ink-3:#aeaeb2;
+            --blue:#007aff;
+            --cyan:#5ac8fa;
+            --purple:#af52de;
+            --orange:#ff9500;
+            --red:#ff3b30;
+            --green:#34c759;
+            --pink:#ff2d92;
+            --yellow:#ffcc00;
+            --card:#ffffff;
+            --line:rgba(0,0,0,.06);
+            --shadow-soft:0 4px 24px rgba(0,0,0,.06);
+            --shadow-3d:0 30px 60px -20px rgba(31,38,135,.25);
+            --radius:22px;
+        }
+
+        *{margin:0;padding:0;box-sizing:border-box;}
+        html{scroll-behavior:smooth;}
+
+        body{
+            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Roboto,sans-serif;
+            color:var(--ink-1);
+            background:
+                radial-gradient(1200px 600px at 80% -10%,rgba(175,82,222,.10),transparent 60%),
+                radial-gradient(1000px 500px at 0% 0%,rgba(0,122,255,.10),transparent 55%),
+                linear-gradient(180deg,var(--bg-1),var(--bg-2));
+            min-height:100vh;
+            line-height:1.6;
+            overflow-x:hidden;
+        }
+
+        /* ============ Hero（3D 立体标题）============ */
+        .hero{text-align:center;padding:60px 20px 30px;perspective:900px;}
+        .hero .kicker{
+            display:inline-block;font-size:.82em;letter-spacing:3px;
+            color:var(--blue);background:rgba(0,122,255,.08);
+            padding:6px 16px;border-radius:999px;margin-bottom:14px;
+        }
+        .hero h1{
+            font-size:clamp(2em,5.5vw,3.2em);font-weight:800;letter-spacing:3px;
+            transform-style:preserve-3d;animation:heroFloat 6s ease-in-out infinite;
+            text-shadow:0 1px 0 #d8dde4,0 2px 0 #cdd3db,0 3px 0 #c2c9d2,
+                0 6px 14px rgba(0,0,0,.16),0 12px 30px rgba(0,122,255,.18);
+        }
+        @keyframes heroFloat{0%,100%{transform:translateY(0) rotateX(0);}50%{transform:translateY(-8px) rotateX(4deg);}}
+        .hero p{color:var(--ink-2);margin-top:12px;font-size:1em;}
+        .chips{margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+        .chips span{
+            font-size:.8em;color:var(--ink-2);background:var(--card);
+            border:1px solid var(--line);padding:5px 14px;border-radius:999px;
+            box-shadow:var(--shadow-soft);
+        }
+
+        /* ============ 通用 3D 舞台 ============ */
+        .wrap{max-width:1100px;margin:0 auto;padding:20px 20px 70px;}
+        .scene{perspective:1500px;margin-bottom:40px;}
+        .tilt{transform-style:preserve-3d;transition:transform .18s ease-out;will-change:transform;}
+        .panel{
+            position:relative;background:rgba(255,255,255,.72);
+            backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+            border:1px solid rgba(255,255,255,.9);border-radius:var(--radius);
+            box-shadow:var(--shadow-3d);padding:28px 24px;transform-style:preserve-3d;
+        }
+        .panel-tag{
+            display:inline-block;font-size:.74em;letter-spacing:2px;color:#fff;
+            background:linear-gradient(135deg,var(--blue),var(--purple));
+            padding:4px 12px;border-radius:999px;margin-bottom:10px;transform:translateZ(40px);
+        }
+        .panel h2{font-size:1.25em;margin-bottom:4px;transform:translateZ(32px);}
+        .panel .tip{font-size:.86em;color:var(--ink-2);margin-bottom:20px;transform:translateZ(24px);}
+
+        /* ============ 数字网格（图中核心效果）============ */
+        .grid{
+            display:flex;flex-wrap:wrap;gap:12px;
+            justify-content:center;padding:20px;
+            background:rgba(0,0,0,.02);border-radius:18px;
+            border:1px dashed rgba(0,122,255,.2);
+            transform:translateZ(20px);
+        }
+        .box{
+            width:80px;height:80px;
+            display:flex;align-items:center;justify-content:center;
+            border:2px solid transparent;
+            border-radius:16px;
+            font-size:1.6em;font-weight:700;color:#fff;
+            transition:all .4s cubic-bezier(.2,.8,.2,1);
+            cursor:pointer;position:relative;
+            font-family:"SF Mono","SF Pro Display",-apple-system,monospace;
+            text-shadow:0 1px 3px rgba(0,0,0,.3);
+        }
+        .box:hover{
+            border-color:var(--red) !important;
+            box-shadow:0 0 0 3px var(--red),0 16px 36px rgba(255,59,48,.35);
+            z-index:30;
+            animation:none !important;
+            filter:brightness(1.1);
+        }
+
+        
+        /* 偶数框 hover 各自独特效果（见下方 :nth-child(n):hover）*/
+
+        /* ===== 12 个数字框各自独特的渐变与微动画 ===== */
+        .box:nth-child(1){background:linear-gradient(135deg,#ff3b30,#ff6b50);animation:b1 4s ease-in-out infinite;}
+        .box:nth-child(2){background:linear-gradient(135deg,#ff9500,#ffb340);animation:b2 4.5s ease-in-out infinite;}
+        .box:nth-child(3){background:linear-gradient(135deg,#ffcc00,#ffe066);color:#5a4500;text-shadow:none;animation:b3 5s ease-in-out infinite;}
+        .box:nth-child(4){background:linear-gradient(135deg,#34c759,#5dd879);animation:b4 4.2s ease-in-out infinite;}
+        .box:nth-child(5){background:linear-gradient(135deg,#007aff,#5ac8fa);animation:b5 3.8s ease-in-out infinite;}
+        .box:nth-child(6){background:linear-gradient(135deg,#5ac8fa,#70d7ff);animation:b6 5.2s ease-in-out infinite;}
+        .box:nth-child(7){background:linear-gradient(135deg,#af52de,#c77dff);animation:b7 4.8s ease-in-out infinite;}
+        .box:nth-child(8){background:linear-gradient(135deg,#ff2d92,#ff6bb5);animation:b8 4.4s ease-in-out infinite;}
+        .box:nth-child(9){background:linear-gradient(135deg,#5856d6,#7b79e0);animation:b9 5.5s ease-in-out infinite;}
+        .box:nth-child(10){background:linear-gradient(135deg,#ff6482,#ff8fa3);animation:b10 4.6s ease-in-out infinite;}
+        .box:nth-child(11){background:linear-gradient(135deg,#30b0c7,#5fcad9);animation:b11 5.8s ease-in-out infinite;}
+        .box:nth-child(12){background:linear-gradient(135deg,#1d1d1f,#3a3a3c);animation:b12 4s ease-in-out infinite;}
+
+        /* 各自独特的微动画 */
+        @keyframes b1{0%,100%{transform:translateY(0) rotate(0);}50%{transform:translateY(-4px) rotate(-3deg);}}
+        @keyframes b2{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
+        @keyframes b3{0%,100%{transform:translateY(0);}50%{transform:translateY(4px);}}
+        @keyframes b4{0%,100%{transform:translateX(0);}50%{transform:translateX(-3px);}}
+        @keyframes b5{0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-6px) scale(1.04);}}
+        @keyframes b6{0%,100%{box-shadow:0 2px 8px rgba(90,200,250,.3);}50%{box-shadow:0 4px 18px rgba(90,200,250,.6);}}
+        @keyframes b7{0%,100%{transform:rotate(0);}50%{transform:rotate(3deg);}}
+        @keyframes b8{0%,100%{transform:scaleY(1);}50%{transform:scaleY(.92) scaleX(1.08);}}
+        @keyframes b9{0%,100%{filter:brightness(1);}50%{filter:brightness(1.15);}}
+        @keyframes b10{0%,100%{transform:scale(1);}50%{transform:scale(.95);}}
+        @keyframes b11{0%,100%{box-shadow:0 2px 8px rgba(48,176,199,.3);}50%{box-shadow:0 8px 24px rgba(48,176,199,.5);}}
+        @keyframes b12{0%,100%{transform:translateY(0) rotate(0);}50%{transform:translateY(-3px) rotate(2deg);}}
+
+        /* ===== 12 个框各自独特的 hover 旋转/变形效果 ===== */
+        .box:nth-child(1):hover{transform:rotate(-15deg) scale(1.25);}
+        .box:nth-child(2):hover{transform:rotateY(180deg) rotate(20deg) scale(1.35);filter:brightness(1.2) hue-rotate(30deg);}
+        .box:nth-child(3):hover{transform:rotateY(180deg);}
+        .box:nth-child(4):hover{transform:rotate(720deg) scale(1.3);filter:hue-rotate(90deg) saturate(1.5);}
+        .box:nth-child(5):hover{transform:translateY(-12px) scale(1.3) rotate(5deg);}
+        .box:nth-child(6):hover{transform:rotateX(180deg) rotateY(180deg) scale(1.25);filter:hue-rotate(180deg);}
+        .box:nth-child(7):hover{transform:scale(1.4) rotate(8deg);}
+        .box:nth-child(8):hover{transform:scaleY(0.45) scaleX(1.6) rotate(45deg);filter:hue-rotate(60deg) saturate(1.4);}
+        .box:nth-child(9):hover{transform:rotate(45deg) scale(1.2);}
+        .box:nth-child(10):hover{transform:rotate(540deg) scale(1.3) skewY(-10deg);filter:hue-rotate(120deg) brightness(1.2);}
+        .box:nth-child(11):hover{transform:skewX(20deg) scale(1.25);}
+        .box:nth-child(12):hover{transform:rotateY(720deg) scale(1.4);filter:invert(.15) hue-rotate(180deg) saturate(1.3);}
+
+        /* 匹配高亮：蓝紫描边 + 光晕 + 放大（不显示 ✓，✓ 由点击控制）*/
+        .box.highlight{
+            border-color:#fff;
+            box-shadow:0 0 0 3px var(--blue),0 8px 24px rgba(0,122,255,.4),0 0 30px rgba(175,82,222,.4);
+            transform:translateY(-8px) scale(1.12) !important;
+            z-index:20;
+            animation-play-state:paused;
+        }
+
+        /* 点击选中：显示 ✓ 勾（独立于选择器匹配）*/
+        .box.checked::before{
+            content:"✓";position:absolute;top:-8px;right:-8px;
+            width:24px;height:24px;border-radius:50%;
+            background:linear-gradient(135deg,var(--red),var(--orange));
+            color:#fff;font-size:.6em;font-weight:800;
+            display:grid;place-items:center;
+            box-shadow:0 4px 10px rgba(255,59,48,.5);
+            z-index:40;
+            animation:pop .3s ease-out;
+        }
+        @keyframes pop{0%{transform:scale(0);}80%{transform:scale(1.2);}100%{transform:scale(1);}}
+
+        /* ============ 选择器控制面板 ============ */
+        .controls{
+            display:flex;flex-direction:column;gap:16px;
+            margin-top:20px;transform:translateZ(20px);
+        }
+        .ctrl-section{
+            background:rgba(255,255,255,.6);
+            border:1px solid var(--line);
+            border-radius:14px;padding:16px;
+        }
+        .ctrl-section > label{
+            display:block;font-size:.78em;font-weight:600;color:var(--ink-1);
+            margin-bottom:10px;letter-spacing:.5px;
+        }
+        .ctrl-section > label code{
+            color:var(--blue);font-family:"SF Mono",Menlo,Consolas,monospace;
+            background:rgba(0,122,255,.08);padding:1px 6px;border-radius:4px;font-size:.95em;
+        }
+        .btn-row{display:flex;flex-wrap:wrap;gap:8px;}
+        .btn-row button{
+            padding:8px 14px;font-size:.8em;color:var(--ink-2);
+            background:var(--card);border:1px solid var(--line);border-radius:10px;
+            cursor:pointer;transition:all .2s;font-weight:500;
+            font-family:"SF Mono",Menlo,Consolas,monospace;
+        }
+        .btn-row button:hover{border-color:var(--blue);color:var(--blue);}
+        .btn-row button.active{
+            background:linear-gradient(135deg,var(--blue),var(--cyan));
+            color:#fff;border-color:transparent;
+            box-shadow:0 4px 12px rgba(0,122,255,.3);transform:translateY(-1px);
+        }
+
+        /* 自定义公式输入 */
+        .formula-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+        .formula-row input{
+            flex:1;min-width:120px;padding:8px 12px;
+            border:1px solid var(--line);border-radius:10px;
+            font-size:.86em;font-family:"SF Mono",Menlo,Consolas,monospace;
+            outline:none;background:var(--card);color:var(--ink-1);
+        }
+        .formula-row input:focus{border-color:var(--blue);}
+        .formula-row button{
+            padding:8px 16px;background:var(--purple);color:#fff;
+            border:none;border-radius:10px;font-size:.82em;cursor:pointer;
+            font-weight:500;transition:background .2s;
+        }
+        .formula-row button:hover{background:#9b47d1;}
+
+        /* ============ 代码区 ============ */
+        .code-box{
+            margin-top:18px;background:#1d1d1f;border-radius:14px;overflow:hidden;
+            box-shadow:0 12px 30px rgba(0,0,0,.2);transform:translateZ(20px);
+        }
+        .code-bar{
+            display:flex;align-items:center;justify-content:space-between;
+            padding:10px 16px;background:#2a2a2c;color:#9ea0a3;font-size:.78em;
+        }
+        .code-bar .dots{display:flex;gap:6px;}
+        .code-bar .dots i{width:11px;height:11px;border-radius:50%;display:inline-block;}
+        .code-bar .dots i:nth-child(1){background:#ff5f56;}
+        .code-bar .dots i:nth-child(2){background:#ffbd2e;}
+        .code-bar .dots i:nth-child(3){background:#27c93f;}
+        .copy-btn{
+            padding:5px 12px;background:var(--blue);color:#fff;
+            border:none;border-radius:6px;font-size:.78em;cursor:pointer;
+        }
+        .copy-btn:hover{background:#0066d6;}
+        .copy-btn.done{background:var(--green);}
+        pre.code{
+            margin:0;padding:16px;font-family:"SF Mono",Menlo,Consolas,monospace;
+            font-size:.82em;line-height:1.7;color:#e6e6e6;overflow-x:auto;
+            white-space:pre-wrap;
+        }
+        .code .sel{color:#ff9500;}.code .prop{color:#5ac8fa;}.code .val{color:#34c759;}
+        .code .punc{color:#9ea0a3;}.code .cmt{color:#6e6e73;}
+
+        /* ============ 选择器速查卡 ============ */
+        .ref-grid{
+            display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+            gap:14px;transform-style:preserve-3d;
+        }
+        .ref-card{
+            background:rgba(255,255,255,.6);border:1px solid var(--line);
+            border-radius:14px;padding:16px;transition:transform .25s,box-shadow .25s;
+        }
+        .ref-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-soft);}
+        .ref-card h4{font-size:.88em;color:var(--blue);margin-bottom:6px;font-family:"SF Mono",Menlo,Consolas,monospace;}
+        .ref-card p{font-size:.78em;color:var(--ink-2);line-height:1.6;}
+        .ref-card .demo{font-size:.72em;color:var(--ink-3);margin-top:6px;font-family:"SF Mono",Menlo,Consolas,monospace;}
+
+        /* ============ 页脚 ============ */
+        footer{text-align:center;padding:26px 20px 40px;color:var(--ink-3);font-size:.84em;}
+
+        @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important;}}
+    </style>
+</head>
+<body>
+
+    <!-- ============ Hero ============ -->
+    <header class="hero">
+        <span class="kicker">CSS3 SELECTOR LAB</span>
+        <h1>宁瑞祥 · CSS3 选择器实验室</h1>
+        <p>12 个数字框 · 实时高亮匹配 · 代码生成 · 苹果极简设计</p>
+        <div class="chips">
+            <span>学号 2001010503</span>
+            <span>宁瑞祥 · 计算机23005</span>
+            <span>:nth-child / :first-child / :nth-of-type</span>
+        </div>
+    </header>
+
+    <main class="wrap">
+
+        <!-- ============ 主实验区 ============ -->
+        <section class="scene">
+            <div class="tilt">
+                <div class="panel">
+                    <span class="panel-tag">LIVE PLAYGROUND</span>
+                    <h2>CSS3 选择器实时演示</h2>
+                    <p class="tip">点击下方选择器按钮，网格中匹配的数字框即时高亮；可输入自定义 an+b 公式</p>
+
+                    <!-- 数字网格（图中核心效果：12 个框，第 5 个高亮）-->
+                    <div class="grid" id="grid">
+                        <div class="box" data-n="1">1</div>
+                        <div class="box" data-n="2">2</div>
+                        <div class="box" data-n="3">3</div>
+                        <div class="box" data-n="4">4</div>
+                        <div class="box" data-n="5">5</div>
+                        <div class="box" data-n="6">6</div>
+                        <div class="box" data-n="7">7</div>
+                        <div class="box" data-n="8">8</div>
+                        <div class="box" data-n="9">9</div>
+                        <div class="box" data-n="10">10</div>
+                        <div class="box" data-n="11">11</div>
+                        <div class="box" data-n="12">12</div>
+                    </div>
+
+                    <!-- 控制面板 -->
+                    <div class="controls">
+
+                        <!-- 基础选择器 -->
+                        <div class="ctrl-section">
+                            <label>基础伪类选择器</label>
+                            <div class="btn-row" id="basicBtns">
+                                <button data-sel="first-child">:first-child</button>
+                                <button data-sel="last-child">:last-child</button>
+                                <button data-sel="only-child">:only-child</button>
+                                <button data-sel="nth-child(5)" class="active">:nth-child(5)</button>
+                                <button data-sel="nth-last-child(1)">:nth-last-child(1)</button>
+                            </div>
+                        </div>
+
+                        <!-- 奇偶/倍数 -->
+                        <div class="ctrl-section">
+                            <label>奇偶与倍数 <code>:nth-child(an+b)</code></label>
+                            <div class="btn-row" id="patternBtns">
+                                <button data-sel="odd">:nth-child(odd)</button>
+                                <button data-sel="even">:nth-child(even)</button>
+                                <button data-sel="2n">:nth-child(2n)</button>
+                                <button data-sel="3n">:nth-child(3n)</button>
+                                <button data-sel="3n+1">:nth-child(3n+1)</button>
+                                <button data-sel="4n+2">:nth-child(4n+2)</button>
+                                <button data-sel="-n+3">:nth-child(-n+3)</button>
+                                <button data-sel="n+8">:nth-child(n+8)</button>
+                            </div>
+                        </div>
+
+                        <!-- 自定义公式 -->
+                        <div class="ctrl-section">
+                            <label>自定义公式 <code>:nth-child(?)</code></label>
+                            <div class="formula-row">
+                                <input type="text" id="formulaInput" placeholder="例：2n+1、odd、5、-n+4" value="5">
+                                <button id="formulaBtn">应用 :nth-child(<span id="formulaLabel">5</span>)</button>
+                            </div>
+                        </div>
+
+                        <!-- 类型选择器 -->
+                        <div class="ctrl-section">
+                            <label>类型伪类 <code>:nth-of-type</code></label>
+                            <div class="btn-row" id="typeBtns">
+                                <button data-sel="first-of-type">:first-of-type</button>
+                                <button data-sel="last-of-type">:last-of-type</button>
+                                <button data-sel="nth-of-type(3)">:nth-of-type(3)</button>
+                                <button data-sel="only-of-type">:only-of-type</button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- 代码区 -->
+                    <div class="code-box">
+                        <div class="code-bar">
+                            <span class="dots"><i></i><i></i><i></i></span>
+                            <span>style.css · 实时生成</span>
+                            <button class="copy-btn" id="copyBtn">复制</button>
+                        </div>
+                        <pre class="code" id="codeOut"></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ 选择器速查卡 ============ -->
+        <section class="scene">
+            <div class="tilt">
+                <div class="panel">
+                    <span class="panel-tag">REFERENCE</span>
+                    <h2>CSS3 选择器速查</h2>
+                    <p class="tip">结构伪类 + 类型伪类，共 12 个常用选择器</p>
+
+                    <div class="ref-grid">
+                        <div class="ref-card">
+                            <h4>:first-child</h4>
+                            <p>父元素的第一个子元素</p>
+                            <div class="demo">匹配：#1</div>
+                        </div>
+                        <div class="ref-card">
+                            <h4>:last-child</h4>
+                            <p>父元素的最后一个子元素</p>
+                            <div class="demo">匹配：#12</div>
+                        </div>
+                        <div class="ref-card">
+                            <h4>:only-child</h4>
+                            <p>父元素唯一的子元素</p>
+                            <div class="demo">匹配：仅一个子元素时</div>
+                        </div>
+                        <div class="ref-card">
+                            <h4>:nth-child(n)</h4>
+                            <p>第 n 个子元素，从 1 开始</p>
+                            <div class="demo">:nth-child(5) → #5</div>
+                        </div>
+                        <div class="ref-card">
+                            <h4>:nth-child(odd)</h4>
+                            <p>所有奇数位子元素</p>
+                            <div class="demo">匹配：1,3,5,7,9,11</div>
+                        </div>
+                        <div class="ref-card">
+                            <h4>:nth-child(even)</h4>
+                            <p>所有偶数位子元素</p>
+                            <div class="demo">匹配：2,4,6,8,10,12</div>
+                        </div>
+                        <div class="ref-card">
+                            <h4>:nth-child(an+b)</h4>
+                            <p>公式：a 倍数偏移 b</p>
+                            <div class="demo">2n+1 → 1,3,5,7...</div>
+                        </div>
+                        <div class="ref-card">
+                            <h4>:nth-last-child(n)</h4>
+                            <p>从末尾倒数第 n 个</p>
+                            <div class="demo">:nth-last-child(1) → #12</div>
+                        </div>
+                        <div class="ref-card">
+                            <h4>:first-of-type</h4>
+                            <p>同类型元素中的第一个</p>
+                            <div class="demo">匹配同标签首个</div>
+                        </div>
+                        <div class="ref-card">
+                            <h4>:last-of-type</h4>
+                            <p>同类型元素中的最后一个</p>
+                            <div class="demo">匹配同标签末个</div>
+                        </div>
+                        <div class="ref-card">
+                            <h4>:nth-of-type(n)</h4>
+                            <p>同类型元素中第 n 个</p>
+                            <div class="demo">按类型独立计数</div>
+                        </div>
+                        <div class="ref-card">
+                            <h4>:only-of-type</h4>
+                            <p>唯一同类型子元素</p>
+                            <div class="demo">同类型仅一个时</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        © 《高级网页设计》课堂实践 · CSS3 选择器实验室 · 纯原生 HTML / CSS / JS，无 CDN
+    </footer>
+
+    <script>
+        const grid = document.getElementById('grid');
+        const boxes = [...grid.querySelectorAll('.box')];
+        const codeOut = document.getElementById('codeOut');
+        const formulaInput = document.getElementById('formulaInput');
+        const formulaLabel = document.getElementById('formulaLabel');
+
+        // ===== 当前选择器状态 =====
+        let currentSelector = ':nth-child(5)';
+
+        // ===== 计算 :nth-child(an+b) 匹配项（1-based 索引）=====
+        function parseNthChild(expr){
+            expr = expr.trim().toLowerCase();
+            if (expr === 'odd')  return i => (i % 2) === 1;
+            if (expr === 'even') return i => (i % 2) === 0;
+            // 整数
+            if (/^-?\d+$/.test(expr)) { const n = +expr; return i => i === n; }
+            // an+b
+            const m = expr.match(/^(-?\d*)n\s*([+\-]\s*\d+)?$/);
+            if (m) {
+                let a = m[1] === '' || m[1] === '+' ? 1 : (m[1] === '-' ? -1 : +m[1]);
+                let b = 0;
+                if (m[2]) b = +(m[2].replace(/\s/g,''));
+                return i => {
+                    // i = a*k + b, k >= 0
+                    if (a === 0) return i === b;
+                    const k = (i - b) / a;
+                    return Number.isInteger(k) && k >= 0;
+                };
+            }
+            return () => false;
+        }
+
+        // ===== 应用选择器（高亮匹配项）=====
+        function applySelector(sel){
+            currentSelector = sel;
+            boxes.forEach((box, idx) => {
+                box.classList.remove('highlight','match');
+                const n = idx + 1;
+                let matched = false;
+
+                if (sel.startsWith(':nth-child')) {
+                    const inner = sel.replace(':nth-child','').replace(/[()]/g,'');
+                    matched = parseNthChild(inner)(n);
+                } else if (sel.startsWith(':nth-last-child')) {
+                    const inner = sel.replace(':nth-last-child','').replace(/[()]/g,'');
+                    const total = boxes.length;
+                    matched = parseNthChild(inner)(total - n + 1);
+                } else if (sel.startsWith(':nth-of-type')) {
+                    const inner = sel.replace(':nth-of-type','').replace(/[()]/g,'');
+                    matched = parseNthChild(inner)(n);
+                } else if (sel === ':first-child') matched = n === 1;
+                else if (sel === ':last-child')  matched = n === boxes.length;
+                else if (sel === ':only-child')  matched = boxes.length === 1;
+                else if (sel === ':first-of-type') matched = n === 1;
+                else if (sel === ':last-of-type')  matched = n === boxes.length;
+                else if (sel === ':only-of-type')  matched = boxes.length === 1;
+
+                if (matched) box.classList.add('highlight');
+            });
+            renderCode(sel);
+        }
+
+        // ===== 生成 CSS 代码 =====
+        function renderCode(sel){
+            const S = s => `<span class="sel">${s}</span>`;
+            const P = p => `<span class="prop">${p}</span>`;
+            const V = v => `<span class="val">${v}</span>`;
+            const B = c => `<span class="punc">${c}</span>`;
+            const C = t => `<span class="cmt">${t}</span>`;
+
+            let out = `${C('/* 数字框基础样式 */')}\n`;
+            out += `${S('.box')} ${B('{')}\n`;
+            out += `  ${P('width')}: ${V('80px')};  ${P('height')}: ${V('80px')};\n`;
+            out += `  ${P('display')}: ${V('flex')};  ${P('align-items')}: ${V('center')};\n`;
+            out += `  ${P('background')}: ${V('#fff')};  ${P('border-radius')}: ${V('16px')};\n`;
+            out += `${B('}')}\n\n`;
+            out += `${C('/* 当前应用的选择器 */')}\n`;
+            out += `${S('.box' + sel)} ${B('{')}\n`;
+            out += `  ${P('background')}: ${V('linear-gradient(135deg,#3a3a3c,#1d1d1f)')};\n`;
+            out += `  ${P('color')}: ${V('#fff')};\n`;
+            out += `  ${P('box-shadow')}: ${V('0 8px 24px rgba(0,0,0,.3)')};\n`;
+            out += `${B('}')}`;
+            codeOut.innerHTML = out;
+        }
+
+        // ===== 按钮事件 =====
+        function bindBtns(containerId){
+            const btns = document.querySelectorAll(`#${containerId} button`);
+            btns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // 清除所有按钮 active
+                    document.querySelectorAll('.btn-row button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    applySelector(':' + btn.dataset.sel);
+                });
+            });
+        }
+        bindBtns('basicBtns');
+        bindBtns('patternBtns');
+        bindBtns('typeBtns');
+
+        // ===== 自定义公式 =====
+        function applyFormula(){
+            const val = formulaInput.value.trim();
+            if (!val) return;
+            document.querySelectorAll('.btn-row button').forEach(b => b.classList.remove('active'));
+            const sel = ':nth-child(' + val + ')';
+            formulaLabel.textContent = val;
+            applySelector(sel);
+        }
+        document.getElementById('formulaBtn').addEventListener('click', applyFormula);
+        formulaInput.addEventListener('keydown', e => { if (e.key === 'Enter') applyFormula(); });
+
+        // ===== 复制代码 =====
+        document.getElementById('copyBtn').addEventListener('click', e => {
+            navigator.clipboard.writeText(codeOut.textContent).then(() => {
+                e.target.textContent = '已复制 ✓';
+                e.target.classList.add('done');
+                setTimeout(() => { e.target.textContent = '复制'; e.target.classList.remove('done'); }, 1500);
+            });
+        });
+
+        // ===== 点击数字框：切换 ✓ 勾（独立于选择器匹配）=====
+        boxes.forEach(box => {
+            box.addEventListener('click', () => {
+                box.classList.toggle('checked');
+            });
+        });
+
+        // ===== 鼠标 3D 倾斜 =====
+        document.querySelectorAll('.scene').forEach(scene => {
+            const tilt = scene.querySelector('.tilt');
+            let raf = null;
+            scene.addEventListener('mousemove', e => {
+                const r = scene.getBoundingClientRect();
+                const px = (e.clientX - r.left) / r.width - 0.5;
+                const py = (e.clientY - r.top) / r.height - 0.5;
+                const ty = px * 8, tx = -py * 8;
+                if (!raf) {
+                    raf = requestAnimationFrame(() => {
+                        tilt.style.transform = `rotateX(${tx}deg) rotateY(${ty}deg)`;
+                        raf = null;
+                    });
+                }
+            });
+            scene.addEventListener('mouseleave', () => {
+                tilt.style.transition = 'transform .6s cubic-bezier(.2,.8,.2,1)';
+                tilt.style.transform = 'rotateX(0) rotateY(0)';
+                setTimeout(() => tilt.style.transition = 'transform .18s ease-out', 600);
+            });
+        });
+
+        // ===== 初始化：高亮第 5 个（图中效果）=====
+        applySelector(':nth-child(5)');
+    </script>
+</body>
+</html>

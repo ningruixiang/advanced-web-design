@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>宁瑞祥 · 纯 CSS 幻灯片 · 高级网页设计课程回顾</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+    --blue:#0a84ff;--purple:#bf5af2;--orange:#ff9f0a;--green:#30d158;
+    --bg1:#0a0a1e;--bg2:#1a1a3e;--text:#f5f5f7;--sub:#86868b;
+}
+html,body{height:100%;}
+body{
+    font-family:-apple-system,"SF Pro Display","PingFang SC",sans-serif;
+    background:var(--bg1);color:var(--text);overflow:hidden;
+}
+
+/* ===== 隐藏 radio ===== */
+input[name=ss]{position:absolute;opacity:0;pointer-events:none;}
+
+/* ===== 舞台 ===== */
+.deck{
+    position:fixed;inset:0;
+    perspective:1200px;
+}
+
+/* ===== 进度条 ===== */
+.progress{
+    position:fixed;top:0;left:0;height:3px;
+    background:linear-gradient(90deg,var(--blue),var(--purple),var(--orange));
+    z-index:100;transition:width .5s cubic-bezier(.25,.46,.45,.94);
+    box-shadow:0 0 12px rgba(10,132,255,.6);
+}
+#s1:checked ~ .progress{width:16.66%;}
+#s2:checked ~ .progress{width:33.33%;}
+#s3:checked ~ .progress{width:50%;}
+#s4:checked ~ .progress{width:66.66%;}
+#s5:checked ~ .progress{width:83.33%;}
+#s6:checked ~ .progress{width:100%;}
+
+/* ===== 背景渐变（每页不同） ===== */
+.bg-layer{position:absolute;inset:0;z-index:0;opacity:0;transition:opacity 1s ease;}
+.bg1{background:radial-gradient(ellipse at 30% 30%,#1a1a4e,#0a0a1e 60%);}
+.bg2{background:radial-gradient(ellipse at 70% 20%,#0a4e3e,#0a1e2e 60%);}
+.bg3{background:radial-gradient(ellipse at 50% 50%,#3e1a4e,#1e0a2e 60%);}
+.bg4{background:radial-gradient(ellipse at 20% 70%,#4e2a0a,#1e1a0a 60%);}
+.bg5{background:radial-gradient(ellipse at 80% 80%,#0a2e4e,#0a0a3e 60%);}
+.bg6{background:radial-gradient(ellipse at 50% 40%,#2a1a4e,#0a0a1e 70%);}
+#s1:checked ~ .deck .bg1{opacity:1;}
+#s2:checked ~ .deck .bg2{opacity:1;}
+#s3:checked ~ .deck .bg3{opacity:1;}
+#s4:checked ~ .deck .bg4{opacity:1;}
+#s5:checked ~ .deck .bg5{opacity:1;}
+#s6:checked ~ .deck .bg6{opacity:1;}
+
+/* ===== slides 容器 ===== */
+.slides{position:relative;width:100%;height:100%;z-index:5;}
+
+/* ===== 单页 ===== */
+.slide{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:80px 60px;text-align:center;
+    opacity:0;pointer-events:none;
+    transform:translateX(120px) scale(.92);
+    transition:opacity .6s ease,transform .8s cubic-bezier(.16,1,.3,1);
+}
+/* 切换激活 */
+#s1:checked ~ .deck .slides .slide:nth-child(1),
+#s2:checked ~ .deck .slides .slide:nth-child(2),
+#s3:checked ~ .deck .slides .slide:nth-child(3),
+#s4:checked ~ .deck .slides .slide:nth-child(4),
+#s5:checked ~ .deck .slides .slide:nth-child(5),
+#s6:checked ~ .deck .slides .slide:nth-child(6){
+    opacity:1;pointer-events:auto;transform:none;z-index:10;
+}
+
+/* ===== 页内元素入场动画（仅激活时触发） ===== */
+.slide .reveal{opacity:0;transform:translateY(40px);}
+#s1:checked ~ .deck .slides .slide:nth-child(1) .reveal,
+#s2:checked ~ .deck .slides .slide:nth-child(2) .reveal,
+#s3:checked ~ .deck .slides .slide:nth-child(3) .reveal,
+#s4:checked ~ .deck .slides .slide:nth-child(4) .reveal,
+#s5:checked ~ .deck .slides .slide:nth-child(5) .reveal,
+#s6:checked ~ .deck .slides .slide:nth-child(6) .reveal{
+    animation:revealUp .8s cubic-bezier(.16,1,.3,1) forwards;
+}
+#s1:checked ~ .deck .slides .slide:nth-child(1) .reveal{animation-delay:.2s;}
+.slide .reveal:nth-child(2){animation-delay:.35s;}
+.slide .reveal:nth-child(3){animation-delay:.5s;}
+.slide .reveal:nth-child(4){animation-delay:.65s;}
+.slide .reveal:nth-child(5){animation-delay:.8s;}
+@keyframes revealUp{to{opacity:1;transform:none;}}
+
+/* ===== 字体样式 ===== */
+.eyebrow{
+    font-size:13px;letter-spacing:4px;text-transform:uppercase;
+    color:var(--blue);margin-bottom:18px;font-weight:600;
+}
+.slide h1{
+    font-size:64px;font-weight:700;letter-spacing:-2px;line-height:1.05;
+    background:linear-gradient(180deg,#fff 0%,#a0a0a8 100%);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    margin-bottom:16px;
+}
+.slide h2{font-size:42px;font-weight:600;letter-spacing:-1px;margin-bottom:14px;}
+.slide p.lead{font-size:20px;color:var(--sub);max-width:680px;line-height:1.5;}
+.slide .num-big{font-size:120px;font-weight:200;letter-spacing:-4px;
+    background:linear-gradient(135deg,var(--blue),var(--purple));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.slide .quote{font-size:28px;font-style:italic;color:#d0d0d8;max-width:600px;line-height:1.5;}
+.slide .cite{font-size:14px;color:var(--sub);margin-top:20px;letter-spacing:1px;}
+
+/* 卡片网格（内容页） */
+.grid-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:760px;margin-top:30px;}
+.grid-cards .card{
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+    border-radius:16px;padding:24px 20px;backdrop-filter:blur(10px);
+}
+.grid-cards .card .ic{font-size:32px;margin-bottom:10px;}
+.grid-cards .card h3{font-size:16px;margin-bottom:6px;}
+.grid-cards .card p{font-size:13px;color:var(--sub);line-height:1.5;}
+
+/* 横向步骤条 */
+.steps{display:flex;gap:0;margin-top:30px;align-items:center;}
+.steps .step{position:relative;padding:0 30px 0 44px;}
+.steps .step::before{
+    content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);
+    width:28px;height:28px;border-radius:50%;
+    background:rgba(255,255,255,.1);border:2px solid var(--blue);
+}
+.steps .step::after{content:"";position:absolute;left:28px;top:50%;width:30px;height:2px;background:rgba(255,255,255,.2);}
+.steps .step:last-child::after{display:none;}
+.steps .step strong{display:block;font-size:14px;color:var(--blue);margin-bottom:2px;}
+.steps .step span{font-size:12px;color:var(--sub);}
+
+/* ===== 底部导航圆点 ===== */
+.dots{
+    position:fixed;bottom:32px;left:50%;transform:translateX(-50%);
+    display:flex;gap:12px;z-index:50;
+}
+.dots label{
+    width:10px;height:10px;border-radius:50%;
+    background:rgba(255,255,255,.25);cursor:pointer;
+    transition:all .3s cubic-bezier(.16,1,.3,1);
+}
+#s1:checked ~ .dots label[for=s1],
+#s2:checked ~ .dots label[for=s2],
+#s3:checked ~ .dots label[for=s3],
+#s4:checked ~ .dots label[for=s4],
+#s5:checked ~ .dots label[for=s5],
+#s6:checked ~ .dots label[for=s6]{
+    width:32px;border-radius:5px;background:linear-gradient(90deg,var(--blue),var(--purple));
+    box-shadow:0 0 12px rgba(10,132,255,.5);
+}
+
+/* ===== 左右箭头 ===== */
+.nav{
+    position:fixed;top:50%;transform:translateY(-50%);
+    z-index:50;width:48px;height:48px;border-radius:50%;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+    backdrop-filter:blur(10px);
+    display:grid;place-items:center;cursor:pointer;
+    color:#fff;font-size:20px;
+    transition:all .3s ease;
+}
+.nav:hover{background:rgba(255,255,255,.18);transform:translateY(-50%) scale(1.1);}
+.nav.prev{left:24px;}
+.nav.next{right:24px;}
+/* 箭头关联当前页 */
+#s1:checked ~ .nav.prev{display:none;}
+#s6:checked ~ .nav.next{display:none;}
+.nav.prev label,.nav.next label{cursor:pointer;display:block;width:100%;height:100%;display:grid;place-items:center;}
+
+/* 顶部 Logo */
+.brand{
+    position:fixed;top:24px;left:32px;z-index:50;
+    font-size:13px;color:rgba(255,255,255,.4);letter-spacing:1px;
+}
+.brand strong{color:rgba(255,255,255,.7);}
+.page-no{position:fixed;top:24px;right:32px;z-index:50;font-size:13px;color:rgba(255,255,255,.4);}
+#s1:checked ~ .page-no::after{content:"01 / 06";}
+#s2:checked ~ .page-no::after{content:"02 / 06";}
+#s3:checked ~ .page-no::after{content:"03 / 06";}
+#s4:checked ~ .page-no::after{content:"04 / 06";}
+#s5:checked ~ .page-no::after{content:"05 / 06";}
+#s6:checked ~ .page-no::after{content:"06 / 06";}
+
+/* ===== 自动播放控制 ===== */
+.autoplay-bar{
+    position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+    display:flex;align-items:center;gap:14px;z-index:50;
+}
+.play-btn{
+    width:36px;height:36px;border-radius:50%;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+    backdrop-filter:blur(10px);display:grid;place-items:center;
+    cursor:pointer;color:#fff;font-size:14px;position:relative;
+    transition:all .3s ease;flex-shrink:0;
+}
+.play-btn:hover{background:rgba(255,255,255,.18);transform:scale(1.08);}
+.play-btn svg{width:14px;height:14px;fill:#fff;}
+/* 自动播放进度环 */
+.play-btn .ring{
+    position:absolute;inset:-3px;border-radius:50%;
+    pointer-events:none;
+}
+.play-btn .ring circle{
+    fill:none;stroke:var(--blue);stroke-width:2;
+    stroke-dasharray:138;stroke-dashoffset:138;
+    transform:rotate(-90deg);transform-origin:center;
+    transition:none;
+}
+body.playing .play-btn .ring circle{
+    animation:ringFill 5s linear forwards;
+}
+body.playing .play-btn .ring circle.r2{
+    animation-delay:0s;animation-name:none;
+}
+@keyframes ringFill{from{stroke-dashoffset:138;}to{stroke-dashoffset:0;}}
+/* 重置环（通过移除/添加 class 触发） */
+body.playing .play-btn .ring{opacity:1;}
+.play-btn .ring{opacity:0;}
+/* 自动播放标签 */
+.autoplay-label{
+    font-size:11px;color:rgba(255,255,255,.4);letter-spacing:1px;
+    white-space:nowrap;
+}
+body.playing .autoplay-label{color:rgba(10,132,255,.7);}
+
+/* ===== 交互细节 ===== */
+/* 鼠标视差光斑 */
+.cursor-glow{
+    position:fixed;width:400px;height:400px;border-radius:50%;
+    background:radial-gradient(circle,rgba(10,132,255,.12) 0%,transparent 60%);
+    pointer-events:none;z-index:1;transform:translate(-50%,-50%);
+    transition:opacity .3s ease;mix-blend-mode:screen;
+    will-change:transform;left:50%;top:50%;
+}
+
+/* 卡片 3D hover */
+.grid-cards .card,.steps .step{
+    transition:transform .4s cubic-bezier(.16,1,.3,1),box-shadow .4s ease,background .3s ease;
+    transform-style:preserve-3d;cursor:default;
+}
+.grid-cards .card:hover{
+    transform:translateY(-6px) rotateX(8deg) rotateY(-6deg) scale(1.04);
+    box-shadow:0 16px 40px rgba(0,0,0,.4),0 0 30px rgba(10,132,255,.2);
+    background:rgba(10,132,255,.1);border-color:rgba(10,132,255,.3);
+}
+.steps .step:hover{
+    transform:translateY(-4px) scale(1.05);
+}
+.steps .step:hover::before{
+    background:var(--blue);border-color:var(--blue);
+    box-shadow:0 0 16px rgba(10,132,255,.6);
+}
+
+/* 圆点 tooltip */
+.dots{position:relative;}
+.dots label{position:relative;}
+.dots label::after{
+    content:attr(data-tip);position:absolute;bottom:18px;left:50%;
+    transform:translateX(-50%) translateY(4px);
+    background:rgba(255,255,255,.12);backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,.15);border-radius:6px;
+    padding:3px 10px;font-size:11px;color:#fff;white-space:nowrap;
+    opacity:0;pointer-events:none;transition:all .25s ease;
+}
+.dots label:hover::after{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* 全屏按钮 */
+.fs-btn{
+    position:fixed;bottom:28px;right:32px;z-index:50;
+    width:36px;height:36px;border-radius:50%;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+    backdrop-filter:blur(10px);display:grid;place-items:center;
+    cursor:pointer;color:#fff;transition:all .3s ease;
+}
+.fs-btn:hover{background:rgba(255,255,255,.18);transform:scale(1.08);}
+.fs-btn svg{width:16px;height:16px;fill:#fff;}
+
+/* 键盘提示 */
+.kbd-hint{
+    position:fixed;bottom:28px;left:32px;z-index:50;
+    font-size:11px;color:rgba(255,255,255,.3);letter-spacing:1px;
+    display:flex;align-items:center;gap:6px;
+    transition:opacity .3s ease;
+}
+.kbd-hint kbd{
+    display:inline-grid;place-items:center;min-width:18px;height:18px;
+    padding:0 4px;border-radius:4px;background:rgba(255,255,255,.1);
+    border:1px solid rgba(255,255,255,.15);font-size:10px;font-family:inherit;
+}
+
+/* 切换方向感：前进/后退不同动画 */
+.slide.slide-from-right{transform:translateX(120px) scale(.92);}
+.slide.slide-from-left{transform:translateX(-120px) scale(.92);}
+
+/* 缩略图导航 */
+.thumbs{
+    position:fixed;top:60px;right:20px;z-index:40;
+    display:flex;flex-direction:column;gap:6px;
+    opacity:0;transform:translateX(20px);transition:all .4s ease;
+    pointer-events:none;
+}
+.thumbs.show{opacity:1;transform:none;pointer-events:auto;}
+.thumbs label{
+    width:48px;height:28px;border-radius:6px;cursor:pointer;
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+    display:grid;place-items:center;font-size:10px;color:rgba(255,255,255,.4);
+    transition:all .25s ease;
+}
+.thumbs label:hover{background:rgba(255,255,255,.12);color:#fff;}
+#s1:checked ~ .thumbs label[for=s1],
+#s2:checked ~ .thumbs label[for=s2],
+#s3:checked ~ .thumbs label[for=s3],
+#s4:checked ~ .thumbs label[for=s4],
+#s5:checked ~ .thumbs label[for=s5],
+#s6:checked ~ .thumbs label[for=s6]{
+    background:linear-gradient(135deg,var(--blue),var(--purple));
+    color:#fff;border-color:transparent;box-shadow:0 0 12px rgba(10,132,255,.4);
+}
+.thumbs-toggle{
+    position:fixed;top:60px;right:20px;z-index:41;
+    width:28px;height:28px;border-radius:6px;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+    backdrop-filter:blur(10px);display:grid;place-items:center;
+    cursor:pointer;color:rgba(255,255,255,.5);font-size:14px;
+    transition:all .3s ease;
+}
+.thumbs-toggle:hover{color:#fff;background:rgba(255,255,255,.15);}
+.thumbs-toggle.active{transform:translateY(0);}
+
+@media(max-width:768px){
+    .slide h1{font-size:40px;}
+    .slide h2{font-size:28px;}
+    .grid-cards{grid-template-columns:1fr;}
+    .steps{flex-direction:column;gap:16px;}
+    .steps .step::after{display:none;}
+    .autoplay-label{display:none;}
+    .kbd-hint{display:none;}
+    .thumbs{display:none;}
+}
+</style>
+</head>
+<body>
+
+<input type="radio" name="ss" id="s1" checked>
+<input type="radio" name="ss" id="s2">
+<input type="radio" name="ss" id="s3">
+<input type="radio" name="ss" id="s4">
+<input type="radio" name="ss" id="s5">
+<input type="radio" name="ss" id="s6">
+
+<div class="progress"></div>
+<div class="brand"><strong>宁瑞祥</strong> · 高级网页设计</div>
+<div class="page-no"></div>
+
+<!-- 左右切换箭头 -->
+<div class="nav prev">
+    <label for="s1" title="上一页">‹</label>
+</div>
+<div class="nav next">
+    <label for="s2" title="下一页">›</label>
+</div>
+<!-- 默认显示 s1 的 prev/s2 的 next，根据选中态用 :checked 控制指向。
+     由于纯 CSS 难以做"指向上一页"的通用逻辑，这里改为每页都有独立箭头区域，见下方 -->
+<style>
+/* 重置：用 6 组箭头，仅当前页显示 */
+.nav{display:none !important;}
+#s1:checked ~ .nav.n1-prev, #s1:checked ~ .nav.n1-next,
+#s2:checked ~ .nav.n2-prev, #s2:checked ~ .nav.n2-next,
+#s3:checked ~ .nav.n3-prev, #s3:checked ~ .nav.n3-next,
+#s4:checked ~ .nav.n4-prev, #s4:checked ~ .nav.n4-next,
+#s5:checked ~ .nav.n5-prev, #s5:checked ~ .nav.n5-next,
+#s6:checked ~ .nav.n6-prev
+{display:grid !important;}
+</style>
+<div class="nav n1-prev" style="left:24px;"><label for="s1">‹</label></div>
+<div class="nav n1-next" style="right:24px;"><label for="s2">›</label></div>
+<div class="nav n2-prev" style="left:24px;"><label for="s1">‹</label></div>
+<div class="nav n2-next" style="right:24px;"><label for="s3">›</label></div>
+<div class="nav n3-prev" style="left:24px;"><label for="s2">‹</label></div>
+<div class="nav n3-next" style="right:24px;"><label for="s4">›</label></div>
+<div class="nav n4-prev" style="left:24px;"><label for="s3">‹</label></div>
+<div class="nav n4-next" style="right:24px;"><label for="s5">›</label></div>
+<div class="nav n5-prev" style="left:24px;"><label for="s4">‹</label></div>
+<div class="nav n5-next" style="right:24px;"><label for="s6">›</label></div>
+<div class="nav n6-prev" style="left:24px;"><label for="s5">‹</label></div>
+
+<div class="deck">
+    <!-- 背景 -->
+    <div class="bg-layer bg1"></div>
+    <div class="bg-layer bg2"></div>
+    <div class="bg-layer bg3"></div>
+    <div class="bg-layer bg4"></div>
+    <div class="bg-layer bg5"></div>
+    <div class="bg-layer bg6"></div>
+
+    <div class="slides">
+
+        <!-- Slide 1: 封面 -->
+        <section class="slide">
+            <div class="eyebrow reveal">2026 秋季学期 · 课堂实践</div>
+            <h1 class="reveal">高级网页设计</h1>
+            <p class="lead reveal">从层叠与继承到动画与过渡 —— 一段用纯 CSS 讲述的课程旅程。</p>
+            <p class="cite reveal">宁瑞祥 · 班级 503 · 学号 2001010503</p>
+        </section>
+
+        <!-- Slide 2: CSS 基础 -->
+        <section class="slide">
+            <div class="eyebrow reveal">第一章 · 基石</div>
+            <div class="num-big reveal">01</div>
+            <h2 class="reveal">层叠 · 继承 · 盒模型</h2>
+            <div class="grid-cards">
+                <div class="card reveal"><div class="ic">♓</div><h3>层叠优先级</h3><p>!important > 行内 > 内部 > 外部 > 默认</p></div>
+                <div class="card reveal"><div class="ic">▢</div><h3>盒模型四要素</h3><p>margin · border · padding · content</p></div>
+                <div class="card reveal"><div class="ic">⇄</div><h3>继承机制</h3><p>字体、颜色、行高沿 DOM 自动传递</p></div>
+            </div>
+        </section>
+
+        <!-- Slide 3: Flex 布局 -->
+        <section class="slide">
+            <div class="eyebrow reveal">第二章 · 弹性</div>
+            <div class="num-big reveal">02</div>
+            <h2 class="reveal">Flex 一维布局</h2>
+            <div class="steps">
+                <div class="step reveal"><strong>主轴</strong><span>flex-direction</span></div>
+                <div class="step reveal"><strong>对齐</strong><span>justify / align</span></div>
+                <div class="step reveal"><strong>伸缩</strong><span>grow / shrink</span></div>
+                <div class="step reveal"><strong>顺序</strong><span>order</span></div>
+            </div>
+            <p class="lead reveal" style="margin-top:30px;">13 个属性，一维方向上对齐、分配、伸缩的完整工具集。</p>
+        </section>
+
+        <!-- Slide 4: 图文与选择器 -->
+        <section class="slide">
+            <div class="eyebrow reveal">第三章 · 结构与匹配</div>
+            <div class="num-big reveal">03</div>
+            <h2 class="reveal">图文布局 · 选择器</h2>
+            <div class="grid-cards">
+                <div class="card reveal"><div class="ic">⊞</div><h3>上图下文</h3><p>垂直堆叠的卡片式信息流</p></div>
+                <div class="card reveal"><div class="ic">⊟</div><h3>左图右文</h3><p>水平图文并置，响应式断点切换</p></div>
+                <div class="card reveal"><div class="ic">#</div><h3>:nth-child</h3><p>奇偶、倍数、公式匹配元素</p></div>
+            </div>
+        </section>
+
+        <!-- Slide 5: 动画与过渡 -->
+        <section class="slide">
+            <div class="eyebrow reveal">第四章 · 动起来</div>
+            <div class="num-big reveal">04</div>
+            <h2 class="reveal">Transition × Animation</h2>
+            <p class="quote reveal">"从静态到动态，CSS 让网页拥有了呼吸。"</p>
+            <div class="steps">
+                <div class="step reveal"><strong>transition</strong><span>状态间的平滑过渡</span></div>
+                <div class="step reveal"><strong>@keyframes</strong><span>关键帧编排循环动画</span></div>
+                <div class="step reveal"><strong>timing</strong><span>cubic-bezier 缓动</span></div>
+            </div>
+        </section>
+
+        <!-- Slide 6: 结尾 -->
+        <section class="slide">
+            <div class="eyebrow reveal">Thank you</div>
+            <h1 class="reveal">下一站，更远。</h1>
+            <p class="lead reveal">这学期的十个实践页面，是起点，不是终点。</p>
+            <p class="cite reveal">宁瑞祥 · 高级网页设计 · 2026 秋</p>
+        </section>
+
+    </div>
+</div>
+
+<!-- 自动播放控制 + 圆点 -->
+<div class="autoplay-bar">
+    <button class="play-btn" id="playBtn" type="button" aria-label="切换自动播放" title="自动播放 / 暂停">
+        <svg class="ico-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <svg class="ico-pause" viewBox="0 0 24 24" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+        <svg class="ring" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22"/></svg>
+    </button>
+    <div class="dots">
+        <label for="s1" data-tip="封面"></label>
+        <label for="s2" data-tip="CSS 基础"></label>
+        <label for="s3" data-tip="Flex 布局"></label>
+        <label for="s4" data-tip="图文与选择器"></label>
+        <label for="s5" data-tip="动画与过渡"></label>
+        <label for="s6" data-tip="结尾"></label>
+    </div>
+    <span class="autoplay-label">自动播放</span>
+</div>
+
+<!-- 鼠标视差光斑 -->
+<div class="cursor-glow" id="cursorGlow"></div>
+
+<!-- 键盘提示 -->
+<div class="kbd-hint">
+    <kbd>←</kbd><kbd>→</kbd> 切换 · <kbd>Space</kbd> 播放 · <kbd>F</kbd> 全屏 · <kbd>T</kbd> 缩略图
+</div>
+
+<!-- 全屏按钮 -->
+<button class="fs-btn" id="fsBtn" type="button" aria-label="全屏" title="全屏 (F)">
+    <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7v-3h-2v3h-3v2h5v-2zM14 5v2h3v3h2V5h-5z"/></svg>
+</button>
+
+<!-- 缩略图导航 -->
+<button class="thumbs-toggle" id="thumbsToggle" type="button" aria-label="缩略图" title="缩略图 (T)">▦</button>
+<div class="thumbs" id="thumbs">
+    <label for="s1">1</label>
+    <label for="s2">2</label>
+    <label for="s3">3</label>
+    <label for="s4">4</label>
+    <label for="s5">5</label>
+    <label for="s6">6</label>
+</div>
+
+<script>
+(function(){
+    var slides = [s1,s2,s3,s4,s5,s6].map(function(id){return document.getElementById(id);});
+    var total = slides.length;
+    var current = 0;
+    var playing = true;
+    var timer = null;
+    var INTERVAL = 5000;
+    var body = document.body;
+    var playBtn = document.getElementById('playBtn');
+    var icoPlay = playBtn.querySelector('.ico-play');
+    var icoPause = playBtn.querySelector('.ico-pause');
+
+    function indexOfChecked(){
+        for(var i=0;i<total;i++){ if(slides[i].checked) return i; }
+        return 0;
+    }
+    function go(i, dir){
+        var next = ((i % total) + total) % total;
+        if(next === current) return;
+        // 方向感：前进向右滑入，后退向左滑入
+        var fromLeft = dir === 'left' || (dir === undefined && next < current);
+        var slidesEls = document.querySelectorAll('.slide');
+        slidesEls.forEach(function(s){s.classList.remove('slide-from-left','slide-from-right');});
+        var cur = slidesEls[current];
+        if(cur){ cur.classList.add(fromLeft ? 'slide-from-right' : 'slide-from-left'); }
+        current = next;
+        slides[current].checked = true;
+        restartRing();
+    }
+    function next(){ go(current + 1, 'right'); }
+    function prev(){ go(current - 1, 'left'); }
+    function restartRing(){
+        if(!playing) return;
+        body.classList.remove('playing');
+        void body.offsetWidth;
+        body.classList.add('playing');
+    }
+    function play(){
+        playing = true;
+        body.classList.add('playing');
+        icoPlay.style.display='none';
+        icoPause.style.display='';
+        restartRing();
+        timer = setInterval(next, INTERVAL);
+    }
+    function pause(){
+        playing = false;
+        body.classList.remove('playing');
+        icoPlay.style.display='';
+        icoPause.style.display='none';
+        clearInterval(timer);
+    }
+    function toggle(){ playing ? pause() : play(); }
+
+    playBtn.addEventListener('click', toggle);
+
+    // 手动切换（圆点 / 箭头）后重置计时
+    slides.forEach(function(r,i){
+        r.addEventListener('change', function(){
+            current = i;
+            if(playing){ clearInterval(timer); restartRing(); timer = setInterval(next, INTERVAL); }
+        });
+    });
+
+    // 鼠标悬停暂停，离开恢复
+    var deck = document.querySelector('.deck');
+    var hovered = false;
+    deck.addEventListener('mouseenter', function(){
+        hovered = true;
+        if(playing){ clearInterval(timer); body.classList.remove('playing'); }
+    });
+    deck.addEventListener('mouseleave', function(){
+        hovered = false;
+        if(playing){
+            // 从当前页重新计时
+            current = indexOfChecked();
+            restartRing();
+            timer = setInterval(next, INTERVAL);
+        }
+    });
+
+    // 键盘左右键切换 + 快捷键
+    document.addEventListener('keydown', function(e){
+        var k = e.key;
+        if(k === 'ArrowRight'){ prev_stop(); go(current + 1, 'right'); }
+        else if(k === 'ArrowLeft'){ prev_stop(); go(current - 1, 'left'); }
+        else if(k === ' '){ e.preventDefault(); toggle(); }
+        else if(k === 'f' || k === 'F'){ toggleFullscreen(); }
+        else if(k === 't' || k === 'T'){ toggleThumbs(); }
+        function prev_stop(){ if(playing){clearInterval(timer);restartRing();timer=setInterval(next,INTERVAL);} }
+    });
+
+    // ===== 全屏切换 =====
+    var fsBtn = document.getElementById('fsBtn');
+    function toggleFullscreen(){
+        if(!document.fullscreenElement){
+            (document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen || function(){}).call(document.documentElement);
+        } else {
+            (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
+        }
+    }
+    fsBtn.addEventListener('click', toggleFullscreen);
+
+    // ===== 缩略图导航 =====
+    var thumbs = document.getElementById('thumbs');
+    var thumbsToggle = document.getElementById('thumbsToggle');
+    function toggleThumbs(){
+        thumbs.classList.toggle('show');
+        thumbsToggle.classList.toggle('active');
+    }
+    thumbsToggle.addEventListener('click', toggleThumbs);
+
+    // ===== 鼠标视差光斑 =====
+    var glow = document.getElementById('cursorGlow');
+    var gx = window.innerWidth/2, gy = window.innerHeight/2;
+    var tx = gx, ty = gy;
+    document.addEventListener('mousemove', function(e){
+        tx = e.clientX; ty = e.clientY;
+    });
+    function glowLoop(){
+        gx += (tx - gx) * 0.12;
+        gy += (ty - gy) * 0.12;
+        glow.style.transform = 'translate(' + gx + 'px,' + gy + 'px) translate(-50%,-50%)';
+        requestAnimationFrame(glowLoop);
+    }
+    glowLoop();
+
+    // ===== 滚轮切换（防抖） =====
+    var wheelLock = false;
+    document.addEventListener('wheel', function(e){
+        if(wheelLock) return;
+        if(Math.abs(e.deltaY) < 15 && Math.abs(e.deltaX) < 15) return;
+        wheelLock = true;
+        setTimeout(function(){ wheelLock = false; }, 800);
+        var horiz = Math.abs(e.deltaX) > Math.abs(e.deltaY);
+        var delta = horiz ? e.deltaX : e.deltaY;
+        if(delta > 0){ go(current + 1, 'right'); }
+        else { go(current - 1, 'left'); }
+        if(playing){ clearInterval(timer); restartRing(); timer = setInterval(next, INTERVAL); }
+    }, { passive: true });
+
+    // ===== 触摸滑动切换 =====
+    var touchX = 0, touchY = 0;
+    document.addEventListener('touchstart', function(e){
+        touchX = e.touches[0].clientX;
+        touchY = e.touches[0].clientY;
+    }, { passive: true });
+    document.addEventListener('touchend', function(e){
+        var dx = e.changedTouches[0].clientX - touchX;
+        var dy = e.changedTouches[0].clientY - touchY;
+        if(Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)){
+            if(dx < 0){ go(current + 1, 'right'); }
+            else { go(current - 1, 'left'); }
+            if(playing){ clearInterval(timer); restartRing(); timer = setInterval(next, INTERVAL); }
+        }
+    }, { passive: true });
+
+    // 尊重 reduced-motion：不自动播放
+    if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches){
+        pause();
+    } else {
+        // 启动自动播放
+        body.classList.add('playing');
+        icoPlay.style.display='none';
+        icoPause.style.display='';
+        // 初始 ring
+        void body.offsetWidth;
+        timer = setInterval(next, INTERVAL);
+    }
+})();
+</script>
+
+</body>
+</html>

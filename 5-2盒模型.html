@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>盒子模型 · 边框 / 内边距 / 外边距</title>
+    <style>
+        /* =========================================================
+           设计 Token（极简系统：统一色彩 / 阴影 / 圆角）
+           ========================================================= */
+        :root{
+            --bg-1:#f5f7fa;
+            --bg-2:#e9edf3;
+            --ink-1:#1d1d1f;
+            --ink-2:#6e6e73;
+            --ink-3:#aeaeb2;
+            --blue:#007aff;
+            --cyan:#5ac8fa;
+            --purple:#af52de;
+            --orange:#ff9500;
+            --red:#ff3b30;
+            --card:#ffffff;
+            --line:rgba(0,0,0,.06);
+            --shadow-soft:0 4px 24px rgba(0,0,0,.06);
+            --shadow-3d:0 30px 60px -20px rgba(31,38,135,.25);
+            --radius:22px;
+        }
+
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html{scroll-behavior:smooth;}
+
+        body{
+            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Roboto,sans-serif;
+            color:var(--ink-1);
+            background:
+                radial-gradient(1200px 600px at 80% -10%,rgba(175,82,222,.10),transparent 60%),
+                radial-gradient(1000px 500px at 0% 0%,rgba(0,122,255,.10),transparent 55%),
+                linear-gradient(180deg,var(--bg-1),var(--bg-2));
+            min-height:100vh;
+            line-height:1.6;
+            overflow-x:hidden;
+        }
+
+        /* =========================================================
+           顶部 Hero（3D 立体标题）
+           ========================================================= */
+        .hero{
+            text-align:center;
+            padding:72px 20px 30px;
+            perspective:900px;
+        }
+        .hero .kicker{
+            display:inline-block;
+            font-size:.82em;
+            letter-spacing:3px;
+            color:var(--blue);
+            background:rgba(0,122,255,.08);
+            padding:6px 16px;
+            border-radius:999px;
+            margin-bottom:18px;
+        }
+        .hero h2{
+            font-size:clamp(2.2em,6vw,3.6em);
+            font-weight:800;
+            letter-spacing:4px;
+            text-align:center;
+            transform-style:preserve-3d;
+            animation:heroFloat 6s ease-in-out infinite;
+            text-shadow:
+                0 1px 0 #d8dde4,
+                0 2px 0 #cdd3db,
+                0 3px 0 #c2c9d2,
+                0 6px 14px rgba(0,0,0,.16),
+                0 12px 30px rgba(0,122,255,.18);
+        }
+        @keyframes heroFloat{
+            0%,100%{transform:translateY(0) rotateX(0);}
+            50%{transform:translateY(-8px) rotateX(4deg);}
+        }
+        .hero p{
+            color:var(--ink-2);
+            margin-top:14px;
+            font-size:1.02em;
+        }
+        .chips{
+            margin-top:18px;
+            display:flex;
+            gap:10px;
+            justify-content:center;
+            flex-wrap:wrap;
+        }
+        .chips span{
+            font-size:.82em;
+            color:var(--ink-2);
+            background:var(--card);
+            border:1px solid var(--line);
+            padding:5px 14px;
+            border-radius:999px;
+            box-shadow:var(--shadow-soft);
+        }
+
+        /* =========================================================
+           通用 3D 舞台
+           ========================================================= */
+        .wrap{
+            max-width:1080px;
+            margin:0 auto;
+            padding:26px 20px 70px;
+        }
+        .scene{
+            perspective:1500px;
+            margin-bottom:56px;
+        }
+        .tilt{
+            transform-style:preserve-3d;
+            transition:transform .18s ease-out;
+            will-change:transform;
+        }
+        .panel{
+            position:relative;
+            background:rgba(255,255,255,.72);
+            backdrop-filter:blur(18px);
+            -webkit-backdrop-filter:blur(18px);
+            border:1px solid rgba(255,255,255,.9);
+            border-radius:var(--radius);
+            box-shadow:var(--shadow-3d);
+            padding:34px 26px;
+            transform-style:preserve-3d;
+        }
+        .panel-tag{
+            display:inline-block;
+            font-size:.76em;
+            letter-spacing:2px;
+            color:#fff;
+            background:linear-gradient(135deg,var(--blue),var(--purple));
+            padding:4px 12px;
+            border-radius:999px;
+            margin-bottom:10px;
+            transform:translateZ(40px);
+        }
+        .panel h3{
+            font-size:1.25em;
+            margin-bottom:4px;
+            transform:translateZ(32px);
+        }
+        .panel .tip{
+            font-size:.88em;
+            color:var(--ink-2);
+            margin-bottom:22px;
+            transform:translateZ(24px);
+        }
+        .panel .tip code{
+            background:rgba(0,0,0,.06);
+            padding:1px 7px;
+            border-radius:6px;
+            font-family:"SF Mono",Menlo,Consolas,monospace;
+            font-size:.92em;
+            color:#c93400;
+        }
+
+        /* =========================================================
+           ★ 课堂任务：盒模型四个盒子 a / b / c / d
+             要求：边框 dotted，宽度 3px，颜色 red，内容：宁瑞祥，班级：503
+           ========================================================= */
+        .boxes{
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:26px;
+            transform-style:preserve-3d;
+        }
+
+        #a, #b, #c, #d{
+            /* 盒子模型四要素：margin → border → padding → content */
+            margin: 24px 12px;               /* 外边距 */
+            padding: 36px 24px;              /* 内边距 */
+            border: 3px dotted red;          /* 边框：3px、dotted、red */
+            border-radius: 18px;             /* 圆角 */
+            background-color: #ffffff;       /* 内容区背景 */
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            font: 1em sans-serif;
+            text-align:center;
+            color:#1d1d1f;
+            position:relative;
+            transform-style:preserve-3d;
+            transition:transform .3s ease, box-shadow .3s ease;
+        }
+
+        /* 四个盒子的 3D 前后错落 */
+        #a{ transform:translateZ(60px) rotate(-1deg); }
+        #b{ transform:translateZ(40px) rotate(1deg); }
+        #c{ transform:translateZ(20px) rotate(-1deg); }
+        #d{ transform:translateZ(0) rotate(1deg); }
+
+        /* 盒子的「标签徽章」：显示 a/b/c/d */
+        #a::before, #b::before, #c::before, #d::before{
+            content:attr(data-id);
+            position:absolute;
+            top:-14px;
+            left:50%;
+            transform:translateX(-50%);
+            width:30px;
+            height:30px;
+            line-height:30px;
+            text-align:center;
+            border-radius:50%;
+            background:var(--red);
+            color:#fff;
+            font-weight:700;
+            font-size:.9em;
+            box-shadow:0 6px 14px rgba(255,59,48,.4);
+        }
+
+        /* 盒模型可视化：margin / border / padding / content 四层提示 */
+        .box-meta{
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:6px 12px;
+            margin-top:14px;
+            font-size:.72em;
+            color:var(--ink-2);
+            text-align:left;
+            font-family:"SF Mono",Menlo,Consolas,monospace;
+        }
+        .box-meta span b{
+            color:var(--red);
+            font-weight:600;
+        }
+
+        #a:hover, #b:hover, #c:hover, #d:hover{
+            transform:translateZ(80px) scale(1.04) rotate(0);
+            box-shadow:0 30px 50px -10px rgba(255,59,48,.35);
+        }
+
+        /* =========================================================
+           盒模型结构解剖图（3D 图层）
+           ========================================================= */
+        .anatomy{
+            position:relative;
+            display:grid;
+            place-items:center;
+            min-height:420px;
+            transform-style:preserve-3d;
+        }
+        .layer-box{
+            position:absolute;
+            display:grid;
+            place-items:center;
+            border-radius:18px;
+            font-weight:600;
+            text-align:center;
+            transition:transform .4s ease;
+        }
+        .layer-box small{
+            display:block;
+            font-weight:400;
+            font-size:.7em;
+            opacity:.85;
+            margin-top:4px;
+        }
+        .m-layer{
+            width:360px; height:360px;
+            background:rgba(175,82,222,.18);
+            border:2px dashed var(--purple);
+            color:var(--purple);
+            transform:translateZ(0);
+        }
+        .b-layer{
+            width:300px; height:300px;
+            background:rgba(255,59,48,.12);
+            border:3px dotted var(--red);
+            color:var(--red);
+            transform:translateZ(30px);
+        }
+        .p-layer{
+            width:240px; height:240px;
+            background:rgba(255,149,0,.14);
+            border:2px solid var(--orange);
+            color:#b25a00;
+            transform:translateZ(60px);
+        }
+        .c-layer{
+            width:180px; height:180px;
+            background:rgba(0,122,255,.12);
+            border:2px solid var(--blue);
+            color:var(--blue);
+            transform:translateZ(90px);
+            font-size:.95em;
+        }
+        .anatomy:hover .m-layer{ transform:translateZ(0) translateY(-26px); }
+        .anatomy:hover .b-layer{ transform:translateZ(40px) translateY(-10px); }
+        .anatomy:hover .p-layer{ transform:translateZ(80px) translateY(6px); }
+        .anatomy:hover .c-layer{ transform:translateZ(120px) translateY(22px); }
+
+        .legend{
+            display:flex;
+            gap:18px;
+            flex-wrap:wrap;
+            justify-content:center;
+            margin-top:24px;
+            font-size:.82em;
+        }
+        .legend span{
+            display:flex;
+            align-items:center;
+            gap:8px;
+            color:var(--ink-2);
+        }
+        .legend i{
+            width:14px; height:14px;
+            border-radius:4px;
+            display:inline-block;
+        }
+
+        /* =========================================================
+           页脚
+           ========================================================= */
+        footer{
+            text-align:center;
+            padding:26px 20px 40px;
+            color:var(--ink-3);
+            font-size:.84em;
+        }
+
+        /* =========================================================
+           响应式
+           ========================================================= */
+        @media (max-width:680px){
+            .boxes{grid-template-columns:1fr;}
+            .m-layer{width:300px;height:300px;}
+            .b-layer{width:250px;height:250px;}
+            .p-layer{width:200px;height:200px;}
+            .c-layer{width:150px;height:150px;font-size:.85em;}
+            .panel{padding:24px 16px;}
+        }
+        @media (prefers-reduced-motion:reduce){
+            *{animation:none !important;transition:none !important;}
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============ Hero ============ -->
+    <header class="hero">
+        <span class="kicker">ADVANCED WEB DESIGN</span>
+        <h2>盒子模型</h2>
+        <p>内容 · 内边距 · 边框 · 外边距 —— 3D 极简演示</p>
+        <div class="chips">
+            <span>学号 2001010503</span>
+            <span>宁瑞祥 · 计算机23005</span>
+            <span>边框：3px dotted red</span>
+        </div>
+    </header>
+
+    <main class="wrap">
+
+        <!-- ============ 舞台一：四个盒子 a / b / c / d ============ -->
+        <section class="scene">
+            <div class="tilt">
+                <div class="panel">
+                    <span class="panel-tag">BOX MODEL</span>
+                    <h3>四个盒子 · a / b / c / d</h3>
+                    <p class="tip">
+                        每个盒子的边框均为 <code>3px dotted red</code>，内容「宁瑞祥，班级：503」。
+                        悬停盒子可在 3D 空间中向前浮出。
+                    </p>
+
+                    <div class="boxes">
+                        <div id="a" data-id="a">
+                            宁瑞祥，班级：503
+                            <div class="box-meta">
+                                <span><b>margin</b>: 24px 12px</span>
+                                <span><b>padding</b>: 36px 24px</span>
+                                <span><b>border</b>: 3px dotted red</span>
+                                <span><b>radius</b>: 18px</span>
+                            </div>
+                        </div>
+
+                        <div id="b" data-id="b">
+                            宁瑞祥，班级：503
+                            <div class="box-meta">
+                                <span><b>margin</b>: 24px 12px</span>
+                                <span><b>padding</b>: 36px 24px</span>
+                                <span><b>border</b>: 3px dotted red</span>
+                                <span><b>radius</b>: 18px</span>
+                            </div>
+                        </div>
+
+                        <div id="c" data-id="c">
+                            宁瑞祥，班级：503
+                            <div class="box-meta">
+                                <span><b>margin</b>: 24px 12px</span>
+                                <span><b>padding</b>: 36px 24px</span>
+                                <span><b>border</b>: 3px dotted red</span>
+                                <span><b>radius</b>: 18px</span>
+                            </div>
+                        </div>
+
+                        <div id="d" data-id="d">
+                            宁瑞祥，班级：503
+                            <div class="box-meta">
+                                <span><b>margin</b>: 24px 12px</span>
+                                <span><b>padding</b>: 36px 24px</span>
+                                <span><b>border</b>: 3px dotted red</span>
+                                <span><b>radius</b>: 18px</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ 舞台二：盒模型结构解剖图 ============ -->
+        <section class="scene">
+            <div class="tilt">
+                <div class="panel">
+                    <span class="panel-tag">ANATOMY</span>
+                    <h3>盒模型结构解剖</h3>
+                    <p class="tip">由外到内：外边距 → 边框 → 内边距 → 内容区（悬停查看分层展开）</p>
+
+                    <div class="anatomy">
+                        <div class="layer-box m-layer">Margin<small>外边距：盒子之间的距离</small></div>
+                        <div class="layer-box b-layer">Border<small>边框：3px dotted red</small></div>
+                        <div class="layer-box p-layer">Padding<small>内边距：内容与边框</small></div>
+                        <div class="layer-box c-layer">Content<small>内容：宁瑞祥，班级：503</small></div>
+                    </div>
+
+                    <div class="legend">
+                        <span><i style="background:var(--purple)"></i> Margin 外边距</span>
+                        <span><i style="background:var(--red)"></i> Border 边框</span>
+                        <span><i style="background:var(--orange)"></i> Padding 内边距</span>
+                        <span><i style="background:var(--blue)"></i> Content 内容</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        © 《高级网页设计》课堂实践 · 盒子模型 · 纯原生 HTML / CSS / JS，无 CDN
+    </footer>
+
+    <script>
+        // ===== 鼠标 3D 倾斜（纯原生，rAF 节流） =====
+        document.querySelectorAll('.scene').forEach(scene => {
+            const tilt = scene.querySelector('.tilt');
+            let raf = null;
+            let tx = 0, ty = 0;
+
+            scene.addEventListener('mousemove', e => {
+                const r = scene.getBoundingClientRect();
+                const px = (e.clientX - r.left) / r.width - 0.5;
+                const py = (e.clientY - r.top) / r.height - 0.5;
+                ty = px * 10;
+                tx = -py * 10;
+                if (!raf) {
+                    raf = requestAnimationFrame(() => {
+                        tilt.style.transform = `rotateX(${tx}deg) rotateY(${ty}deg)`;
+                        raf = null;
+                    });
+                }
+            });
+
+            scene.addEventListener('mouseleave', () => {
+                tilt.style.transition = 'transform .6s cubic-bezier(.2,.8,.2,1)';
+                tilt.style.transform = 'rotateX(0deg) rotateY(0deg)';
+                setTimeout(() => tilt.style.transition = 'transform .18s ease-out', 600);
+            });
+        });
+    </script>
+</body>
+</html>

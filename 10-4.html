@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>宁瑞祥 · Media Query 布局 · 八盒响应式</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html{font-size:16px;}
+body{
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    min-width:320px;
+    background:linear-gradient(135deg,#1a1a2e 0%,#0f0f1e 100%);
+    color:#f5f5f7;padding:1.5rem;
+}
+
+/* ===== 顶部信息条 ===== */
+.info{
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;
+    padding:1rem 1.5rem;border-radius:0.75rem;
+    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+    backdrop-filter:blur(10px);margin-bottom:1.5rem;
+}
+.info .item{display:flex;align-items:center;gap:0.5rem;font-size:0.9rem;}
+.info .label{color:rgba(255,255,255,.5);}
+.info .value{color:#ff9f0a;font-weight:700;font-variant-numeric:tabular-nums;}
+.info .bp{
+    padding:0.3rem 0.8rem;border-radius:1rem;
+    background:linear-gradient(135deg,#0a84ff,#bf5af2);
+    font-size:0.75rem;font-weight:600;letter-spacing:1px;
+}
+
+/* ===== Hero ===== */
+.hero{text-align:center;margin-bottom:1.5rem;}
+.hero h1{
+    font-size:2.25rem;font-weight:700;letter-spacing:-0.02em;
+    background:linear-gradient(180deg,#fff,#a0a0a8);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    margin-bottom:0.25rem;
+}
+.hero p{font-size:0.9rem;color:rgba(255,255,255,.5);}
+
+/* ===== 盒子网格 ===== */
+.boxes{
+    display:grid;gap:0.75rem;
+    grid-template-columns:1fr;
+    max-width:72rem;margin:0 auto;
+}
+.box{
+    border-radius:0.75rem;padding:1.5rem 1rem;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;min-height:7rem;
+    border:1px solid rgba(255,255,255,.15);
+    transition:transform .3s ease,box-shadow .3s ease;
+    /* 默认隐藏，由 media 控制 */
+    display:none;
+}
+.box:hover{transform:translateY(-4px) scale(1.02);box-shadow:0 12px 30px rgba(0,0,0,.4);}
+.box .num{font-size:2rem;font-weight:800;margin-bottom:0.25rem;}
+.box .name{font-size:0.85rem;color:rgba(255,255,255,.7);}
+.box .tag{font-size:0.7rem;color:rgba(255,255,255,.4);margin-top:0.25rem;}
+
+/* 8 种渐变色 */
+.box:nth-child(1){background:linear-gradient(135deg,#ff6b6b,#c92a2a);}
+.box:nth-child(2){background:linear-gradient(135deg,#ffa94d,#e8590c);}
+.box:nth-child(3){background:linear-gradient(135deg,#ffd43b,#f59f00);}
+.box:nth-child(4){background:linear-gradient(135deg,#51cf66,#2f9e44);}
+.box:nth-child(5){background:linear-gradient(135deg,#22b8cf,#1971c2);}
+.box:nth-child(6){background:linear-gradient(135deg,#5c7cfa,#3b5bdb);}
+.box:nth-child(7){background:linear-gradient(135deg,#cc5de8,#9c36b5);}
+.box:nth-child(8){background:linear-gradient(135deg,#f783ac,#c2255c);}
+
+/* ===== 默认（320px 起）：显示 2 个，1 列 ===== */
+.boxes .box:nth-child(-n+2){display:flex;}
+
+/* ===== Media 1：≥768px 显示 4 个，2 列 ===== */
+@media (min-width:768px){
+    .boxes{grid-template-columns:repeat(2,1fr);}
+    .boxes .box{display:none;}
+    .boxes .box:nth-child(-n+4){display:flex;}
+}
+
+/* ===== Media 2：≥1024px 显示 6 个，3 列 ===== */
+@media (min-width:1024px){
+    .boxes{grid-template-columns:repeat(3,1fr);}
+    .boxes .box{display:none;}
+    .boxes .box:nth-child(-n+6){display:flex;}
+}
+
+/* ===== Media 3：≥1280px 显示全部 8 个，4 列 ===== */
+@media (min-width:1280px){
+    .boxes{grid-template-columns:repeat(4,1fr);}
+    .boxes .box{display:flex;}
+}
+
+/* ===== 断点说明卡 ===== */
+.legend{
+    display:grid;gap:0.75rem;max-width:72rem;margin:1.5rem auto 0;
+    grid-template-columns:1fr;
+}
+.legend .row{
+    display:flex;align-items:center;gap:1rem;
+    padding:0.75rem 1rem;border-radius:0.5rem;
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+}
+.legend .row.active{
+    border-color:#ff9f0a;background:rgba(255,159,10,.08);
+    box-shadow:0 0 1rem rgba(255,159,10,.15);
+}
+.legend .dot{width:1rem;height:1rem;border-radius:50%;flex-shrink:0;}
+.legend .range{font-weight:600;font-size:0.9rem;min-width:8rem;}
+.legend .desc{color:rgba(255,255,255,.55);font-size:0.8rem;flex:1;}
+.legend .count{
+    padding:0.25rem 0.75rem;border-radius:1rem;
+    background:rgba(255,255,255,.1);font-size:0.75rem;font-weight:600;
+}
+
+@media(min-width:768px){
+    .legend{grid-template-columns:repeat(2,1fr);}
+}
+@media(min-width:1024px){
+    .legend{grid-template-columns:repeat(4,1fr);}
+}
+
+footer{
+    text-align:center;margin-top:1.5rem;
+    font-size:0.8rem;color:rgba(255,255,255,.4);
+}
+footer strong{color:rgba(255,255,255,.7);}
+</style>
+</head>
+<body>
+
+<div class="info">
+    <div class="item"><span class="label">视口宽度</span><span class="value" id="vpw">0</span>px</div>
+    <div class="item"><span class="label">可见盒子</span><span class="value" id="cnt">2</span>/8</div>
+    <div class="item"><span class="label">当前断点</span><span class="bp" id="bp">默认</span></div>
+</div>
+
+<div class="hero">
+    <h1>宁瑞祥 · 八盒响应式</h1>
+    <p>拖动浏览器窗口 —— 盒子数量随视口变化：2 → 4 → 6 → 8</p>
+</div>
+
+<div class="boxes">
+    <div class="box"><div class="num">1</div><div class="name">宁瑞祥</div><div class="tag">层叠继承</div></div>
+    <div class="box"><div class="num">2</div><div class="name">宁瑞祥</div><div class="tag">盒模型</div></div>
+    <div class="box"><div class="num">3</div><div class="name">宁瑞祥</div><div class="tag">Flex</div></div>
+    <div class="box"><div class="num">4</div><div class="name">宁瑞祥</div><div class="tag">图文</div></div>
+    <div class="box"><div class="num">5</div><div class="name">宁瑞祥</div><div class="tag">选择器</div></div>
+    <div class="box"><div class="num">6</div><div class="name">宁瑞祥</div><div class="tag">过渡</div></div>
+    <div class="box"><div class="num">7</div><div class="name">宁瑞祥</div><div class="tag">动画</div></div>
+    <div class="box"><div class="num">8</div><div class="name">宁瑞祥</div><div class="tag">幻灯片</div></div>
+</div>
+
+<div class="legend" id="legend">
+    <div class="row" data-bp="0"><div class="dot" style="background:#c92a2a"></div><div class="range">320 – 767px</div><div class="desc">默认：1 列</div><div class="count">2 盒</div></div>
+    <div class="row" data-bp="1"><div class="dot" style="background:#e8590c"></div><div class="range">≥ 768px</div><div class="desc">Media 1：2 列</div><div class="count">4 盒</div></div>
+    <div class="row" data-bp="2"><div class="dot" style="background:#1971c2"></div><div class="range">≥ 1024px</div><div class="desc">Media 2：3 列</div><div class="count">6 盒</div></div>
+    <div class="row" data-bp="3"><div class="dot" style="background:#9c36b5"></div><div class="range">≥ 1280px</div><div class="desc">Media 3：4 列</div><div class="count">8 盒</div></div>
+</div>
+
+<footer><strong>宁瑞祥</strong> · 班级 503 · 学号 2001010503 · @media 媒体查询布局实践</footer>
+
+<script>
+(function(){
+    var vpw=document.getElementById('vpw');
+    var cnt=document.getElementById('cnt');
+    var bp=document.getElementById('bp');
+    var rows=document.getElementById('legend').querySelectorAll('.row');
+    function update(){
+        var w=window.innerWidth;
+        vpw.textContent=w;
+        var i,c,name;
+        if(w>=1280){i=3;c=8;name='Media 3';}
+        else if(w>=1024){i=2;c=6;name='Media 2';}
+        else if(w>=768){i=1;c=4;name='Media 1';}
+        else{i=0;c=2;name='默认';}
+        cnt.textContent=c;bp.textContent=name;
+        rows.forEach(function(r,idx){r.classList.toggle('active',idx===i);});
+    }
+    window.addEventListener('resize',update);
+    update();
+})();
+</script>
+</body>
+</html>

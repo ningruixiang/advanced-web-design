@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>宁瑞祥 · iPhone 17 · 纯 CSS Animation</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+    --titanium:linear-gradient(135deg,#d8d8dc 0%,#a8a8b0 25%,#f4f4f6 50%,#8a8a92 75%,#dcdce0 100%);
+    --titanium-edge:linear-gradient(90deg,#6a6a72,#dcdce0,#6a6a72);
+    --screen:linear-gradient(160deg,#0a0a1f 0%,#1a1040 30%,#2a1060 50%,#0a2050 70%,#0a0a1f 100%);
+    --glass:rgba(255,255,255,.12);
+    --blue:#0a84ff;
+    --purple:#bf5af2;
+    --orange:#ff9f0a;
+}
+html,body{height:100%;overflow:hidden;}
+body{
+    background:radial-gradient(ellipse 80% 60% at 50% 55%,#1a1a2a 0%,#0a0a12 50%,#000 100%);
+    font-family:-apple-system,"SF Pro Display","PingFang SC",sans-serif;
+    color:#fff;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    perspective:2000px;
+    position:relative;
+}
+
+/* ===== 背景星点 ===== */
+.stars{position:absolute;inset:0;overflow:hidden;z-index:0;}
+.stars::before,.stars::after{
+    content:"";position:absolute;inset:-50%;
+    background-image:
+        radial-gradient(1px 1px at 10% 20%,rgba(255,255,255,.6),transparent),
+        radial-gradient(1px 1px at 30% 80%,rgba(255,255,255,.4),transparent),
+        radial-gradient(1.5px 1.5px at 50% 40%,rgba(255,255,255,.8),transparent),
+        radial-gradient(1px 1px at 70% 10%,rgba(255,255,255,.5),transparent),
+        radial-gradient(1px 1px at 85% 65%,rgba(255,255,255,.6),transparent),
+        radial-gradient(1.5px 1.5px at 20% 50%,rgba(255,255,255,.3),transparent),
+        radial-gradient(1px 1px at 60% 90%,rgba(255,255,255,.4),transparent);
+    background-size:300px 300px;
+    animation:twinkle 4s ease-in-out infinite alternate;
+}
+.stars::after{
+    background-size:400px 400px;animation-delay:-2s;opacity:.5;
+}
+@keyframes twinkle{from{opacity:.3;}to{opacity:.9;}}
+
+/* ===== 底部光晕 ===== */
+.spotlight{
+    position:absolute;bottom:-20%;left:50%;transform:translateX(-50%);
+    width:80%;height:40%;
+    background:radial-gradient(ellipse at center top,rgba(10,132,255,.25) 0%,rgba(191,90,242,.15) 30%,transparent 70%);
+    filter:blur(40px);
+    animation:spotlightBreath 5s ease-in-out infinite;
+    z-index:1;
+}
+@keyframes spotlightBreath{
+    0%,100%{opacity:.7;transform:translateX(-50%) scale(1);}
+    50%{opacity:1;transform:translateX(-50%) scale(1.08);}
+}
+
+/* ===== 聚光灯锥形 ===== */
+.beam{
+    position:absolute;top:0;left:50%;
+    width:600px;height:100vh;
+    background:linear-gradient(180deg,rgba(255,255,255,.04) 0%,transparent 60%);
+    transform:translateX(-50%);
+    clip-path:polygon(45% 0,55% 0,100% 100%,0 100%);
+    animation:beamFade 1.5s 0.3s cubic-bezier(.25,.46,.45,.94) forwards;
+    opacity:0;z-index:1;
+}
+@keyframes beamFade{to{opacity:1;}}
+
+/* ===== iPhone 17 舞台 ===== */
+.stage{
+    position:relative;z-index:5;
+    transform-style:preserve-3d;
+    animation:phoneEnter 1.8s 0.8s cubic-bezier(.16,1,.3,1) forwards;
+    opacity:0;transform:translateY(120px) scale(.7) rotateY(15deg);
+}
+@keyframes phoneEnter{
+    to{opacity:1;transform:translateY(0) scale(1) rotateY(0);}
+}
+
+/* ===== iPhone 17 本体 ===== */
+.iphone{
+    width:260px;height:540px;
+    border-radius:48px;
+    background:var(--titanium);
+    padding:6px;
+    position:relative;
+    box-shadow:
+        0 30px 80px rgba(0,0,0,.6),
+        0 60px 120px rgba(10,132,255,.15),
+        inset 0 0 2px rgba(255,255,255,.8),
+        inset 0 0 6px rgba(0,0,0,.2);
+    transform-style:preserve-3d;
+    animation:phoneFloat 8s 2.6s cubic-bezier(.25,.46,.45,.94) infinite,
+              phoneSpin 12s 2.6s ease-in-out infinite;
+}
+@keyframes phoneFloat{
+    0%,100%{transform:rotateY(0) rotateX(0);}
+    25%{transform:rotateY(12deg) rotateX(-3deg);}
+    50%{transform:rotateY(0) rotateY(0) translateY(-8px);}
+    75%{transform:rotateY(-12deg) rotateX(3deg);}
+}
+@keyframes phoneSpin{
+    0%{transform:rotateY(0);}
+    50%{transform:rotateY(15deg);}
+    100%{transform:rotateY(0);}
+}
+
+/* 钛金属边框高光 */
+.iphone::before{
+    content:"";position:absolute;inset:0;border-radius:48px;
+    background:linear-gradient(135deg,rgba(255,255,255,.4) 0%,transparent 30%,transparent 70%,rgba(255,255,255,.2) 100%);
+    pointer-events:none;
+}
+
+/* 侧边按钮 */
+.iphone .btn-mute{position:absolute;left:-2px;top:110px;width:4px;height:28px;border-radius:2px;background:var(--titanium-edge);}
+.iphone .btn-vol-up{position:absolute;left:-2px;top:150px;width:4px;height:50px;border-radius:2px;background:var(--titanium-edge);}
+.iphone .btn-vol-dn{position:absolute;left:-2px;top:210px;width:4px;height:50px;border-radius:2px;background:var(--titanium-edge);}
+.iphone .btn-power{position:absolute;right:-2px;top:140px;width:4px;height:70px;border-radius:2px;background:var(--titanium-edge);}
+
+/* ===== 屏幕 ===== */
+.screen{
+    width:100%;height:100%;
+    border-radius:42px;
+    background:var(--screen);
+    overflow:hidden;
+    position:relative;
+    animation:screenOn 1s 2s cubic-bezier(.16,1,.3,1) forwards;
+    opacity:.3;
+}
+@keyframes screenOn{
+    to{opacity:1;}
+}
+
+/* 屏幕动态壁纸渐变流动 */
+.screen::before{
+    content:"";position:absolute;inset:0;
+    background:
+        radial-gradient(circle at 30% 20%,rgba(10,132,255,.5) 0%,transparent 50%),
+        radial-gradient(circle at 70% 80%,rgba(191,90,242,.5) 0%,transparent 50%),
+        radial-gradient(circle at 50% 50%,rgba(255,159,10,.2) 0%,transparent 60%);
+    animation:wallpaperFlow 8s ease-in-out infinite alternate;
+}
+@keyframes wallpaperFlow{
+    0%{transform:scale(1) rotate(0deg);filter:hue-rotate(0deg);}
+    50%{transform:scale(1.15) rotate(5deg);filter:hue-rotate(20deg);}
+    100%{transform:scale(1.1) rotate(-3deg);filter:hue-rotate(-15deg);}
+}
+
+/* 灵动岛 */
+.dynamic-island{
+    position:absolute;top:14px;left:50%;transform:translateX(-50%);
+    width:100px;height:30px;
+    background:#000;border-radius:16px;
+    z-index:10;
+    box-shadow:0 0 0 1px rgba(255,255,255,.05);
+    animation:islandPulse 4s 3s ease-in-out infinite;
+}
+@keyframes islandPulse{
+    0%,100%{width:100px;}
+    50%{width:120px;}
+}
+
+/* 屏幕内容 */
+.screen-content{
+    position:absolute;inset:0;z-index:5;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    animation:contentIn 1.5s 3s cubic-bezier(.16,1,.3,1) forwards;
+    opacity:0;
+}
+@keyframes contentIn{to{opacity:1;}}
+
+.screen-content .time{
+    font-size:64px;font-weight:200;letter-spacing:-2px;
+    text-shadow:0 0 30px rgba(255,255,255,.3);
+    animation:timeGlow 3s 3.5s ease-in-out infinite alternate;
+}
+@keyframes timeGlow{
+    from{text-shadow:0 0 20px rgba(255,255,255,.2);}
+    to{text-shadow:0 0 40px rgba(10,132,255,.5),0 0 20px rgba(255,255,255,.3);}
+}
+.screen-content .date{
+    font-size:13px;color:rgba(255,255,255,.7);margin-top:4px;letter-spacing:1px;
+}
+
+/* 底部 Dock */
+.dock{
+    position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
+    width:80%;height:50px;
+    background:rgba(255,255,255,.08);
+    backdrop-filter:blur(20px);border-radius:20px;
+    border:1px solid rgba(255,255,255,.1);
+    display:flex;align-items:center;justify-content:space-around;
+    animation:dockIn 1s 4s cubic-bezier(.16,1,.3,1) forwards;
+    opacity:0;transform:translate(-50%,30px);
+}
+@keyframes dockIn{to{opacity:1;transform:translateX(-50) translateY(0);}}
+.dock span{
+    width:32px;height:32px;border-radius:8px;
+    background:linear-gradient(135deg,var(--blue),var(--purple));
+    opacity:.8;
+}
+.dock span:nth-child(1){background:linear-gradient(135deg,#34c759,#30d158);}
+.dock span:nth-child(2){background:linear-gradient(135deg,#ff9500,#ff6b00);}
+.dock span:nth-child(3){background:linear-gradient(135deg,#5ac8fa,#0a84ff);}
+.dock span:nth-child(4){background:linear-gradient(135deg,#bf5af2,#ff375f);}
+
+/* ===== 摄像头模组 ===== */
+.camera-module{
+    position:absolute;top:-8px;left:50%;transform:translateX(-50%);
+    width:90px;height:90px;
+    background:linear-gradient(135deg,#2a2a2e,#1a1a1e,#3a3a3e);
+    border-radius:24px;
+    padding:10px;
+    box-shadow:0 8px 24px rgba(0,0,0,.5),inset 0 0 2px rgba(255,255,255,.2);
+    display:grid;grid-template-columns:1fr 1fr;gap:6px;
+    z-index:6;
+    animation:moduleGlow 3s 3s ease-in-out infinite;
+}
+@keyframes moduleGlow{
+    0%,100%{box-shadow:0 8px 24px rgba(0,0,0,.5),inset 0 0 2px rgba(255,255,255,.2),0 0 0px rgba(10,132,255,0);}
+    50%{box-shadow:0 8px 24px rgba(0,0,0,.5),inset 0 0 2px rgba(255,255,255,.2),0 0 30px rgba(10,132,255,.4),0 0 60px rgba(191,90,242,.2);}
+}
+.camera-module .lens{
+    width:30px;height:30px;border-radius:50%;
+    background:radial-gradient(circle at 30% 30%,#3a3a4a 0%,#000 60%,#1a1a2a 100%);
+    border:2px solid #1a1a1e;
+    position:relative;
+}
+.camera-module .lens::before{
+    content:"";position:absolute;top:6px;left:6px;width:8px;height:8px;
+    border-radius:50%;background:rgba(10,132,255,.6);
+    filter:blur(1px);
+    animation:lensFlare 3s 3s ease-in-out infinite alternate;
+}
+.camera-module .lens:nth-child(2)::before{background:rgba(191,90,242,.6);}
+.camera-module .lens:nth-child(3)::before{background:rgba(255,159,10,.6);animation-delay:1.5s;}
+@keyframes lensFlare{
+    from{opacity:.3;transform:scale(.8);}
+    to{opacity:1;transform:scale(1.2);}
+}
+.camera-module .lens:nth-child(4){
+    background:radial-gradient(circle,#2a2a3a 0%,#1a1a1e 100%);
+    border-radius:50%;
+    width:30px;height:30px;
+}
+.camera-module .lens:nth-child(4)::before{
+    content:"";position:absolute;inset:6px;border-radius:50%;
+    background:radial-gradient(circle,#fff 0%,#bf5af2 30%,#0a84ff 70%,transparent 100%);
+    opacity:.4;
+    animation:flash 2s 4s ease-in-out infinite;
+}
+@keyframes flash{
+    0%,90%,100%{opacity:.4;}
+    95%{opacity:1;}
+}
+
+/* ===== 文字 ===== */
+.title-block{
+    position:absolute;bottom:12%;left:50%;transform:translateX(-50%);
+    text-align:center;z-index:10;
+    animation:titleIn 1.5s 3.5s cubic-bezier(.16,1,.3,1) forwards;
+    opacity:0;
+}
+@keyframes titleIn{
+    from{opacity:0;transform:translate(-50%,30px);}
+    to{opacity:1;transform:translate(-50%,0);}
+}
+.title-block h1{
+    font-size:48px;font-weight:600;letter-spacing:-1px;
+    background:linear-gradient(180deg,#fff 0%,#a0a0a8 100%);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.title-block p{
+    font-size:15px;color:rgba(255,255,255,.5);margin-top:6px;letter-spacing:2px;
+    animation:subGlow 3s 4s ease-in-out infinite alternate;
+}
+@keyframes subGlow{
+    from{color:rgba(255,255,255,.4);}
+    to{color:rgba(10,132,255,.8);text-shadow:0 0 20px rgba(10,132,255,.4);}
+}
+
+/* ===== 顶部 Apple Logo ===== */
+.apple-top{
+    position:absolute;top:8%;left:50%;transform:translateX(-50%);
+    z-index:10;
+    animation:logoIn 1.2s 0.5s cubic-bezier(.16,1,.3,1) forwards;
+    opacity:0;
+}
+@keyframes logoIn{
+    from{opacity:0;transform:translate(-50%,-20px);}
+    to{opacity:.7;transform:translate(-50%,0);}
+}
+.apple-top svg{
+    width:36px;height:36px;fill:#fff;
+    filter:drop-shadow(0 0 10px rgba(255,255,255,.3));
+    animation:logoBreath 4s 1.7s ease-in-out infinite;
+}
+@keyframes logoBreath{
+    0%,100%{filter:drop-shadow(0 0 10px rgba(255,255,255,.3));}
+    50%{filter:drop-shadow(0 0 25px rgba(10,132,255,.6));}
+}
+
+/* ===== 信息条 ===== */
+.info{
+    position:absolute;top:5%;right:5%;z-index:10;
+    font-size:12px;color:rgba(255,255,255,.4);text-align:right;
+    animation:infoIn 1s 5s forwards;opacity:0;
+}
+@keyframes infoIn{to{opacity:1;}}
+.info strong{color:rgba(255,255,255,.7);}
+
+/* ===== 反射 ===== */
+.reflection{
+    position:absolute;bottom:-45%;left:50%;transform:translateX(-50%);
+    width:260px;height:540px;
+    background:var(--titanium);
+    border-radius:48px;
+    opacity:.08;filter:blur(8px);
+    transform:translateX(-50%) scaleY(-1);
+    z-index:4;
+    animation:reflectPulse 8s 2.6s ease-in-out infinite;
+}
+@keyframes reflectPulse{
+    0%,100%{opacity:.08;}
+    50%{opacity:.04;}
+}
+
+@media(max-width:600px){
+    .iphone{width:200px;height:420px;border-radius:38px;}
+    .screen{border-radius:32px;}
+    .screen-content .time{font-size:48px;}
+    .camera-module{width:70px;height:70px;}
+    .camera-module .lens{width:22px;height:22px;}
+    .title-block h1{font-size:32px;}
+}
+@media(prefers-reduced-motion:reduce){
+    *{animation:none !important;opacity:1 !important;transform:none !important;}
+}
+</style>
+</head>
+<body>
+    <div class="stars"></div>
+    <div class="spotlight"></div>
+    <div class="beam"></div>
+
+    <div class="apple-top">
+        <svg viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.27c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.45-1.37 2.85M15.94 5.36c.67-.82 1.12-1.95.99-3.08-.96.04-2.12.64-2.82 1.46-.62.72-1.17 1.87-1.02 2.97 1.07.08 2.17-.55 2.85-1.35"/></svg>
+    </div>
+
+    <div class="info">
+        <strong>iPhone 17</strong><br>
+        Titanium. Beyond.
+    </div>
+
+    <div class="stage">
+        <div class="reflection"></div>
+        <div class="iphone">
+            <span class="btn-mute"></span>
+            <span class="btn-vol-up"></span>
+            <span class="btn-vol-dn"></span>
+            <span class="btn-power"></span>
+            <div class="camera-module">
+                <div class="lens"></div>
+                <div class="lens"></div>
+                <div class="lens"></div>
+                <div class="lens"></div>
+            </div>
+            <div class="screen">
+                <div class="dynamic-island"></div>
+                <div class="screen-content">
+                    <div class="time">9:41</div>
+                    <div class="date">Monday, September 17</div>
+                </div>
+                <div class="dock">
+                    <span></span><span></span><span></span><span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="title-block">
+        <h1>iPhone 17</h1>
+        <p>Titanium. Beyond.</p>
+    </div>
+</body>
+</html>

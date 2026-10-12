@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>宁瑞祥 · 媒体查询与 rem 响应式</title>
+<style>
+/* ===== rem 基准：随视口变化 ===== */
+html{
+    font-size:13px;
+    transition:font-size .4s ease;
+}
+@media (min-width:400px){ html{font-size:14px;} }
+@media (min-width:576px){ html{font-size:15px;} }
+@media (min-width:768px){ html{font-size:16px;} }
+@media (min-width:992px){ html{font-size:17px;} }
+@media (min-width:1200px){ html{font-size:18px;} }
+@media (min-width:1600px){ html{font-size:20px;} }
+@media (min-width:2000px){ html{font-size:22px;} }
+
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    min-height:100vh;overflow-x:hidden;
+    color:#fff;
+    /* 背景色随视口变化 */
+    background:#2d1b4e;
+    transition:background 1s ease;
+    display:flex;flex-direction:column;
+}
+@media (min-width:400px){ body{background:#1b3a5b;} }
+@media (min-width:576px){ body{background:#1b5b52;} }
+@media (min-width:768px){ body{background:#5b3a1b;} }
+@media (min-width:992px){ body{background:#5b1b3a;} }
+@media (min-width:1200px){ body{background:#3a1b5b;} }
+@media (min-width:1600px){ body{background:#1b3a3a;} }
+@media (min-width:2000px){ body{background:#4a1b2d;} }
+
+/* ===== 顶部实时数据条 ===== */
+.meta-bar{
+    position:sticky;top:0;z-index:50;
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;
+    padding:1.25rem 2rem;
+    background:rgba(0,0,0,.35);
+    backdrop-filter:blur(12px);
+    border-bottom:1px solid rgba(255,255,255,.1);
+    font-size:0.875rem;
+}
+.meta-bar .group{display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;}
+.meta-bar .item{display:flex;align-items:center;gap:0.5rem;}
+.meta-bar .label{color:rgba(255,255,255,.5);}
+.meta-bar .value{
+    color:#ff9f0a;font-weight:700;font-variant-numeric:tabular-nums;
+    min-width:3ch;
+}
+.meta-bar .bp{
+    padding:0.3rem 0.8rem;border-radius:1rem;
+    background:linear-gradient(135deg,#0a84ff,#bf5af2);
+    font-size:0.75rem;font-weight:600;letter-spacing:1px;
+}
+
+/* ===== Hero ===== */
+.hero{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:2rem;text-align:center;position:relative;
+}
+.hero .eyebrow{
+    font-size:0.9rem;letter-spacing:0.3em;text-transform:uppercase;
+    color:rgba(255,255,255,.6);margin-bottom:1.5rem;
+}
+.hero h1{
+    font-size:8rem;font-weight:800;letter-spacing:-0.05em;line-height:1;
+    background:linear-gradient(180deg,#fff 0%,rgba(255,255,255,.6) 100%);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    text-shadow:0 0 4rem rgba(0,0,0,.3);
+    margin-bottom:1.5rem;
+}
+.hero .subtitle{
+    font-size:1.625rem;font-weight:300;color:rgba(255,255,255,.85);
+    margin-bottom:0.5rem;
+}
+.hero .desc{
+    font-size:1.125rem;color:rgba(255,255,255,.55);max-width:36rem;line-height:1.6;
+}
+
+/* 视口缩小时大字也变小（因为用 rem + html font-size 变小） */
+@media (max-width:575px){
+    .hero h1{font-size:5rem;}
+    .hero .subtitle{font-size:1.25rem;}
+}
+
+/* ===== 断点色块预览 ===== */
+.breakpoints{
+    display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:center;
+    padding:2rem;max-width:60rem;margin:0 auto;
+}
+.bp-card{
+    flex:1 1 8rem;min-width:8rem;
+    border-radius:0.75rem;padding:1.25rem 1rem;
+    background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.1);
+    text-align:center;transition:all .3s ease;
+}
+.bp-card .swatch{
+    width:3rem;height:3rem;border-radius:50%;margin:0 auto 0.75rem;
+    border:2px solid rgba(255,255,255,.2);
+}
+.bp-card .range{font-size:0.75rem;color:rgba(255,255,255,.5);margin-bottom:0.25rem;}
+.bp-card .name{font-size:0.875rem;font-weight:600;}
+.bp-card .px{font-size:0.7rem;color:rgba(255,255,255,.4);margin-top:0.25rem;}
+
+/* 各断点色块颜色 */
+.bp-card[data-bp="xs"] .swatch{background:#2d1b4e;}
+.bp-card[data-bp="sm"] .swatch{background:#1b3a5b;}
+.bp-card[data-bp="md"] .swatch{background:#1b5b52;}
+.bp-card[data-bp="lg"] .swatch{background:#5b3a1b;}
+.bp-card[data-bp="xl"] .swatch{background:#5b1b3a;}
+.bp-card[data-bp="xxl"] .swatch{background:#3a1b5b;}
+.bp-card[data-bp="ultra"] .swatch{background:#1b3a3a;}
+.bp-card[data-bp="mega"] .swatch{background:#4a1b2d;}
+.bp-card.active{
+    border-color:#ff9f0a;
+    box-shadow:0 0 1.5rem rgba(255,159,10,.3);
+    transform:translateY(-0.25rem);
+}
+
+/* ===== rem 演示区 ===== */
+.rem-demo{
+    padding:2rem;max-width:60rem;margin:0 auto;width:100%;
+}
+.rem-demo h2{
+    font-size:1.75rem;font-weight:600;margin-bottom:1rem;text-align:center;
+}
+.rem-demo .intro{
+    font-size:0.95rem;color:rgba(255,255,255,.55);text-align:center;margin-bottom:1.5rem;
+}
+.rem-grid{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:0.75rem;
+}
+.rem-grid .item{
+    background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.1);
+    border-radius:0.5rem;padding:1rem;text-align:center;
+}
+.rem-grid .item .size{font-weight:700;color:#0a84ff;}
+.rem-grid .item .val{font-size:0.75rem;color:rgba(255,255,255,.4);margin-top:0.25rem;}
+.rem-grid .item .preview{margin-top:0.5rem;background:rgba(255,255,255,.1);border-radius:0.25rem;padding:0.5rem;}
+
+/* 不同 rem 字号 */
+.t-05{font-size:0.5rem;}
+.t-075{font-size:0.75rem;}
+.t-1{font-size:1rem;}
+.t-125{font-size:1.25rem;}
+.t-15{font-size:1.5rem;}
+.t-2{font-size:2rem;}
+.t-25{font-size:2.5rem;}
+
+/* ===== 视口进度条 ===== */
+.vp-bar{
+    height:0.5rem;background:rgba(0,0,0,.3);position:relative;overflow:hidden;
+}
+.vp-bar .fill{
+    height:100%;background:linear-gradient(90deg,#0a84ff,#bf5af2,#ff9f0a);
+    width:0;transition:width .2s ease;
+    box-shadow:0 0 0.5rem rgba(255,159,10,.5);
+}
+.vp-bar .marker{
+    position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.3);
+}
+
+/* ===== 页脚 ===== */
+footer{
+    text-align:center;padding:1.5rem;font-size:0.8rem;
+    color:rgba(255,255,255,.4);border-top:1px solid rgba(255,255,255,.08);
+}
+footer strong{color:rgba(255,255,255,.7);}
+</style>
+</head>
+<body>
+
+<div class="meta-bar">
+    <div class="group">
+        <div class="item"><span class="label">视口宽度</span><span class="value" id="vpWidth">0</span>px</div>
+        <div class="item"><span class="label">1rem =</span><span class="value" id="remVal">13</span>px</div>
+        <div class="item"><span class="label">断点</span><span class="bp" id="bpName">XS</span></div>
+    </div>
+    <div class="group">
+        <div class="item"><span class="label">缩放窗口观察：</span>背景色 / 字号 / rem 基准 同步变化</div>
+    </div>
+</div>
+
+<section class="hero">
+    <div class="eyebrow">媒体查询 × rem 响应式</div>
+    <h1>宁瑞祥</h1>
+    <p class="subtitle">高级网页设计 · 响应式实践</p>
+    <p class="desc">拖动浏览器窗口边缘 —— 背景颜色、文字大小、rem 基准值会随视口宽度同步变化。这就是 @media 媒体查询与 rem 的力量。</p>
+</section>
+
+<section class="breakpoints" id="bpCards">
+    <div class="bp-card" data-bp="xs"><div class="swatch"></div><div class="range">&lt; 400px</div><div class="name">XS</div><div class="px">13px / 紫</div></div>
+    <div class="bp-card" data-bp="sm"><div class="swatch"></div><div class="range">≥ 400</div><div class="name">SM</div><div class="px">14px / 蓝</div></div>
+    <div class="bp-card" data-bp="md"><div class="swatch"></div><div class="range">≥ 576</div><div class="name">MD</div><div class="px">15px / 青</div></div>
+    <div class="bp-card" data-bp="lg"><div class="swatch"></div><div class="range">≥ 768</div><div class="name">LG</div><div class="px">16px / 棕</div></div>
+    <div class="bp-card" data-bp="xl"><div class="swatch"></div><div class="range">≥ 992</div><div class="name">XL</div><div class="px">17px / 玫红</div></div>
+    <div class="bp-card" data-bp="xxl"><div class="swatch"></div><div class="range">≥ 1200</div><div class="name">XXL</div><div class="px">18px / 紫</div></div>
+    <div class="bp-card" data-bp="ultra"><div class="swatch"></div><div class="range">≥ 1600</div><div class="name">Ultra</div><div class="px">20px / 青</div></div>
+    <div class="bp-card" data-bp="mega"><div class="swatch"></div><div class="range">≥ 2000</div><div class="name">Mega</div><div class="px">22px / 红</div></div>
+</section>
+
+<section class="rem-demo">
+    <h2>rem 字号演示</h2>
+    <p class="intro">所有文字均使用 rem 单位。窗口变宽时 html 的 font-size 增大，下方所有文字同步变大。</p>
+    <div class="rem-grid">
+        <div class="item"><div class="size">0.5rem</div><div class="val" id="v05">6.5px</div><div class="preview t-05">宁瑞祥</div></div>
+        <div class="item"><div class="size">0.75rem</div><div class="val" id="v075">9.75px</div><div class="preview t-075">宁瑞祥</div></div>
+        <div class="item"><div class="size">1rem</div><div class="val" id="v1">13px</div><div class="preview t-1">宁瑞祥</div></div>
+        <div class="item"><div class="size">1.25rem</div><div class="val" id="v125">16.25px</div><div class="preview t-125">宁瑞祥</div></div>
+        <div class="item"><div class="size">1.5rem</div><div class="val" id="v15">19.5px</div><div class="preview t-15">宁瑞祥</div></div>
+        <div class="item"><div class="size">2rem</div><div class="val" id="v2">26px</div><div class="preview t-2">宁瑞祥</div></div>
+        <div class="item"><div class="size">2.5rem</div><div class="val" id="v25">32.5px</div><div class="preview t-25">宁瑞祥</div></div>
+        <div class="item"><div class="size">8rem</div><div class="val" id="v8">104px</div><div class="preview t-2" style="font-size:2rem;">↑ 标题</div></div>
+    </div>
+</section>
+
+<div class="vp-bar">
+    <div class="fill" id="vpFill"></div>
+    <div class="marker" style="left:20.8%"></div>
+    <div class="marker" style="left:30%"></div>
+    <div class="marker" style="left:40%"></div>
+    <div class="marker" style="left:51.7%"></div>
+    <div class="marker" style="left:62.5%"></div>
+    <div class="marker" style="left:83.3%"></div>
+</div>
+
+<footer>
+    <strong>宁瑞祥</strong> · 班级 503 · 学号 2001010503 · @media 媒体查询 + rem 响应式单位实践
+</footer>
+
+<script>
+(function(){
+    var vpWidth = document.getElementById('vpWidth');
+    var remVal = document.getElementById('remVal');
+    var bpName = document.getElementById('bpName');
+    var vpFill = document.getElementById('vpFill');
+    var bpCards = document.getElementById('bpCards').querySelectorAll('.bp-card');
+    var remVals = ['v05','v075','v1','v125','v15','v2','v25','v8'];
+    var remSizes = [0.5,0.75,1,1.25,1.5,2,2.5,8];
+
+    function getBp(w){
+        if(w >= 2000) return 'mega';
+        if(w >= 1600) return 'ultra';
+        if(w >= 1200) return 'xxl';
+        if(w >= 992) return 'xl';
+        if(w >= 768) return 'lg';
+        if(w >= 576) return 'md';
+        if(w >= 400) return 'sm';
+        return 'xs';
+    }
+    var bpMap = {xs:'XS',sm:'SM',md:'MD',lg:'LG',xl:'XL',xxl:'XXL',ultra:'Ultra',mega:'Mega'};
+
+    function update(){
+        var w = window.innerWidth;
+        var fs = parseFloat(getComputedStyle(document.documentElement).fontSize);
+        vpWidth.textContent = w;
+        remVal.textContent = fs.toFixed(1);
+        var bp = getBp(w);
+        bpName.textContent = bpMap[bp];
+        // 高亮当前断点卡片
+        bpCards.forEach(function(c){
+            c.classList.toggle('active', c.getAttribute('data-bp') === bp);
+        });
+        // 视口进度条（0-2400px 映射）
+        var pct = Math.min(100, (w / 2400) * 100);
+        vpFill.style.width = pct + '%';
+        // 更新 rem 值显示
+        remVals.forEach(function(id,i){
+            document.getElementById(id).textContent = (remSizes[i] * fs).toFixed(1) + 'px';
+        });
+    }
+    window.addEventListener('resize', update);
+    update();
+})();
+</script>
+</body>
+</html>

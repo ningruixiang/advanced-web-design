@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>层叠与继承 · 3D 极简演示</title>
+
+    <!-- 外部样式表：课堂演示用，内部样式表优先级高于它（验证层叠顺序） -->
+    <link rel="stylesheet" href="css.css">
+
+    <style>
+        /* =========================================================
+           设计 Token（极简系统：统一色彩 / 阴影 / 圆角）
+           ========================================================= */
+        :root{
+            --bg-1:#f5f7fa;
+            --bg-2:#e9edf3;
+            --ink-1:#1d1d1f;
+            --ink-2:#6e6e73;
+            --ink-3:#aeaeb2;
+            --blue:#007aff;
+            --cyan:#5ac8fa;
+            --purple:#af52de;
+            --orange:#ff9500;
+            --card:#ffffff;
+            --line:rgba(0,0,0,.06);
+            --shadow-soft:0 4px 24px rgba(0,0,0,.06);
+            --shadow-3d:0 30px 60px -20px rgba(31,38,135,.25);
+            --radius:22px;
+        }
+
+        *{margin:0;padding:0;box-sizing:border-box;}
+
+        html{scroll-behavior:smooth;}
+
+        body{
+            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Roboto,sans-serif;
+            color:var(--ink-1);
+            background:
+                radial-gradient(1200px 600px at 80% -10%,rgba(175,82,222,.10),transparent 60%),
+                radial-gradient(1000px 500px at 0% 0%,rgba(0,122,255,.10),transparent 55%),
+                linear-gradient(180deg,var(--bg-1),var(--bg-2));
+            min-height:100vh;
+            line-height:1.6;
+            overflow-x:hidden;
+        }
+
+        /* =========================================================
+           顶部 Hero（3D 立体标题）
+           ========================================================= */
+        .hero{
+            text-align:center;
+            padding:72px 20px 30px;
+            perspective:900px;
+        }
+        .hero .kicker{
+            display:inline-block;
+            font-size:.82em;
+            letter-spacing:3px;
+            color:var(--blue);
+            background:rgba(0,122,255,.08);
+            padding:6px 16px;
+            border-radius:999px;
+            margin-bottom:18px;
+        }
+        /* 覆盖外部样式表 css.css 中 h2 的样式 —— 本身也是一次“内部 > 外部”的演示 */
+        .hero h2{
+            text-align:center;
+            color:var(--ink-1);
+            font-size:clamp(2.2em,6vw,3.6em);
+            font-weight:800;
+            letter-spacing:4px;
+            transform-style:preserve-3d;
+            animation:heroFloat 6s ease-in-out infinite;
+            text-shadow:
+                0 1px 0 #d8dde4,
+                0 2px 0 #cdd3db,
+                0 3px 0 #c2c9d2,
+                0 6px 14px rgba(0,0,0,.16),
+                0 12px 30px rgba(0,122,255,.18);
+        }
+        @keyframes heroFloat{
+            0%,100%{transform:translateY(0) rotateX(0);}
+            50%{transform:translateY(-8px) rotateX(4deg);}
+        }
+        .hero p{
+            color:var(--ink-2);
+            margin-top:14px;
+            font-size:1.02em;
+        }
+        .chips{
+            margin-top:18px;
+            display:flex;
+            gap:10px;
+            justify-content:center;
+            flex-wrap:wrap;
+        }
+        .chips span{
+            font-size:.82em;
+            color:var(--ink-2);
+            background:var(--card);
+            border:1px solid var(--line);
+            padding:5px 14px;
+            border-radius:999px;
+            box-shadow:var(--shadow-soft);
+        }
+
+        /* =========================================================
+           通用 3D 舞台
+           ========================================================= */
+        .wrap{
+            max-width:1080px;
+            margin:0 auto;
+            padding:26px 20px 70px;
+        }
+        .scene{
+            perspective:1500px;
+            margin-bottom:56px;
+        }
+        .tilt{
+            transform-style:preserve-3d;
+            transition:transform .18s ease-out;
+            will-change:transform;
+        }
+        .panel{
+            position:relative;
+            background:rgba(255,255,255,.72);
+            backdrop-filter:blur(18px);
+            -webkit-backdrop-filter:blur(18px);
+            border:1px solid rgba(255,255,255,.9);
+            border-radius:var(--radius);
+            box-shadow:var(--shadow-3d);
+            padding:34px 26px;
+            transform-style:preserve-3d;
+        }
+        .panel-tag{
+            display:inline-block;
+            font-size:.76em;
+            letter-spacing:2px;
+            color:#fff;
+            background:linear-gradient(135deg,var(--blue),var(--purple));
+            padding:4px 12px;
+            border-radius:999px;
+            margin-bottom:10px;
+            transform:translateZ(40px);
+        }
+        .panel h3{
+            font-size:1.25em;
+            margin-bottom:4px;
+            transform:translateZ(32px);
+        }
+        .panel .tip{
+            font-size:.88em;
+            color:var(--ink-2);
+            margin-bottom:22px;
+            transform:translateZ(24px);
+        }
+
+        /* =========================================================
+           ★ 课堂原始演示规则（保持原样：用于验证层叠与继承优先级）
+             最终结论：#box p 的 color:red !important 胜出
+           ========================================================= */
+        #box{
+            color: red;
+            font-size: 20px;
+        }
+        .text{
+            color: green;
+        }
+        #text{
+            color: pink;
+        }
+        #box p{
+            color: yellow;
+        }
+        #box p:first-child{
+            color: orange;
+        }
+        #box #text{
+            color: red;
+        }
+        .box p{
+            color: blue!important;
+        }
+        #box p{
+            color: red!important;
+            /* 宽度400 高400 灰色背景 距离，字间距5px */
+            width: 400px;
+            height: 400px;
+            background-color: #ccc;
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #000;
+            border-radius: 10px;
+            letter-spacing: 5px;
+            /* 圆角矩形50% */
+            border-radius: 50%;
+        }
+
+        /* =========================================================
+           3D 美化增强（只加光影 / 空间 / 动效，不改写上方颜色结论）
+           ========================================================= */
+        #box{
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            transform-style:preserve-3d;
+        }
+        /* “我是一个div” 匿名文本 —— 3D 悬浮标签 */
+        #box::before{
+            content:"我是一个 div（#box 的 color:red 被段落继承环境展示）";
+            font-size:.78em;
+            letter-spacing:1px;
+            color:#fff;
+            background:linear-gradient(135deg,#ff3b30,var(--orange));
+            padding:6px 16px;
+            border-radius:999px;
+            margin-bottom:8px;
+            box-shadow:0 8px 20px rgba(255,59,48,.3);
+            transform:translateZ(70px);
+        }
+
+        #box p{
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            text-align:center;
+            border:none;
+            cursor:default;
+            transform-style:preserve-3d;
+            /* 球体光影：不覆盖 background-color:#ccc，仅叠加高光 */
+            background-image:
+                radial-gradient(circle at 32% 28%,rgba(255,255,255,.95),rgba(255,255,255,.15) 32%,rgba(0,0,0,.12) 78%),
+                radial-gradient(circle at 70% 75%,rgba(0,0,0,.18),transparent 55%);
+            box-shadow:
+                0 24px 40px -12px rgba(31,38,135,.35),
+                inset -14px -18px 34px rgba(0,0,0,.22),
+                inset 12px 14px 26px rgba(255,255,255,.55);
+            animation:orbFloat 7s ease-in-out infinite;
+            transition:transform .35s ease, box-shadow .35s ease;
+        }
+        #box p:nth-of-type(1){transform:translateZ(60px);animation-delay:0s;}
+        #box p:nth-of-type(2){transform:translateZ(35px);animation-delay:-2.3s;}
+        #box p:nth-of-type(3){transform:translateZ(10px);animation-delay:-4.6s;font-size:.62em;letter-spacing:1px;}
+        #box p:hover{
+            animation-play-state:paused;
+            box-shadow:
+                0 40px 70px -16px rgba(0,122,255,.45),
+                inset -14px -18px 34px rgba(0,0,0,.22),
+                inset 12px 14px 26px rgba(255,255,255,.55);
+        }
+        @keyframes orbFloat{
+            0%,100%{margin-top:20px;margin-bottom:20px;}
+            50%{margin-top:2px;margin-bottom:38px;}
+        }
+
+        /* =========================================================
+           优先级阶梯（3D 图层）
+           ========================================================= */
+        .ladder{
+            display:flex;
+            flex-direction:column;
+            gap:14px;
+            transform-style:preserve-3d;
+        }
+        .layer{
+            position:relative;
+            display:flex;
+            align-items:center;
+            gap:16px;
+            padding:18px 22px;
+            border-radius:16px;
+            color:#fff;
+            font-weight:600;
+            box-shadow:0 14px 30px -10px rgba(0,0,0,.25);
+            transform-style:preserve-3d;
+            transition:transform .3s ease;
+        }
+        .layer:hover{transform:translateZ(26px) translateX(6px);}
+        .layer .rank{
+            flex:0 0 34px;
+            height:34px;
+            display:grid;
+            place-items:center;
+            border-radius:50%;
+            background:rgba(255,255,255,.22);
+            font-size:.9em;
+        }
+        .layer .meta{
+            margin-left:auto;
+            font-weight:400;
+            font-size:.8em;
+            opacity:.85;
+        }
+        .l1{background:linear-gradient(135deg,#ff3b30,#ff6b50);transform:translateZ(60px);}
+        .l2{background:linear-gradient(135deg,#ff9500,#ffb340);transform:translateZ(40px);}
+        .l3{background:linear-gradient(135deg,#007aff,#5ac8fa);transform:translateZ(20px);}
+        .l4{background:linear-gradient(135deg,#8e8e93,#aeaeb2);transform:translateZ(0);}
+
+        .note{
+            margin-top:22px;
+            font-size:.86em;
+            color:var(--ink-2);
+            background:rgba(255,149,0,.1);
+            border-left:4px solid var(--orange);
+            padding:14px 18px;
+            border-radius:10px;
+            transform:translateZ(30px);
+        }
+        .note code,.tip code{
+            background:rgba(0,0,0,.06);
+            padding:1px 7px;
+            border-radius:6px;
+            font-family:"SF Mono",Menlo,Consolas,monospace;
+            font-size:.92em;
+        }
+        .note code{color:#c93400;}
+
+        /* =========================================================
+           页脚
+           ========================================================= */
+        footer{
+            text-align:center;
+            padding:26px 20px 40px;
+            color:var(--ink-3);
+            font-size:.84em;
+        }
+
+        /* =========================================================
+           响应式
+           ========================================================= */
+        @media (max-width:680px){
+            #box p{width:300px;height:300px;font-size:16px;}
+            #box p:nth-of-type(3){font-size:.58em;}
+            .panel{padding:24px 16px;}
+            .layer{padding:14px 16px;font-size:.92em;}
+        }
+        @media (max-width:380px){
+            #box p{width:250px;height:250px;}
+        }
+        @media (prefers-reduced-motion:reduce){
+            *{animation:none !important;transition:none !important;}
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============ Hero ============ -->
+    <header class="hero">
+        <span class="kicker">ADVANCED WEB DESIGN</span>
+        <h2>层叠与继承</h2>
+        <p>3D 极简演示 · 移动鼠标倾斜舞台，观察样式优先级的最终呈现</p>
+        <div class="chips">
+            <span>学号 2001010503</span>
+            <span>宁瑞祥 · 计算机23005</span>
+            <span>外部样式表：css.css</span>
+        </div>
+    </header>
+
+    <main class="wrap">
+
+        <!-- ============ 3D 舞台一：课堂原始演示 ============ -->
+        <section class="scene">
+            <div class="tilt">
+                <div class="panel">
+                    <span class="panel-tag">LIVE DEMO</span>
+                    <h3>谁最终生效？</h3>
+                    <p class="tip">三个球体上的文字最终均为红色 —— <code>#box p{color:red!important}</code> 凭借 !important + 更高选择器权重胜出（移动鼠标可 3D 倾斜）</p>
+
+                    <div id="box" class="box">
+                        我是一个div
+                        <p id="text" class="text">宁瑞祥，班级：503</p>
+                        <p>503宁瑞祥</p>
+                        <p>
+                            层叠与继承的优先级：
+                            1. 行内样式 &gt; 2. 内部样式表 &gt; 3. 外部样式表 &gt; 4. 浏览器默认样式
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ 3D 舞台二：优先级阶梯 ============ -->
+        <section class="scene">
+            <div class="tilt">
+                <div class="panel">
+                    <span class="panel-tag">PRIORITY</span>
+                    <h3>层叠优先级阶梯</h3>
+                    <p class="tip">由近到远的 3D 图层即优先级由高到低（悬停层级可向前浮出）</p>
+
+                    <div class="ladder">
+                        <div class="layer l1">
+                            <span class="rank">1</span>
+                            行内样式
+                            <span class="meta">style="" · 权重最高</span>
+                        </div>
+                        <div class="layer l2">
+                            <span class="rank">2</span>
+                            内部样式表
+                            <span class="meta">&lt;style&gt; · 本页正在使用</span>
+                        </div>
+                        <div class="layer l3">
+                            <span class="rank">3</span>
+                            外部样式表
+                            <span class="meta">css.css · p{color:blue} 已被覆盖</span>
+                        </div>
+                        <div class="layer l4">
+                            <span class="rank">4</span>
+                            浏览器默认样式
+                            <span class="meta">User Agent · 权重最低</span>
+                        </div>
+                    </div>
+
+                    <div class="note">
+                        ⚠️ 特殊规则：<code>!important</code> 可打破常规顺序；当 !important 相同时，再按选择器权重与书写顺序决定（本页 <code>.box p</code> 与 <code>#box p</code> 同为 !important，后者权重更高，故文字为红色）。
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        © 《高级网页设计》课堂实践 · 层叠与继承 · 纯原生 HTML / CSS / JS，无 CDN
+    </footer>
+
+    <script>
+        // ===== 鼠标 3D 倾斜（纯原生，rAF 节流） =====
+        document.querySelectorAll('.scene').forEach(scene => {
+            const tilt = scene.querySelector('.tilt');
+            let raf = null;
+            let tx = 0, ty = 0;
+
+            scene.addEventListener('mousemove', e => {
+                const r = scene.getBoundingClientRect();
+                const px = (e.clientX - r.left) / r.width - 0.5;
+                const py = (e.clientY - r.top) / r.height - 0.5;
+                ty = px * 10;   // rotateY
+                tx = -py * 10;  // rotateX
+                if (!raf) {
+                    raf = requestAnimationFrame(() => {
+                        tilt.style.transform = `rotateX(${tx}deg) rotateY(${ty}deg)`;
+                        raf = null;
+                    });
+                }
+            });
+
+            scene.addEventListener('mouseleave', () => {
+                tilt.style.transition = 'transform .6s cubic-bezier(.2,.8,.2,1)';
+                tilt.style.transform = 'rotateX(0deg) rotateY(0deg)';
+                setTimeout(() => tilt.style.transition = 'transform .18s ease-out', 600);
+            });
+        });
+    </script>
+</body>
+</html>

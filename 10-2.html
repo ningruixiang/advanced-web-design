@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>宁瑞祥 · 课程实践影像志</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+    --blue:#0a84ff;--purple:#bf5af2;--orange:#ff9f0a;
+    --text:#f5f5f7;--sub:#a0a0a8;
+}
+html,body{height:100%;overflow:hidden;}
+body{
+    font-family:-apple-system,"SF Pro Display","PingFang SC",sans-serif;
+    color:var(--text);background:#000;
+}
+
+/* ===== 图片层 ===== */
+.slides{position:fixed;inset:0;}
+.slide{
+    position:absolute;inset:0;
+    opacity:0;
+    transition:opacity 1.2s cubic-bezier(.4,0,.2,1);
+    overflow:hidden;
+}
+.slide.active{opacity:1;}
+.slide img{
+    width:100%;height:100%;object-fit:cover;
+    transform:scale(1.05);
+}
+/* Ken Burns 缩放平移 */
+.slide.active img{
+    animation:kenBurns 6s ease-out forwards;
+}
+@keyframes kenBurns{
+    from{transform:scale(1.05) translate(0,0);}
+    to{transform:scale(1.18) translate(-2%,-3%);}
+}
+
+/* 渐变遮罩（保证文字可读） */
+.slide::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(180deg,
+        rgba(0,0,0,.5) 0%,
+        rgba(0,0,0,.1) 35%,
+        rgba(0,0,0,.2) 60%,
+        rgba(0,0,0,.85) 100%);
+    pointer-events:none;
+}
+
+/* ===== 文字叠加层 ===== */
+.overlay{
+    position:fixed;inset:0;z-index:10;
+    display:flex;flex-direction:column;justify-content:flex-end;
+    padding:0 8% 12%;
+    pointer-events:none;
+}
+.overlay .inner{
+    pointer-events:auto;
+    max-width:760px;
+}
+.overlay .eyebrow{
+    display:inline-block;font-size:13px;letter-spacing:4px;
+    text-transform:uppercase;color:var(--orange);font-weight:600;
+    margin-bottom:18px;
+    opacity:0;transform:translateY(30px);
+    transition:all .8s .3s cubic-bezier(.16,1,.3,1);
+}
+.slide.active ~ .overlay .eyebrow,
+.overlay.show .eyebrow{opacity:1;transform:none;}
+.overlay h1{
+    font-size:72px;font-weight:700;letter-spacing:-2px;line-height:1.02;
+    text-shadow:0 4px 30px rgba(0,0,0,.6);
+    margin-bottom:18px;
+    opacity:0;transform:translateY(40px);
+    transition:all .9s .45s cubic-bezier(.16,1,.3,1);
+}
+.overlay.show h1{opacity:1;transform:none;}
+.overlay .lead{
+    font-size:22px;color:rgba(255,255,255,.85);line-height:1.5;
+    max-width:560px;text-shadow:0 2px 20px rgba(0,0,0,.5);
+    margin-bottom:24px;
+    opacity:0;transform:translateY(30px);
+    transition:all .9s .6s cubic-bezier(.16,1,.3,1);
+}
+.overlay.show .lead{opacity:1;transform:none;}
+.overlay .meta{
+    display:flex;align-items:center;gap:16px;
+    opacity:0;transform:translateY(20px);
+    transition:all .9s .75s cubic-bezier(.16,1,.3,1);
+}
+.overlay.show .meta{opacity:1;transform:none;}
+.overlay .meta .avatar{
+    width:44px;height:44px;border-radius:50%;
+    background:linear-gradient(135deg,var(--blue),var(--purple));
+    display:grid;place-items:center;font-size:18px;font-weight:700;
+    box-shadow:0 4px 16px rgba(10,132,255,.4);
+}
+.overlay .meta .who strong{font-size:16px;display:block;}
+.overlay .meta .who span{font-size:13px;color:var(--sub);}
+
+/* ===== 顶部导航 ===== */
+.topbar{
+    position:fixed;top:0;left:0;right:0;z-index:30;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:24px 8%;
+    background:linear-gradient(180deg,rgba(0,0,0,.5),transparent);
+}
+.topbar .brand{
+    font-size:14px;color:rgba(255,255,255,.7);letter-spacing:1px;
+}
+.topbar .brand strong{color:#fff;}
+.topbar .counter{
+    font-size:13px;color:rgba(255,255,255,.5);
+    font-variant-numeric:tabular-nums;
+}
+.topbar .counter b{color:var(--orange);font-size:20px;font-weight:600;}
+
+/* ===== 进度条 ===== */
+.progress{
+    position:fixed;top:0;left:0;height:3px;z-index:40;
+    background:linear-gradient(90deg,var(--orange),var(--purple),var(--blue));
+    box-shadow:0 0 12px rgba(255,159,10,.5);
+    width:0;
+}
+.progress.run{animation:progressFill 5s linear forwards;}
+@keyframes progressFill{from{width:0;}to{width:100%;}}
+
+/* ===== 底部控制 ===== */
+.controls{
+    position:fixed;bottom:0;left:0;right:0;z-index:30;
+    display:flex;align-items:center;justify-content:center;gap:20px;
+    padding:32px 8%;
+    background:linear-gradient(0deg,rgba(0,0,0,.6),transparent);
+}
+.controls .nav-btn{
+    width:48px;height:48px;border-radius:50%;
+    background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+    backdrop-filter:blur(10px);
+    display:grid;place-items:center;cursor:pointer;color:#fff;font-size:20px;
+    transition:all .3s ease;
+}
+.controls .nav-btn:hover{background:rgba(255,255,255,.2);transform:scale(1.1);}
+.dots{display:flex;gap:10px;}
+.dots button{
+    width:10px;height:10px;border-radius:50%;
+    background:rgba(255,255,255,.25);border:none;cursor:pointer;
+    transition:all .3s cubic-bezier(.16,1,.3,1);
+    padding:0;
+}
+.dots button.active{
+    width:32px;border-radius:5px;
+    background:linear-gradient(90deg,var(--orange),var(--purple));
+    box-shadow:0 0 12px rgba(255,159,10,.5);
+}
+.play-toggle{
+    width:40px;height:40px;border-radius:50%;
+    background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+    backdrop-filter:blur(10px);display:grid;place-items:center;
+    cursor:pointer;color:#fff;
+}
+.play-toggle:hover{background:rgba(255,255,255,.2);}
+
+/* 缩略图条 */
+.thumbs{
+    position:fixed;bottom:96px;left:50%;transform:translateX(-50%);
+    display:flex;gap:8px;z-index:25;
+    opacity:0;transition:opacity .4s ease;pointer-events:none;
+}
+.thumbs.show{opacity:1;pointer-events:auto;}
+.thumbs img{
+    width:54px;height:32px;border-radius:6px;object-fit:cover;
+    cursor:pointer;opacity:.5;border:1px solid transparent;
+    transition:all .25s ease;
+}
+.thumbs img:hover{opacity:.85;}
+.thumbs img.active{opacity:1;border-color:var(--orange);box-shadow:0 0 12px rgba(255,159,10,.4);}
+
+@media(max-width:768px){
+    .overlay{padding:0 6% 18%;}
+    .overlay h1{font-size:40px;}
+    .overlay .lead{font-size:16px;}
+    .topbar{padding:16px 6%;}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none !important;transition:opacity .3s !important;}}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<div class="topbar">
+    <div class="brand"><strong>宁瑞祥</strong> · 高级网页设计 · 课程实践影像志</div>
+    <div class="counter"><b id="curNum">01</b> / 09</div>
+</div>
+
+<div class="slides" id="slides"></div>
+
+<div class="overlay" id="overlay">
+    <div class="inner">
+        <span class="eyebrow" id="eyebrow"></span>
+        <h1 id="title"></h1>
+        <p class="lead" id="lead"></p>
+        <div class="meta">
+            <div class="avatar">宁</div>
+            <div class="who"><strong>宁瑞祥</strong><span>班级 503 · 学号 2001010503</span></div>
+        </div>
+    </div>
+</div>
+
+<div class="thumbs" id="thumbs"></div>
+
+<div class="controls">
+    <button class="nav-btn" id="prevBtn" aria-label="上一张">‹</button>
+    <div class="dots" id="dots"></div>
+    <button class="nav-btn" id="nextBtn" aria-label="下一张">›</button>
+    <button class="play-toggle" id="playBtn" aria-label="播放/暂停">⏸</button>
+</div>
+
+<script>
+(function(){
+    var data = [
+        {img:'img/1.png',  eyebrow:'第 01 章 · 层叠与继承', title:'层叠与继承', lead:'行内、内部、外部、默认 —— 优先级的艺术，!important 是最后的王牌。', link:'5-1层叠与继承.html'},
+        {img:'img/2.png',  eyebrow:'第 02 章 · 盒子模型', title:'盒子模型', lead:'margin · border · padding · content，网页上每一个元素都是一个矩形的盒子。', link:'5-2盒模型.html'},
+        {img:'img/3.png',  eyebrow:'第 03 章 · Flex 布局', title:'Flex 布局', lead:'一维方向上的弹性力量，13 个属性让对齐、分配、伸缩变得自然。', link:'6-1flex.html'},
+        {img:'img/4.png',  eyebrow:'第 04 章 · 头部模式', title:'Flex 头部图鉴', lead:'space-between、flex-grow、absolute、导航栏 —— 四种头部布局的范式。', link:'6-2.html'},
+        {img:'img/5.png',  eyebrow:'第 05 章 · 图文布局', title:'上图下文 · 左图右文', lead:'图文并置的两种经典结构，响应式断点下的优雅切换。', link:'7-1上图下文.html'},
+        {img:'img/6.png',  eyebrow:'第 06 章 · CSS 选择器', title:':nth-child 的魔法', lead:'奇偶、倍数、公式 —— 用选择器精准匹配每一个元素。', link:'8-1css.html'},
+        {img:'img/7.png',  eyebrow:'第 07 章 · Transition', title:'过渡 · 火星星舰', lead:'状态间的平滑旅程，马斯克与 NASA 的星舰梦想，在 transition 中升空。', link:'9-1transtion.html'},
+        {img:'img/8.png',  eyebrow:'第 08 章 · Animation', title:'iPhone 17 · 钛金属', lead:'@keyframes 编排时间，纯 CSS 绘制的发布会动画，钛金属机身超越。', link:'10-1animation.html'},
+        {img:'img/9.png',  eyebrow:'第 09 章 · 幻灯片', title:'纯 CSS 讲述的故事', lead:'radio + :checked，自动播放、进度环、键盘、触摸 —— 一切都在 CSS 里。', link:'11-1slideshow.html'}
+    ];
+
+    var total = data.length;
+    var current = 0;
+    var playing = true;
+    var timer = null;
+    var INTERVAL = 5000;
+
+    var slidesEl = document.getElementById('slides');
+    var dotsEl = document.getElementById('dots');
+    var thumbsEl = document.getElementById('thumbs');
+    var overlay = document.getElementById('overlay');
+    var progress = document.getElementById('progress');
+    var curNum = document.getElementById('curNum');
+
+    // 构建图片层
+    data.forEach(function(d,i){
+        var s = document.createElement('div');
+        s.className = 'slide' + (i===0 ? ' active' : '');
+        var img = document.createElement('img');
+        img.src = d.img; img.alt = d.title; img.loading = 'lazy';
+        s.appendChild(img);
+        slidesEl.appendChild(s);
+
+        var dot = document.createElement('button');
+        dot.className = 'dots-btn' + (i===0 ? ' active' : '');
+        dot.setAttribute('aria-label','第'+(i+1)+'张');
+        dot.addEventListener('click', function(){ go(i); });
+        dotsEl.appendChild(dot);
+
+        var th = document.createElement('img');
+        th.src = d.img; th.alt = d.title; th.loading = 'lazy';
+        if(i===0) th.classList.add('active');
+        th.addEventListener('click', function(){ go(i); });
+        thumbsEl.appendChild(th);
+    });
+
+    var slideEls = slidesEl.querySelectorAll('.slide');
+    var dotEls = dotsEl.querySelectorAll('button');
+    var thumbEls = thumbsEl.querySelectorAll('img');
+
+    function show(i){
+        current = ((i % total) + total) % total;
+        slideEls.forEach(function(s,idx){
+            s.classList.toggle('active', idx === current);
+        });
+        dotEls.forEach(function(d,idx){ d.classList.toggle('active', idx === current); });
+        thumbEls.forEach(function(t,idx){ t.classList.toggle('active', idx === current); });
+
+        var d = data[current];
+        // 重置文字动画
+        overlay.classList.remove('show');
+        document.getElementById('eyebrow').textContent = d.eyebrow;
+        document.getElementById('title').textContent = d.title;
+        document.getElementById('lead').textContent = d.lead;
+        curNum.textContent = String(current+1).padStart(2,'0');
+        // 触发重排后重新入场
+        void overlay.offsetWidth;
+        overlay.classList.add('show');
+
+        // 重置进度条
+        progress.classList.remove('run');
+        void progress.offsetWidth;
+        if(playing) progress.classList.add('run');
+    }
+
+    function go(i){
+        show(i);
+        if(playing){ clearInterval(timer); timer = setInterval(next, INTERVAL); }
+    }
+    function next(){ go(current + 1); }
+    function prev(){ go(current - 1); }
+
+    document.getElementById('nextBtn').addEventListener('click', next);
+    document.getElementById('prevBtn').addEventListener('click', prev);
+
+    var playBtn = document.getElementById('playBtn');
+    function play(){
+        playing = true;
+        playBtn.textContent = '⏸';
+        progress.classList.add('run');
+        timer = setInterval(next, INTERVAL);
+    }
+    function pause(){
+        playing = false;
+        playBtn.textContent = '▶';
+        progress.classList.remove('run');
+        clearInterval(timer);
+    }
+    playBtn.addEventListener('click', function(){ playing ? pause() : play(); });
+
+    // 鼠标悬停暂停
+    slidesEl.addEventListener('mouseenter', function(){
+        if(playing){ clearInterval(timer); progress.classList.remove('run'); }
+    });
+    slidesEl.addEventListener('mouseleave', function(){
+        if(playing){
+            // 重新启动进度条需要重置
+            progress.classList.remove('run');
+            void progress.offsetWidth;
+            progress.classList.add('run');
+            timer = setInterval(next, INTERVAL);
+        }
+    });
+
+    // 缩略图悬停显示
+    var thumbsTimer;
+    document.addEventListener('mousemove', function(){
+        thumbsEl.classList.add('show');
+        clearTimeout(thumbsTimer);
+        thumbsTimer = setTimeout(function(){ thumbsEl.classList.remove('show'); }, 2500);
+    });
+
+    // 键盘
+    document.addEventListener('keydown', function(e){
+        if(e.key === 'ArrowRight') next();
+        else if(e.key === 'ArrowLeft') prev();
+        else if(e.key === ' '){ e.preventDefault(); playing ? pause() : play(); }
+    });
+
+    // 滚轮
+    var wheelLock = false;
+    document.addEventListener('wheel', function(e){
+        if(wheelLock) return;
+        if(Math.abs(e.deltaY) < 20) return;
+        wheelLock = true;
+        setTimeout(function(){ wheelLock = false; }, 1000);
+        if(e.deltaY > 0) next(); else prev();
+    }, { passive: true });
+
+    // 触摸
+    var tx = 0;
+    document.addEventListener('touchstart', function(e){ tx = e.touches[0].clientX; }, { passive: true });
+    document.addEventListener('touchend', function(e){
+        var dx = e.changedTouches[0].clientX - tx;
+        if(Math.abs(dx) > 50){ if(dx < 0) next(); else prev(); }
+    }, { passive: true });
+
+    // 尊重 reduced-motion
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches){
+        pause();
+    } else {
+        play();
+    }
+    show(0);
+})();
+</script>
+</body>
+</html>

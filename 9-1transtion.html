@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宁瑞祥 · 人类火星·星舰计划</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        :root{
+            --bg:#0a0a0f;
+            --card:#1c1c28;
+            --blue:#007aff;
+            --purple:#af52de;
+            --orange:#ff9500;
+            --text:#f5f5f7;
+            --sub:#86868b;
+        }
+        body{
+            font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+            background:radial-gradient(ellipse at top,#1a1a2e 0%,#0a0a0f 60%);
+            color:var(--text);
+            min-height:100vh;
+            padding:40px 20px;
+        }
+        /* ===== Hero ===== */
+        .hero{
+            text-align:center;
+            margin-bottom:40px;
+        }
+        .hero .badge{
+            display:inline-block;
+            padding:6px 16px;
+            border-radius:20px;
+            background:linear-gradient(135deg,var(--blue),var(--purple));
+            font-size:12px;
+            letter-spacing:2px;
+            margin-bottom:16px;
+        }
+        .hero h1{
+            font-size:36px;
+            background:linear-gradient(135deg,#fff,var(--orange),var(--purple));
+            -webkit-background-clip:text;
+            background-clip:text;
+            -webkit-text-fill-color:transparent;
+            margin-bottom:8px;
+        }
+        .hero p{
+            color:var(--sub);
+            font-size:15px;
+        }
+
+        /* ===== 3×3 网格 ===== */
+        .list{
+            display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:16px;
+            max-width:1020px;
+            margin:0 auto;
+            list-style:none;
+        }
+        .list li{
+            position:relative;
+            background:var(--card);
+            border-radius:16px;
+            overflow:hidden;
+            border:1px solid rgba(255,255,255,.06);
+            cursor:pointer;
+            /* ===== transition 过渡核心 ===== */
+            transition:transform .5s cubic-bezier(.25,.46,.45,.94),
+                       box-shadow .5s ease,
+                       border-color .4s ease;
+        }
+        .list li:hover{
+            transform:translateY(-8px) scale(1.04);
+            box-shadow:0 20px 50px rgba(0,122,255,.25),0 8px 20px rgba(0,0,0,.4);
+            border-color:rgba(0,122,255,.4);
+        }
+        /* 编号 */
+        .list li .num{
+            position:absolute;
+            top:10px;left:10px;
+            width:28px;height:28px;
+            border-radius:50%;
+            background:rgba(0,0,0,.6);
+            backdrop-filter:blur(8px);
+            display:grid;place-items:center;
+            font-size:13px;font-weight:700;
+            color:var(--orange);
+            z-index:5;
+            transition:background .4s ease,color .4s ease;
+        }
+        .list li:hover .num{
+            background:var(--blue);
+            color:#fff;
+        }
+        /* 图片容器 */
+        .list li .img-wrap{
+            overflow:hidden;
+            height:180px;
+        }
+        .list li img{
+            width:100%;height:100%;
+            object-fit:cover;
+            display:block;
+            transition:transform .7s cubic-bezier(.25,.46,.45,.94),
+                       filter .5s ease;
+        }
+        .list li:hover img{
+            transform:scale(1.18);
+            filter:brightness(1.12) saturate(1.2) contrast(1.05);
+        }
+        /* 文字区 */
+        .list li .text{
+            padding:14px 18px 16px;
+        }
+        .list li .text h3{
+            font-size:16px;
+            margin-bottom:4px;
+            transition:color .3s ease;
+        }
+        .list li:hover .text h3{
+            color:var(--orange);
+        }
+        .list li .text p{
+            font-size:12px;
+            line-height:1.5;
+            color:var(--sub);
+            transition:color .3s ease;
+        }
+        .list li:hover .text p{
+            color:#aeaeb2;
+        }
+
+        /* ===== 页脚 ===== */
+        footer{
+            text-align:center;
+            margin-top:40px;
+            color:var(--sub);
+            font-size:13px;
+        }
+        footer span{
+            color:var(--orange);
+        }
+
+        @media(max-width:768px){
+            .list{grid-template-columns:repeat(2,1fr);}
+        }
+        @media(max-width:480px){
+            .list{grid-template-columns:1fr;}
+        }
+        @media(prefers-reduced-motion:reduce){
+            *{transition:none !important;}
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div class="badge">SPACEX × NASA × MARS</div>
+        <h1>人类火星 · 星舰计划</h1>
+        <p>宁瑞祥 · transition 过渡实践 · 从地球到火星的九个瞬间</p>
+    </div>
+
+    <ul class="list">
+        <li>
+            <div class="num">1</div>
+            <div class="img-wrap"><img src="img/1.png" alt="月球与地球"></div>
+            <div class="text">
+                <h3>阿波罗·起点</h3>
+                <p>人类首次踏足另一颗天体，地球在黑色天空中升起。</p>
+            </div>
+        </li>
+        <li>
+            <div class="num">2</div>
+            <div class="img-wrap"><img src="img/2.png" alt="埃隆·马斯克"></div>
+            <div class="text">
+                <h3>埃隆·马斯克</h3>
+                <p>SpaceX 创始人，立志让人类成为多行星物种。</p>
+            </div>
+        </li>
+        <li>
+            <div class="num">3</div>
+            <div class="img-wrap"><img src="img/3.png" alt="星舰发射"></div>
+            <div class="text">
+                <h3>星舰首飞</h3>
+                <p>超重型火箭点火升空，烈焰划破夜空。</p>
+            </div>
+        </li>
+        <li>
+            <div class="num">4</div>
+            <div class="img-wrap"><img src="img/4.png" alt="特斯拉与火箭"></div>
+            <div class="text">
+                <h3>跑车入太空</h3>
+                <p>Falcon Heavy 将特斯拉 Roadster 送入轨道。</p>
+            </div>
+        </li>
+        <li>
+            <div class="num">5</div>
+            <div class="img-wrap"><img src="img/5.png" alt="宇航员"></div>
+            <div class="text">
+                <h3>新一代宇航服</h3>
+                <p>SpaceX 白色宇航服，3D 打印头盔，极简设计。</p>
+            </div>
+        </li>
+        <li>
+            <div class="num">6</div>
+            <div class="img-wrap"><img src="img/6.png" alt="星舰发射台"></div>
+            <div class="text">
+                <h3>Super Heavy</h3>
+                <p>地球上最高的火箭，121 米全不锈钢箭体。</p>
+            </div>
+        </li>
+        <li>
+            <div class="num">7</div>
+            <div class="img-wrap"><img src="img/7.png" alt="火星"></div>
+            <div class="text">
+                <h3>火星 · 目的地</h3>
+                <p>红色行星等待人类到来，下一个家园。</p>
+            </div>
+        </li>
+        <li>
+            <div class="num">8</div>
+            <div class="img-wrap"><img src="img/8.png" alt="地球"></div>
+            <div class="text">
+                <h3>地球 · 出发点</h3>
+                <p>蓝色摇篮，一切文明的起点与归宿。</p>
+            </div>
+        </li>
+        <li>
+            <div class="num">9</div>
+            <div class="img-wrap"><img src="img/9.png" alt="月球与航天器"></div>
+            <div class="text">
+                <h3>深空前哨</h3>
+                <p>月球轨道空间站，火星之旅的中转站。</p>
+            </div>
+        </li>
+    </ul>
+
+    <footer>
+        宁瑞祥 · 班级503 · <span>transition</span> 过渡实践 · 素材来源：SpaceX / NASA 公开图片
+    </footer>
+</body>
+</html>

@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flex 头部模式 · 宁瑞祥</title>
+    <style>
+        /* =========================================================
+           设计 Token（与 index / 4-1 / 5-1 / 5-2 / 6-1 统一）
+           ========================================================= */
+        :root{
+            --bg-1:#f5f7fa;
+            --bg-2:#e9edf3;
+            --ink-1:#1d1d1f;
+            --ink-2:#6e6e73;
+            --ink-3:#aeaeb2;
+            --blue:#007aff;
+            --cyan:#5ac8fa;
+            --purple:#af52de;
+            --orange:#ff9500;
+            --red:#ff3b30;
+            --green:#34c759;
+            --card:#ffffff;
+            --line:rgba(0,0,0,.06);
+            --shadow-soft:0 4px 24px rgba(0,0,0,.06);
+            --shadow-3d:0 30px 60px -20px rgba(31,38,135,.25);
+            --radius:22px;
+        }
+
+        *{margin:0;padding:0;box-sizing:border-box;}
+        html{scroll-behavior:smooth;}
+
+        body{
+            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Roboto,sans-serif;
+            color:var(--ink-1);
+            background:
+                radial-gradient(1200px 600px at 80% -10%,rgba(175,82,222,.10),transparent 60%),
+                radial-gradient(1000px 500px at 0% 0%,rgba(0,122,255,.10),transparent 55%),
+                linear-gradient(180deg,var(--bg-1),var(--bg-2));
+            min-height:100vh;
+            line-height:1.6;
+            overflow-x:hidden;
+        }
+
+        /* ============ Hero（3D 立体标题）============ */
+        .hero{text-align:center;padding:60px 20px 30px;perspective:900px;}
+        .hero .kicker{
+            display:inline-block;font-size:.82em;letter-spacing:3px;
+            color:var(--blue);background:rgba(0,122,255,.08);
+            padding:6px 16px;border-radius:999px;margin-bottom:14px;
+        }
+        .hero h1{
+            font-size:clamp(2em,5.5vw,3.2em);font-weight:800;letter-spacing:3px;
+            transform-style:preserve-3d;animation:heroFloat 6s ease-in-out infinite;
+            text-shadow:0 1px 0 #d8dde4,0 2px 0 #cdd3db,0 3px 0 #c2c9d2,
+                0 6px 14px rgba(0,0,0,.16),0 12px 30px rgba(0,122,255,.18);
+        }
+        @keyframes heroFloat{0%,100%{transform:translateY(0) rotateX(0);}50%{transform:translateY(-8px) rotateX(4deg);}}
+        .hero p{color:var(--ink-2);margin-top:12px;font-size:1em;}
+        .chips{margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+        .chips span{
+            font-size:.8em;color:var(--ink-2);background:var(--card);
+            border:1px solid var(--line);padding:5px 14px;border-radius:999px;
+            box-shadow:var(--shadow-soft);
+        }
+
+        /* ============ 通用 3D 舞台 ============ */
+        .wrap{max-width:1100px;margin:0 auto;padding:20px 20px 70px;}
+        .scene{perspective:1500px;margin-bottom:40px;}
+        .tilt{transform-style:preserve-3d;transition:transform .18s ease-out;will-change:transform;}
+        .panel{
+            position:relative;background:rgba(255,255,255,.72);
+            backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+            border:1px solid rgba(255,255,255,.9);border-radius:var(--radius);
+            box-shadow:var(--shadow-3d);padding:28px 24px;transform-style:preserve-3d;
+        }
+        .panel-tag{
+            display:inline-block;font-size:.74em;letter-spacing:2px;color:#fff;
+            background:linear-gradient(135deg,var(--blue),var(--purple));
+            padding:4px 12px;border-radius:999px;margin-bottom:10px;transform:translateZ(40px);
+        }
+        .panel h2{font-size:1.25em;margin-bottom:4px;transform:translateZ(32px);}
+        .panel .tip{font-size:.86em;color:var(--ink-2);margin-bottom:20px;transform:translateZ(24px);}
+
+        /* ============ 头部演示区 ============ */
+        .header-demo{
+            display:flex;flex-direction:column;gap:20px;transform-style:preserve-3d;
+        }
+        .header-pattern{
+            position:relative;
+            background:#fff;border-radius:16px;box-shadow:0 2px 14px rgba(0,0,0,.06);
+            transform:translateZ(10px);overflow:hidden;
+        }
+        .pattern-meta{
+            position:absolute;top:10px;right:14px;
+            font-size:.66em;color:var(--ink-3);letter-spacing:1px;
+            font-family:"SF Mono",Menlo,Consolas,monospace;
+            pointer-events:none;z-index:3;
+            background:rgba(255,255,255,.9);padding:2px 8px;border-radius:6px;
+        }
+
+        /* ====== 模式 A：两端对齐（标题左 + 链接右）====== */
+        .hdr-a{
+            display:flex;justify-content:space-between;align-items:center;
+            padding:18px 24px;border-bottom:1px solid var(--line);
+        }
+        .hdr-a h3{font-size:1.05em;font-weight:700;color:var(--ink-1);}
+        .hdr-a a{
+            font-size:.92em;color:var(--blue);text-decoration:none;font-weight:500;
+            padding:6px 14px;border-radius:8px;transition:background .2s;
+        }
+        .hdr-a a:hover{background:rgba(0,122,255,.08);}
+
+        /* ====== 模式 B：flex-grow 弹性标题 ====== */
+        .hdr-b{
+            display:flex;justify-content:flex-start;align-items:center;
+            padding:18px 24px;border-bottom:1px solid var(--line);gap:14px;
+        }
+        .hdr-b h3{font-size:1.05em;font-weight:700;color:var(--ink-1);flex-grow:1;}
+        .hdr-b .tags{display:flex;gap:8px;}
+        .hdr-b .tags span{
+            font-size:.72em;color:var(--ink-2);background:#f5f5f7;
+            padding:3px 10px;border-radius:999px;
+        }
+        .hdr-b a{
+            font-size:.92em;color:var(--purple);text-decoration:none;font-weight:500;
+            padding:6px 14px;border:1px solid rgba(175,82,222,.3);border-radius:8px;
+            transition:all .2s;
+        }
+        .hdr-b a:hover{background:var(--purple);color:#fff;}
+
+        /* ====== 模式 C：绝对定位链接（相对父元素）====== */
+        .hdr-c{
+            position:relative;
+            display:flex;justify-content:flex-start;align-items:center;
+            padding:18px 80px 18px 24px;border-bottom:1px solid var(--line);
+        }
+        .hdr-c h3{font-size:1.05em;font-weight:700;color:var(--ink-1);}
+        .hdr-c .actions{
+            position:absolute;right:24px;top:50%;transform:translateY(-50%);
+            display:flex;gap:10px;
+        }
+        .hdr-c .actions button{
+            padding:6px 14px;border:none;border-radius:8px;font-size:.8em;
+            cursor:pointer;font-weight:500;transition:all .2s;
+        }
+        .hdr-c .actions .btn-primary{
+            background:var(--blue);color:#fff;
+        }
+        .hdr-c .actions .btn-primary:hover{background:#0066d6;transform:translateY(-1px);}
+        .hdr-c .actions .btn-secondary{
+            background:#f5f5f7;color:var(--ink-2);
+        }
+        .hdr-c .actions .btn-secondary:hover{background:#ebebed;color:var(--ink-1);}
+
+        /* ====== 模式 D：分栏 header（中间宽，两侧紧）====== */
+        .hdr-d{
+            display:flex;align-items:center;padding:18px 24px;gap:16px;
+            background:linear-gradient(135deg,#f0f5ff,#faf0ff);
+        }
+        .hdr-d .logo{
+            width:40px;height:40px;border-radius:10px;
+            background:linear-gradient(135deg,var(--blue),var(--purple));
+            display:grid;place-items:center;color:#fff;font-weight:800;font-size:.9em;
+            box-shadow:0 6px 14px rgba(0,122,255,.3);flex-shrink:0;
+        }
+        .hdr-d nav{display:flex;gap:18px;flex-grow:1;}
+        .hdr-d nav a{
+            font-size:.88em;color:var(--ink-2);text-decoration:none;font-weight:500;
+            position:relative;padding:4px 0;
+        }
+        .hdr-d nav a:hover{color:var(--ink-1);}
+        .hdr-d nav a.active{color:var(--blue);}
+        .hdr-d nav a.active::after{
+            content:"";position:absolute;left:0;right:0;bottom:-2px;height:2px;
+            background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:2px;
+        }
+        .hdr-d .search{
+            display:flex;align-items:center;gap:6px;background:#fff;
+            border:1px solid var(--line);border-radius:8px;padding:6px 12px;
+        }
+        .hdr-d .search input{
+            border:none;outline:none;font-size:.82em;width:120px;background:transparent;
+        }
+        .hdr-d .search input::placeholder{color:var(--ink-3);}
+        .hdr-d .search .icon{
+            font-size:.8em;color:var(--ink-3);
+        }
+
+        /* ============ 交互演示 ============ */
+        .playground{
+            position:relative;background:#fafafa;border-radius:16px;
+            padding:20px;min-height:200px;transform:translateZ(20px);
+            border:2px dashed rgba(0,122,255,.3);
+        }
+        .playground .ph{
+            display:flex;align-items:center;gap:12px;padding:14px 18px;
+            background:#fff;border-radius:12px;border:1px solid var(--line);
+        }
+        .playground .ph h4{font-size:.95em;font-weight:600;color:var(--ink-1);flex-grow:1;}
+        .playground .ph button{
+            padding:6px 14px;border:none;border-radius:8px;background:var(--blue);
+            color:#fff;font-size:.82em;cursor:pointer;font-weight:500;
+        }
+        .playground .ph button:hover{background:#0066d6;}
+
+        .controls-row{
+            display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;
+            transform:translateZ(20px);
+        }
+        .controls-row button{
+            padding:8px 16px;font-size:.82em;color:var(--ink-2);
+            background:#fff;border:1px solid var(--line);border-radius:10px;
+            cursor:pointer;transition:all .2s;font-weight:500;
+        }
+        .controls-row button:hover{border-color:var(--blue);color:var(--blue);}
+        .controls-row button.active{
+            background:linear-gradient(135deg,var(--blue),var(--cyan));
+            color:#fff;border-color:transparent;
+            box-shadow:0 4px 12px rgba(0,122,255,.3);transform:translateY(-1px);
+        }
+
+        /* ============ 代码区 ============ */
+        .code-box{
+            margin-top:18px;background:#1d1d1f;border-radius:14px;overflow:hidden;
+            box-shadow:0 12px 30px rgba(0,0,0,.2);transform:translateZ(20px);
+        }
+        .code-bar{
+            display:flex;align-items:center;justify-content:space-between;
+            padding:10px 16px;background:#2a2a2c;color:#9ea0a3;font-size:.78em;
+        }
+        .code-bar .dots{display:flex;gap:6px;}
+        .code-bar .dots i{width:11px;height:11px;border-radius:50%;display:inline-block;}
+        .code-bar .dots i:nth-child(1){background:#ff5f56;}
+        .code-bar .dots i:nth-child(2){background:#ffbd2e;}
+        .code-bar .dots i:nth-child(3){background:#27c93f;}
+        .copy-btn{
+            padding:5px 12px;background:var(--blue);color:#fff;
+            border:none;border-radius:6px;font-size:.78em;cursor:pointer;
+        }
+        .copy-btn:hover{background:#0066d6;}
+        .copy-btn.done{background:var(--green);}
+        pre.code{
+            margin:0;padding:16px;font-family:"SF Mono",Menlo,Consolas,monospace;
+            font-size:.8em;line-height:1.7;color:#e6e6e6;overflow-x:auto;
+            white-space:pre-wrap;
+        }
+        .code .sel{color:#ff9500;}.code .prop{color:#5ac8fa;}.code .val{color:#34c759;}
+        .code .punc{color:#9ea0a3;}.code .cmt{color:#6e6e73;}
+
+        /* ============ 页脚 ============ */
+        footer{text-align:center;padding:26px 20px 40px;color:var(--ink-3);font-size:.84em;}
+
+        /* ============ 响应式 ============ */
+        @media (max-width:680px){
+            .panel{padding:20px 16px;}
+            .hdr-c{padding:18px 16px;}
+            .hdr-c .actions{position:static;transform:none;margin-top:12px;}
+            .hdr-c{flex-direction:column;align-items:flex-start;gap:10px;}
+            .hdr-d{flex-wrap:wrap;}
+            .hdr-d nav{order:3;flex-basis:100%;margin-top:8px;justify-content:center;}
+        }
+        @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important;}}
+    </style>
+</head>
+<body>
+
+    <!-- ============ Hero ============ -->
+    <header class="hero">
+        <span class="kicker">FLEX HEADER PATTERNS</span>
+        <h1>宁瑞祥 · Flex 头部布局模式</h1>
+        <p>4 种经典 Flex header 模式 + 实时交互演示 + 代码生成</p>
+        <div class="chips">
+            <span>学号 2001010503</span>
+            <span>宁瑞祥 · 计算机23005</span>
+            <span>display:flex · justify-content · align-items</span>
+        </div>
+    </header>
+
+    <main class="wrap">
+
+        <!-- ============ 四大头部模式 ============ -->
+        <section class="scene">
+            <div class="tilt">
+                <div class="panel">
+                    <span class="panel-tag">HEADER PATTERNS</span>
+                    <h2>Flex 头部布局模式图鉴</h2>
+                    <p class="tip">原文件有 `.title:nth-child(1/2/3)` 意图，下方完整实现 4 种常见 header 模式</p>
+
+                    <div class="header-demo">
+
+                        <!-- 模式 A -->
+                        <div class="header-pattern">
+                            <span class="pattern-meta">模式 A · space-between</span>
+                            <div class="hdr-a">
+                                <h3>📋 最新公告</h3>
+                                <a href="#">查看全部 →</a>
+                            </div>
+                        </div>
+
+                        <!-- 模式 B -->
+                        <div class="header-pattern">
+                            <span class="pattern-meta">模式 B · flex-grow:1</span>
+                            <div class="hdr-b">
+                                <h3>🗂️ 课程资源</h3>
+                                <div class="tags">
+                                    <span>CSS</span>
+                                    <span>HTML</span>
+                                    <span>Flex</span>
+                                </div>
+                                <a href="#">上传</a>
+                            </div>
+                        </div>
+
+                        <!-- 模式 C -->
+                        <div class="header-pattern">
+                            <span class="pattern-meta">模式 C · absolute in relative</span>
+                            <div class="hdr-c">
+                                <h3>👤 个人中心</h3>
+                                <div class="actions">
+                                    <button class="btn-secondary">设置</button>
+                                    <button class="btn-primary">编辑资料</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 模式 D -->
+                        <div class="header-pattern">
+                            <span class="pattern-meta">模式 D · 导航栏</span>
+                            <div class="hdr-d">
+                                <div class="logo">NR</div>
+                                <nav>
+                                    <a href="#" class="active">首页</a>
+                                    <a href="#">课程</a>
+                                    <a href="#">作业</a>
+                                    <a href="#">资料</a>
+                                    <a href="#">关于</a>
+                                </nav>
+                                <div class="search">
+                                    <span class="icon">🔍</span>
+                                    <input type="text" placeholder="搜索课程…">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ 实时交互演示 ============ -->
+        <section class="scene">
+            <div class="tilt">
+                <div class="panel">
+                    <span class="panel-tag">INTERACTIVE</span>
+                    <h2>实时头部布局演示</h2>
+                    <p class="tip">调整下方按钮，预览即时变化；点击可查看对应 CSS</p>
+
+                    <!-- 控件 -->
+                    <div class="controls-row">
+                        <span style="font-size:.82em;color:var(--ink-2);padding:8px 0;margin-right:4px;">justify-content:</span>
+                        <button data-j="flex-start">start</button>
+                        <button data-j="center">center</button>
+                        <button data-j="flex-end">end</button>
+                        <button data-j="space-between" class="active">space-between</button>
+                        <button data-j="space-around">space-around</button>
+                        <button data-j="space-evenly">space-evenly</button>
+                    </div>
+                    <div class="controls-row">
+                        <span style="font-size:.82em;color:var(--ink-2);padding:8px 0;margin-right:4px;">align-items:</span>
+                        <button data-a="flex-start">start</button>
+                        <button data-a="center" class="active">center</button>
+                        <button data-a="flex-end">end</button>
+                        <button data-a="baseline">baseline</button>
+                        <button data-a="stretch">stretch</button>
+                    </div>
+                    <div class="controls-row">
+                        <span style="font-size:.82em;color:var(--ink-2);padding:8px 0;margin-right:4px;">flex-direction:</span>
+                        <button data-d="row" class="active">row</button>
+                        <button data-d="row-reverse">row-reverse</button>
+                        <button data-d="column">column</button>
+                        <button data-d="column-reverse">column-reverse</button>
+                    </div>
+
+                    <!-- 预览舞台 -->
+                    <div class="playground">
+                        <div class="ph" id="play">
+                            <h4>🎯 标题</h4>
+                            <button>操作按钮</button>
+                        </div>
+                    </div>
+
+                    <!-- 代码 -->
+                    <div class="code-box">
+                        <div class="code-bar">
+                            <span class="dots"><i></i><i></i><i></i></span>
+                            <span>style.css · 实时生成</span>
+                            <button class="copy-btn" id="copyBtn">复制</button>
+                        </div>
+                        <pre class="code" id="codeOut"></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        © 《高级网页设计》课堂实践 · 6-2 Flex 头部布局 · 纯原生 HTML / CSS / JS，无 CDN
+    </footer>
+
+    <script>
+        // ===== 实时交互演示 =====
+        const play = document.getElementById('play');
+        const codeOut = document.getElementById('codeOut');
+        let state = {
+            justify:'space-between',
+            items:'center',
+            direction:'row'
+        };
+
+        function update(){
+            play.style.display = 'flex';
+            play.style.justifyContent = state.justify;
+            play.style.alignItems = state.items;
+            play.style.flexDirection = state.direction;
+            renderCode();
+        }
+
+        function renderCode(){
+            const S = s => `<span class="sel">${s}</span>`;
+            const P = p => `<span class="prop">${p}</span>`;
+            const V = v => `<span class="val">${v}</span>`;
+            const B = c => `<span class="punc">${c}</span>`;
+            const C = t => `<span class="cmt">${t}</span>`;
+            let out = `${C('/* 头部容器 */')}\n`;
+            out += `${S('.header')} ${B('{')}\n`;
+            out += `  ${P('display')}: ${V('flex')};\n`;
+            out += `  ${P('justify-content')}: ${V(state.justify)};\n`;
+            out += `  ${P('align-items')}: ${V(state.items)};\n`;
+            if (state.direction !== 'row') {
+                out += `  ${P('flex-direction')}: ${V(state.direction)};\n`;
+            }
+            out += `${B('}')}\n\n`;
+            out += `${C('/* 标题自动占据剩余空间 */')}\n`;
+            out += `${S('.header h4')} ${B('{')} ${P('flex-grow')}: ${V('1')}; ${B('}')}`;
+            codeOut.innerHTML = out;
+        }
+
+        // 按钮事件
+        document.querySelectorAll('.controls-row button[data-j]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                state.justify = btn.dataset.j;
+                document.querySelectorAll('.controls-row button[data-j]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                update();
+            });
+        });
+        document.querySelectorAll('.controls-row button[data-a]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                state.items = btn.dataset.a;
+                document.querySelectorAll('.controls-row button[data-a]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                update();
+            });
+        });
+        document.querySelectorAll('.controls-row button[data-d]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                state.direction = btn.dataset.d;
+                document.querySelectorAll('.controls-row button[data-d]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                update();
+            });
+        });
+
+        // ===== 复制代码 =====
+        document.getElementById('copyBtn').addEventListener('click', e => {
+            navigator.clipboard.writeText(codeOut.textContent).then(() => {
+                e.target.textContent = '已复制 ✓';
+                e.target.classList.add('done');
+                setTimeout(() => { e.target.textContent = '复制'; e.target.classList.remove('done'); }, 1500);
+            });
+        });
+
+        // ===== 鼠标 3D 倾斜 =====
+        document.querySelectorAll('.scene').forEach(scene => {
+            const tilt = scene.querySelector('.tilt');
+            let raf = null;
+            scene.addEventListener('mousemove', e => {
+                const r = scene.getBoundingClientRect();
+                const px = (e.clientX - r.left) / r.width - 0.5;
+                const py = (e.clientY - r.top) / r.height - 0.5;
+                const ty = px * 8, tx = -py * 8;
+                if (!raf) {
+                    raf = requestAnimationFrame(() => {
+                        tilt.style.transform = `rotateX(${tx}deg) rotateY(${ty}deg)`;
+                        raf = null;
+                    });
+                }
+            });
+            scene.addEventListener('mouseleave', () => {
+                tilt.style.transition = 'transform .6s cubic-bezier(.2,.8,.2,1)';
+                tilt.style.transform = 'rotateX(0) rotateY(0)';
+                setTimeout(() => tilt.style.transition = 'transform .18s ease-out', 600);
+            });
+        });
+
+        // ===== 初始化 =====
+        update();
+    </script>
+</body>
+</html>

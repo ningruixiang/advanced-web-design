@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宁瑞祥 · Flex 布局实验室</title>
+    <style>
+        /* =========================================================
+           设计 Token（极简系统，与 5-1 / 5-2 / index 统一）
+           ========================================================= */
+        :root{
+            --bg-1:#f5f7fa;
+            --bg-2:#e9edf3;
+            --ink-1:#1d1d1f;
+            --ink-2:#6e6e73;
+            --ink-3:#aeaeb2;
+            --blue:#007aff;
+            --cyan:#5ac8fa;
+            --purple:#af52de;
+            --orange:#ff9500;
+            --red:#ff3b30;
+            --green:#34c759;
+            --pink:#ff2d92;
+            --card:#ffffff;
+            --line:rgba(0,0,0,.06);
+            --shadow-soft:0 4px 24px rgba(0,0,0,.06);
+            --shadow-3d:0 30px 60px -20px rgba(31,38,135,.25);
+            --radius:22px;
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        html{scroll-behavior:smooth;}
+        body{
+            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Roboto,sans-serif;
+            color:var(--ink-1);
+            background:
+                radial-gradient(1200px 600px at 80% -10%,rgba(175,82,222,.10),transparent 60%),
+                radial-gradient(1000px 500px at 0% 0%,rgba(0,122,255,.10),transparent 55%),
+                linear-gradient(180deg,var(--bg-1),var(--bg-2));
+            min-height:100vh;
+            line-height:1.6;
+            overflow-x:hidden;
+        }
+
+        /* ============ Hero（3D 立体标题）============ */
+        .hero{text-align:center;padding:60px 20px 24px;perspective:900px;}
+        .hero .kicker{
+            display:inline-block;font-size:.82em;letter-spacing:3px;
+            color:var(--blue);background:rgba(0,122,255,.08);
+            padding:6px 16px;border-radius:999px;margin-bottom:14px;
+        }
+        .hero h2{
+            font-size:clamp(2em,5.5vw,3.2em);font-weight:800;letter-spacing:3px;
+            transform-style:preserve-3d;animation:heroFloat 6s ease-in-out infinite;
+            text-shadow:0 1px 0 #d8dde4,0 2px 0 #cdd3db,0 3px 0 #c2c9d2,
+                0 6px 14px rgba(0,0,0,.16),0 12px 30px rgba(0,122,255,.18);
+        }
+        @keyframes heroFloat{0%,100%{transform:translateY(0) rotateX(0);}50%{transform:translateY(-8px) rotateX(4deg);}}
+        .hero p{color:var(--ink-2);margin-top:12px;font-size:1em;}
+        .chips{margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+        .chips span{
+            font-size:.8em;color:var(--ink-2);background:var(--card);
+            border:1px solid var(--line);padding:5px 14px;border-radius:999px;
+            box-shadow:var(--shadow-soft);
+        }
+
+        /* ============ 通用容器 ============ */
+        .wrap{max-width:1200px;margin:0 auto;padding:20px 20px 70px;}
+        .scene{perspective:1500px;margin-bottom:40px;}
+        .tilt{transform-style:preserve-3d;transition:transform .18s ease-out;will-change:transform;}
+        .panel{
+            position:relative;background:rgba(255,255,255,.72);
+            backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+            border:1px solid rgba(255,255,255,.9);border-radius:var(--radius);
+            box-shadow:var(--shadow-3d);padding:28px 24px;transform-style:preserve-3d;
+        }
+        .panel-tag{
+            display:inline-block;font-size:.74em;letter-spacing:2px;color:#fff;
+            background:linear-gradient(135deg,var(--blue),var(--purple));
+            padding:4px 12px;border-radius:999px;margin-bottom:10px;transform:translateZ(40px);
+        }
+        .panel h3{font-size:1.2em;margin-bottom:4px;transform:translateZ(32px);}
+        .panel .tip{font-size:.86em;color:var(--ink-2);margin-bottom:18px;transform:translateZ(24px);}
+
+        /* ============ 主实验区：左控件 + 右预览 ============ */
+        .lab{
+            display:grid;
+            grid-template-columns:300px 1fr;
+            gap:20px;
+            align-items:start;
+        }
+        @media (max-width:860px){.lab{grid-template-columns:1fr;}}
+
+        /* 控件区 */
+        .controls{
+            background:rgba(255,255,255,.6);
+            border:1px solid var(--line);
+            border-radius:16px;
+            padding:18px;
+            transform:translateZ(30px);
+            max-height:560px;
+            overflow-y:auto;
+        }
+        .controls::-webkit-scrollbar{width:6px;}
+        .controls::-webkit-scrollbar-thumb{background:var(--ink-3);border-radius:3px;}
+        .ctrl-group{margin-bottom:18px;padding-bottom:14px;border-bottom:1px dashed var(--line);}
+        .ctrl-group:last-child{border-bottom:none;}
+        .ctrl-group label.title{
+            display:block;font-size:.78em;font-weight:600;color:var(--ink-1);
+            margin-bottom:8px;letter-spacing:.5px;
+        }
+        .ctrl-group label.title code{
+            color:var(--blue);font-family:"SF Mono",Menlo,Consolas,monospace;
+            background:rgba(0,122,255,.08);padding:1px 6px;border-radius:4px;font-size:.95em;
+        }
+        .radio-row{display:flex;flex-wrap:wrap;gap:6px;}
+        .radio-row input[type=radio]{display:none;}
+        .radio-row label.btn{
+            flex:1;min-width:60px;text-align:center;padding:7px 6px;
+            font-size:.74em;color:var(--ink-2);background:var(--card);
+            border:1px solid var(--line);border-radius:8px;cursor:pointer;
+            transition:all .2s;user-select:none;
+        }
+        .radio-row input[type=radio]:checked + .btn{
+            background:linear-gradient(135deg,var(--blue),var(--cyan));
+            color:#fff;border-color:transparent;
+            box-shadow:0 4px 12px rgba(0,122,255,.3);transform:translateY(-1px);
+        }
+        .radio-row label.btn:hover{border-color:var(--blue);color:var(--blue);}
+
+        /* 范围滑块 */
+        .slider-row{display:flex;align-items:center;gap:10px;margin-top:6px;}
+        .slider-row input[type=range]{
+            flex:1;accent-color:var(--blue);height:4px;
+        }
+        .slider-row .val{
+            font-size:.78em;font-family:"SF Mono",Menlo,Consolas,monospace;
+            color:var(--blue);min-width:28px;text-align:right;
+        }
+        .slider-label{font-size:.72em;color:var(--ink-2);min-width:28px;}
+        .basis-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+        .basis-row label{
+            display:flex;align-items:center;gap:3px;font-size:.7em;
+            color:var(--ink-2);background:var(--card);
+            border:1px solid var(--line);border-radius:6px;padding:3px 6px;
+        }
+        .basis-row input{
+            width:52px;padding:2px 4px;border:1px solid var(--ink-3);
+            border-radius:4px;font-size:.74em;font-family:"SF Mono",Menlo,Consolas,monospace;
+            text-align:center;outline:none;
+        }
+        .basis-row input:focus{border-color:var(--blue);}
+        .self-row{display:flex;flex-direction:column;gap:6px;margin-top:6px;}
+        .self-row > label{
+            display:flex;align-items:center;gap:6px;font-size:.72em;color:var(--ink-2);
+        }
+        .self-row select{
+            flex:1;padding:3px 6px;border:1px solid var(--line);border-radius:6px;
+            background:var(--card);font-size:.76em;color:var(--ink-1);outline:none;
+            cursor:pointer;
+        }
+        .self-row select:focus{border-color:var(--blue);}
+
+        /* 预设按钮 */
+        .presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+        .presets button{
+            padding:7px 12px;font-size:.76em;color:var(--purple);
+            background:rgba(175,82,222,.08);border:1px solid rgba(175,82,222,.2);
+            border-radius:8px;cursor:pointer;transition:all .2s;
+        }
+        .presets button:hover{
+            background:var(--purple);color:#fff;border-color:transparent;
+            transform:translateY(-2px);box-shadow:0 6px 14px rgba(175,82,222,.3);
+        }
+
+        /* ============ 预览舞台 ============ */
+        .stage-wrap{
+            position:relative;
+            background:rgba(255,255,255,.5);
+            border:1px solid var(--line);
+            border-radius:16px;
+            padding:20px;
+            transform:translateZ(20px);
+        }
+        .stage{
+            position:relative;
+            background:repeating-linear-gradient(45deg,
+                rgba(0,122,255,.04) 0,rgba(0,122,255,.04) 10px,
+                transparent 10px,transparent 20px);
+            border:2px dashed rgba(0,122,255,.25);
+            border-radius:12px;
+            min-height:340px;
+            padding:14px;
+            transition:all .3s ease;
+        }
+        /* 主轴 / 交叉轴指示器（创新点） */
+        .axis-main, .axis-cross{
+            position:absolute;font-size:.66em;font-weight:700;
+            padding:3px 8px;border-radius:999px;pointer-events:none;
+            z-index:5;letter-spacing:1px;
+            transition:all .35s cubic-bezier(.2,.8,.2,1);
+        }
+        .axis-main{
+            top:8px;left:50%;transform:translateX(-50%);
+            background:var(--red);color:#fff;
+            box-shadow:0 4px 10px rgba(255,59,48,.35);
+        }
+        .axis-main::before{content:"→ 主轴 MAIN AXIS ";}
+        .axis-cross{
+            top:50%;left:8px;transform:translateY(-50%) rotate(-90deg);
+            transform-origin:left center;
+            background:var(--green);color:#fff;
+            box-shadow:0 4px 10px rgba(52,199,89,.35);
+        }
+        .axis-cross::before{content:"↕ 交叉轴 CROSS ";}
+        /* column 方向时交换指示器位置 */
+        .stage.dir-column .axis-main{
+            top:50%;left:8px;transform:translateY(-50%) rotate(-90deg);transform-origin:left center;
+        }
+        .stage.dir-column .axis-cross{
+            top:8px;left:50%;transform:translateX(-50%) rotate(0);
+        }
+        .stage.dir-row-reverse .axis-main::before{content:"← 主轴 MAIN AXIS ";}
+        .stage.dir-column-reverse .axis-main::before{content:"↑ 主轴 MAIN AXIS ";}
+
+        /* flex 项目 */
+        .stage .item{
+            display:flex;align-items:center;justify-content:center;
+            min-width:54px;min-height:54px;width:70px;height:70px;
+            border-radius:14px;color:#fff;font-weight:700;font-size:1.1em;
+            cursor:grab;transition:transform .25s, box-shadow .25s;
+            box-shadow:0 6px 14px rgba(0,0,0,.15);
+            user-select:none;position:relative;
+        }
+        .stage .item::after{
+            content:"⠿";position:absolute;top:4px;right:6px;
+            font-size:.6em;opacity:.6;
+        }
+        .stage .item:nth-child(1){background:linear-gradient(135deg,#ff3b30,#ff6b50);}
+        .stage .item:nth-child(2){background:linear-gradient(135deg,#ff9500,#ffb340);}
+        .stage .item:nth-child(3){background:linear-gradient(135deg,#ffcc00,#ffe066);color:#5a4500;}
+        .stage .item:nth-child(4){background:linear-gradient(135deg,#34c759,#5dd879);}
+        .stage .item:nth-child(5){background:linear-gradient(135deg,#007aff,#5ac8fa);}
+        .stage .item:hover{transform:translateZ(40px) scale(1.08);box-shadow:0 14px 28px rgba(0,0,0,.25);}
+        .stage .item:active{cursor:grabbing;}
+        .stage .item.dragging{opacity:.4;}
+
+        /* ============ 实时 CSS 代码区（创新点）============ */
+        .code-box{
+            margin-top:18px;
+            background:#1d1d1f;
+            border-radius:14px;
+            overflow:hidden;
+            box-shadow:0 12px 30px rgba(0,0,0,.2);
+            transform:translateZ(20px);
+        }
+        .code-bar{
+            display:flex;align-items:center;justify-content:space-between;
+            padding:10px 16px;background:#2a2a2c;color:#9ea0a3;font-size:.78em;
+        }
+        .code-bar .dots{display:flex;gap:6px;}
+        .code-bar .dots i{width:11px;height:11px;border-radius:50%;display:inline-block;}
+        .code-bar .dots i:nth-child(1){background:#ff5f56;}
+        .code-bar .dots i:nth-child(2){background:#ffbd2e;}
+        .code-bar .dots i:nth-child(3){background:#27c93f;}
+        .copy-btn{
+            padding:5px 12px;background:var(--blue);color:#fff;
+            border:none;border-radius:6px;font-size:.78em;cursor:pointer;
+            transition:background .2s;
+        }
+        .copy-btn:hover{background:#0066d6;}
+        .copy-btn.done{background:var(--green);}
+        pre.code{
+            margin:0;padding:16px;font-family:"SF Mono",Menlo,Consolas,monospace;
+            font-size:.82em;line-height:1.7;color:#e6e6e6;overflow-x:auto;
+        }
+        .code .sel{color:#ff9500;}
+        .code .prop{color:#5ac8fa;}
+        .code .val{color:#34c759;}
+        .code .punc{color:#9ea0a3;}
+        .code .cmt{color:#6e6e73;}
+
+        /* ============ 属性参考卡 ============ */
+        .ref-grid{
+            display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+            gap:14px;transform-style:preserve-3d;
+        }
+        .ref-card{
+            background:rgba(255,255,255,.6);border:1px solid var(--line);
+            border-radius:14px;padding:16px;transition:transform .25s,box-shadow .25s;
+        }
+        .ref-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-soft);}
+        .ref-card h4{font-size:.88em;color:var(--blue);margin-bottom:6px;font-family:"SF Mono",Menlo,Consolas,monospace;}
+        .ref-card p{font-size:.78em;color:var(--ink-2);line-height:1.6;}
+        .ref-card .vals{font-size:.72em;color:var(--ink-3);margin-top:6px;font-family:"SF Mono",Menlo,Consolas,monospace;}
+
+        /* ============ 页脚 ============ */
+        footer{text-align:center;padding:26px 20px 40px;color:var(--ink-3);font-size:.84em;}
+
+        /* ============ Flex 布局模式图鉴 ============ */
+        .gallery{
+            display:grid;
+            grid-template-columns:repeat(4,1fr);
+            gap:20px 30px;
+            padding-bottom:36px;
+            transform-style:preserve-3d;
+        }
+        @media (max-width:900px){.gallery{grid-template-columns:repeat(2,1fr);}}
+        @media (max-width:500px){.gallery{grid-template-columns:1fr;}}
+
+        .pattern{
+            background:#f5f5f5;
+            border:1px solid #d0d0d0;
+            border-radius:12px;
+            padding:20px;
+            aspect-ratio:1/1;
+            display:flex;
+            position:relative;
+            transition:transform .3s,box-shadow .3s;
+        }
+        .pattern:hover{
+            transform:translateZ(30px);
+            box-shadow:0 20px 40px -10px rgba(0,0,0,.15);
+        }
+        .pattern .rect{
+            background:#d8d8d8;
+            border:1px solid #bbb;
+            border-radius:4px;
+            transition:background .3s,border-color .3s;
+        }
+        .pattern:hover .rect{
+            background:#c8e0ff;
+            border-color:var(--blue);
+        }
+        .pattern .label{
+            position:absolute;
+            bottom:-28px;left:0;right:0;
+            text-align:center;font-size:.7em;color:var(--ink-2);
+            font-family:"SF Mono",Menlo,Consolas,monospace;white-space:nowrap;
+        }
+
+        /* Pattern 1: 单项居中 */
+        .p1{justify-content:center;align-items:center;}
+        .p1 .rect{flex:0 0 80px;height:60px;}
+
+        /* Pattern 2: 两项纵向堆叠居中 */
+        .p2{flex-direction:column;justify-content:center;align-items:center;gap:12px;}
+        .p2 .rect{flex:0 0 auto;width:90px;height:50px;}
+
+        /* Pattern 3: 2×2 网格 —— flex-wrap + flex-basis */
+        .p3{flex-wrap:wrap;justify-content:center;align-content:center;gap:10px;}
+        .p3 .rect{flex:0 0 calc(50% - 5px);height:55px;}
+
+        /* Pattern 4: T 形（上 1 大 + 下 2 小）—— flex-wrap + flex-basis */
+        .p4{flex-wrap:wrap;justify-content:space-between;align-content:space-between;gap:10px;}
+        .p4 .rect.top{flex:0 0 100%;height:55px;}
+        .p4 .rect.bot{flex:0 0 calc(50% - 5px);height:50px;}
+
+        .gallery-caption{
+            text-align:center;margin-top:36px;font-size:.82em;color:var(--ink-2);
+            font-family:"SF Mono",Menlo,Consolas,monospace;
+        }
+        .gallery-caption code{color:var(--blue);background:rgba(0,122,255,.08);padding:1px 6px;border-radius:4px;}
+
+        @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important;}}
+    </style>
+</head>
+<body>
+
+    <!-- ============ Hero ============ -->
+    <header class="hero">
+        <span class="kicker">FLEXBOX LABORATORY</span>
+        <h2>宁瑞祥 · Flex 布局实验室</h2>
+        <p>仿 codepen.io/enxaneta/full/adLPwv · 创新：实时代码生成 / 主轴指示器 / 可拖拽重排 / 一键预设</p>
+        <div class="chips">
+            <span>学号 2001010503</span>
+            <span>宁瑞祥 · 计算机23005</span>
+            <span>5 个 flex 项目</span>
+        </div>
+    </header>
+
+    <main class="wrap">
+
+        <!-- ============ 主实验区 ============ -->
+        <section class="scene">
+            <div class="tilt">
+                <div class="panel">
+                    <span class="panel-tag">LIVE PLAYGROUND</span>
+                    <h3>实时 Flex 演示</h3>
+                    <p class="tip">调整左侧控件，预览即时变化；可拖拽项目重排；下方实时生成 CSS 代码</p>
+
+                    <div class="lab">
+
+                        <!-- ===== 左：控件 ===== -->
+                        <div class="controls">
+
+                            <!-- 预设 -->
+                            <div class="ctrl-group">
+                                <label class="title">⚡ 一键预设</label>
+                                <div class="presets">
+                                    <button data-preset="center">垂直居中</button>
+                                    <button data-preset="navbar">导航栏</button>
+                                    <button data-preset="between">两端对齐</button>
+                                    <button data-preset="card">卡片网格</button>
+                                    <button data-preset="column">纵向堆叠</button>
+                                </div>
+                            </div>
+
+                            <!-- flex-direction -->
+                            <div class="ctrl-group">
+                                <label class="title"><code>flex-direction</code></label>
+                                <div class="radio-row">
+                                    <input type="radio" name="direction" id="d1" value="row" checked><label class="btn" for="d1">row</label>
+                                    <input type="radio" name="direction" id="d2" value="row-reverse"><label class="btn" for="d2">row-rev</label>
+                                    <input type="radio" name="direction" id="d3" value="column"><label class="btn" for="d3">column</label>
+                                    <input type="radio" name="direction" id="d4" value="column-reverse"><label class="btn" for="d4">col-rev</label>
+                                </div>
+                            </div>
+
+                            <!-- flex-wrap -->
+                            <div class="ctrl-group">
+                                <label class="title"><code>flex-wrap</code></label>
+                                <div class="radio-row">
+                                    <input type="radio" name="wrap" id="w1" value="nowrap" checked><label class="btn" for="w1">nowrap</label>
+                                    <input type="radio" name="wrap" id="w2" value="wrap"><label class="btn" for="w2">wrap</label>
+                                    <input type="radio" name="wrap" id="w3" value="wrap-reverse"><label class="btn" for="w3">wrap-rev</label>
+                                </div>
+                            </div>
+
+                            <!-- justify-content -->
+                            <div class="ctrl-group">
+                                <label class="title"><code>justify-content</code></label>
+                                <div class="radio-row">
+                                    <input type="radio" name="justify" id="j1" value="flex-start" checked><label class="btn" for="j1">start</label>
+                                    <input type="radio" name="justify" id="j2" value="flex-end"><label class="btn" for="j2">end</label>
+                                    <input type="radio" name="justify" id="j3" value="center"><label class="btn" for="j3">center</label>
+                                    <input type="radio" name="justify" id="j4" value="space-between"><label class="btn" for="j4">between</label>
+                                    <input type="radio" name="justify" id="j5" value="space-around"><label class="btn" for="j5">around</label>
+                                    <input type="radio" name="justify" id="j6" value="space-evenly"><label class="btn" for="j6">evenly</label>
+                                </div>
+                            </div>
+
+                            <!-- align-items -->
+                            <div class="ctrl-group">
+                                <label class="title"><code>align-items</code></label>
+                                <div class="radio-row">
+                                    <input type="radio" name="items" id="i1" value="stretch" checked><label class="btn" for="i1">stretch</label>
+                                    <input type="radio" name="items" id="i2" value="flex-start"><label class="btn" for="i2">start</label>
+                                    <input type="radio" name="items" id="i3" value="flex-end"><label class="btn" for="i3">end</label>
+                                    <input type="radio" name="items" id="i4" value="center"><label class="btn" for="i4">center</label>
+                                    <input type="radio" name="items" id="i5" value="baseline"><label class="btn" for="i5">baseline</label>
+                                </div>
+                            </div>
+
+                            <!-- align-content -->
+                            <div class="ctrl-group">
+                                <label class="title"><code>align-content</code> <span style="font-size:.7em;color:var(--ink-3)">(需 wrap)</span></label>
+                                <div class="radio-row">
+                                    <input type="radio" name="content" id="c1" value="stretch" checked><label class="btn" for="c1">stretch</label>
+                                    <input type="radio" name="content" id="c2" value="flex-start"><label class="btn" for="c2">start</label>
+                                    <input type="radio" name="content" id="c3" value="flex-end"><label class="btn" for="c3">end</label>
+                                    <input type="radio" name="content" id="c4" value="center"><label class="btn" for="c4">center</label>
+                                    <input type="radio" name="content" id="c5" value="space-between"><label class="btn" for="c5">between</label>
+                                    <input type="radio" name="content" id="c6" value="space-around"><label class="btn" for="c6">around</label>
+                                </div>
+                            </div>
+
+                            <!-- align-self 全项独立（已在下方独立下拉中实现，此保留仅作语义占位）-->
+
+                            <!-- flex-grow -->
+                            <div class="ctrl-group">
+                                <label class="title"><code>flex-grow</code> <span style="font-size:.7em;color:var(--ink-3)">(每项独立)</span></label>
+                                <div class="slider-row"><input type="range" id="grow1" min="0" max="4" step="1" value="0"><span class="val" id="grow1v">0</span></div>
+                                <div class="slider-row"><input type="range" id="grow2" min="0" max="4" step="1" value="0"><span class="val" id="grow2v">0</span></div>
+                                <div class="slider-row"><input type="range" id="grow3" min="0" max="4" step="1" value="0"><span class="val" id="grow3v">0</span></div>
+                                <div class="slider-row"><input type="range" id="grow4" min="0" max="4" step="1" value="0"><span class="val" id="grow4v">0</span></div>
+                                <div class="slider-row"><input type="range" id="grow5" min="0" max="4" step="1" value="0"><span class="val" id="grow5v">0</span></div>
+                            </div>
+
+                            <!-- flex-shrink -->
+                            <div class="ctrl-group">
+                                <label class="title"><code>flex-shrink</code> <span style="font-size:.7em;color:var(--ink-3)">(每项独立，0=不压缩)</span></label>
+                                <div class="slider-row"><input type="range" id="shrink1" min="0" max="4" step="1" value="1"><span class="val" id="shrink1v">1</span></div>
+                                <div class="slider-row"><input type="range" id="shrink2" min="0" max="4" step="1" value="1"><span class="val" id="shrink2v">1</span></div>
+                                <div class="slider-row"><input type="range" id="shrink3" min="0" max="4" step="1" value="1"><span class="val" id="shrink3v">1</span></div>
+                                <div class="slider-row"><input type="range" id="shrink4" min="0" max="4" step="1" value="1"><span class="val" id="shrink4v">1</span></div>
+                                <div class="slider-row"><input type="range" id="shrink5" min="0" max="4" step="1" value="1"><span class="val" id="shrink5v">1</span></div>
+                            </div>
+
+                            <!-- flex-basis（5 项，默认 auto）-->
+                            <div class="ctrl-group">
+                                <label class="title"><code>flex-basis</code> <span style="font-size:.7em;color:var(--ink-3)">(每项独立，auto=看width)</span></label>
+                                <div class="basis-row">
+                                    <label>1 <input type="text" id="basis1" value="auto"></label>
+                                    <label>2 <input type="text" id="basis2" value="auto"></label>
+                                    <label>3 <input type="text" id="basis3" value="auto"></label>
+                                    <label>4 <input type="text" id="basis4" value="auto"></label>
+                                    <label>5 <input type="text" id="basis5" value="auto"></label>
+                                </div>
+                            </div>
+
+                            <!-- gap / row-gap / column-gap -->
+                            <div class="ctrl-group">
+                                <label class="title"><code>gap</code> / <code>row-gap</code> / <code>column-gap</code></label>
+                                <div class="slider-row"><span class="slider-label">gap</span><input type="range" id="gap" min="0" max="40" step="2" value="0"><span class="val" id="gapv">0</span></div>
+                                <div class="slider-row"><span class="slider-label">row</span><input type="range" id="rowGap" min="0" max="40" step="2" value="0"><span class="val" id="rowGapv">0</span></div>
+                                <div class="slider-row"><span class="slider-label">col</span><input type="range" id="colGap" min="0" max="40" step="2" value="0"><span class="val" id="colGapv">0</span></div>
+                            </div>
+
+                            <!-- order（5 项独立，整数）-->
+                            <div class="ctrl-group">
+                                <label class="title"><code>order</code> <span style="font-size:.7em;color:var(--ink-3)">(整数，越小越靠前，默认0)</span></label>
+                                <div class="basis-row">
+                                    <label>1 <input type="number" id="order1" value="0"></label>
+                                    <label>2 <input type="number" id="order2" value="0"></label>
+                                    <label>3 <input type="number" id="order3" value="0"></label>
+                                    <label>4 <input type="number" id="order4" value="0"></label>
+                                    <label>5 <input type="number" id="order5" value="0"></label>
+                                </div>
+                            </div>
+
+                            <!-- align-self 全项独立 -->
+                            <div class="ctrl-group">
+                                <label class="title"><code>align-self</code> <span style="font-size:.7em;color:var(--ink-3)">(每项独立覆盖 align-items)</span></label>
+                                <div class="self-row">
+                                    <label>1
+                                        <select id="self1">
+                                            <option value="auto" selected>auto</option>
+                                            <option value="flex-start">start</option>
+                                            <option value="flex-end">end</option>
+                                            <option value="center">center</option>
+                                            <option value="baseline">baseline</option>
+                                            <option value="stretch">stretch</option>
+                                        </select>
+                                    </label>
+                                    <label>2
+                                        <select id="self2">
+                                            <option value="auto" selected>auto</option>
+                                            <option value="flex-start">start</option>
+                                            <option value="flex-end">end</option>
+                                            <option value="center">center</option>
+                                            <option value="baseline">baseline</option>
+                                            <option value="stretch">stretch</option>
+                                        </select>
+                                    </label>
+                                    <label>3
+                                        <select id="self3">
+                                            <option value="auto" selected>auto</option>
+                                            <option value="flex-start">start</option>
+                                            <option value="flex-end">end</option>
+                                            <option value="center">center</option>
+                                            <option value="baseline">baseline</option>
+                                            <option value="stretch">stretch</option>
+                                        </select>
+                                    </label>
+                                    <label>4
+                                        <select id="self4">
+                                            <option value="auto" selected>auto</option>
+                                            <option value="flex-start">start</option>
+                                            <option value="flex-end">end</option>
+                                            <option value="center">center</option>
+                                            <option value="baseline">baseline</option>
+                                            <option value="stretch">stretch</option>
+                                        </select>
+                                    </label>
+                                    <label>5
+                                        <select id="self5">
+                                            <option value="auto" selected>auto</option>
+                                            <option value="flex-start">start</option>
+                                            <option value="flex-end">end</option>
+                                            <option value="center">center</option>
+                                            <option value="baseline">baseline</option>
+                                            <option value="stretch">stretch</option>
+                                        </select>
+                                    </label>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- ===== 右：预览舞台 ===== -->
+                        <div class="stage-wrap">
+                            <div class="stage" id="stage">
+                                <span class="axis-main"></span>
+                                <span class="axis-cross"></span>
+                                <div class="item" draggable="true">1</div>
+                                <div class="item" draggable="true">2</div>
+                                <div class="item" draggable="true">3</div>
+                                <div class="item" draggable="true">4</div>
+                                <div class="item" draggable="true">5</div>
+                            </div>
+
+                            <!-- 实时 CSS 代码 -->
+                            <div class="code-box">
+                                <div class="code-bar">
+                                    <span class="dots"><i></i><i></i><i></i></span>
+                                    <span>style.css · 实时生成</span>
+                                    <button class="copy-btn" id="copyBtn">复制</button>
+                                </div>
+                                <pre class="code" id="codeOut"></pre>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ Flex 布局模式图鉴 ============ -->
+        <section class="scene">
+            <div class="tilt">
+                <div class="panel">
+                    <span class="panel-tag">LAYOUT PATTERNS</span>
+                    <h3>Flex 布局模式图鉴</h3>
+                    <p class="tip">4 种常见 Flex 布局模式对比 —— 悬停查看高亮效果</p>
+
+                    <div class="gallery">
+                        <!-- Pattern 1: 单项居中 -->
+                        <div class="pattern p1">
+                            <div class="rect"></div>
+                            <span class="label">justify-content:center; align-items:center;</span>
+                        </div>
+
+                        <!-- Pattern 2: 两项纵向堆叠居中 -->
+                        <div class="pattern p2">
+                            <div class="rect"></div>
+                            <div class="rect"></div>
+                            <span class="label">flex-direction:column; justify-content:center;</span>
+                        </div>
+
+                        <!-- Pattern 3: 2×2 网格 -->
+                        <div class="pattern p3">
+                            <div class="rect"></div>
+                            <div class="rect"></div>
+                            <div class="rect"></div>
+                            <div class="rect"></div>
+                            <span class="label">flex-wrap:wrap; width:50%;</span>
+                        </div>
+
+                        <!-- Pattern 4: T 形（上 1 大 + 下 2 小）-->
+                        <div class="pattern p4">
+                            <div class="rect top"></div>
+                            <div class="rect bot"></div>
+                            <div class="rect bot"></div>
+                            <span class="label">flex-wrap:wrap; flex-basis:100% / 50%;</span>
+                        </div>
+                    </div>
+
+                    <p class="gallery-caption">
+                        以上 4 种布局均使用纯 <code>display:flex</code> 实现，未借助 CSS Grid / 浮动 / 绝对定位
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ 属性参考卡 ============ -->
+        <section class="scene">
+            <div class="tilt">
+                <div class="panel">
+                    <span class="panel-tag">REFERENCE</span>
+                    <h3>Flex 属性速查</h3>
+                    <p class="tip">容器属性 7 个 + 项目属性 5 个 + gap，覆盖 flexbox 全部 13 个核心属性</p>
+
+                    <div class="ref-grid">
+                        <div class="ref-card">
+                            <h4>flex-direction</h4>
+                            <p>主轴方向：项目排列的走向</p>
+                            <div class="vals">row | row-reverse | column | column-reverse</div>
+                        </div>
+                        <div class="ref-card">
+                            <h4>flex-wrap</h4>
+                            <p>是否换行：项目溢出时是否另起一行</p>
+                            <div class="vals">nowrap | wrap | wrap-reverse</div>
+                        </div>
+                        <div class="ref-card">
+                            <h4>justify-content</h4>
+                            <p>主轴对齐：项目在主轴上的分布方式</p>
+                            <div class="vals">flex-start | center | space-between | space-around | space-evenly</div>
+                        </div>
+                        <div class="ref-card">
+                            <h4>align-items</h4>
+                            <p>交叉轴对齐：项目在交叉轴上的对齐</p>
+                            <div class="vals">stretch | flex-start | center | baseline</div>
+                        </div>
+                        <div class="ref-card">
+                            <h4>align-content</h4>
+                            <p>多行对齐：仅 wrap 生效，控制行间分布</p>
+                            <div class="vals">stretch | center | space-between | space-around</div>
+                        </div>
+                        <div class="ref-card">
+                            <h4>align-self</h4>
+                            <p>项目级覆盖：单独设置某项的交叉轴对齐</p>
+                            <div class="vals">auto | flex-start | center | stretch</div>
+                        </div>
+                        <div class="ref-card">
+                            <h4>flex-grow</h4>
+                            <p>放大比例：剩余空间如何分配给项目</p>
+                            <div class="vals">0（默认） | 1 | 2 | 3 ...</div>
+                        </div>
+                        <div class="ref-card">
+                            <h4>flex-shrink</h4>
+                            <p>缩小比例：空间不足时如何压缩项目</p>
+                            <div class="vals">1（默认） | 0 | 2 ...</div>
+                        </div>
+                        <div class="ref-card">
+                            <h4>order</h4>
+                            <p>排列顺序：数值越小越靠前，默认 0</p>
+                            <div class="vals">整数，可为负值</div>
+                        </div>
+                        <div class="ref-card">
+                            <h4>gap</h4>
+                            <p>项目间间距：row-gap + column-gap，简写 gap</p>
+                            <div class="vals">length | percentage</div>
+                        </div>
+                        <div class="ref-card">
+                            <h4>flex-basis</h4>
+                            <p>基准尺寸：项目在分配剩余空间前的初始大小</p>
+                            <div class="vals">auto | px | % | rem ...</div>
+                        </div>
+                        <div class="ref-card">
+                            <h4>flex-flow</h4>
+                            <p>简写：flex-direction + flex-wrap</p>
+                            <div class="vals">row wrap | column nowrap ...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        © 《高级网页设计》课堂实践 · Flex 布局实验室 · 纯原生 HTML / CSS / JS，无 CDN
+    </footer>
+
+    <script>
+        const stage = document.getElementById('stage');
+        const codeOut = document.getElementById('codeOut');
+        const items = stage.querySelectorAll('.item');
+
+        // ===== 读取所有控件值 =====
+        function readControls(){
+            const get = name => document.querySelector(`input[name="${name}"]:checked`).value;
+            return {
+                // 容器属性
+                direction: get('direction'),
+                wrap: get('wrap'),
+                justify: get('justify'),
+                items: get('items'),
+                content: get('content'),
+                gap: +document.getElementById('gap').value,
+                rowGap: +document.getElementById('rowGap').value,
+                colGap: +document.getElementById('colGap').value,
+                // 项目属性（每项独立）
+                grows:  [1,2,3,4,5].map(i => +document.getElementById('grow'+i).value),
+                shrinks:[1,2,3,4,5].map(i => +document.getElementById('shrink'+i).value),
+                bases:  [1,2,3,4,5].map(i => document.getElementById('basis'+i).value.trim() || 'auto'),
+                orders: [1,2,3,4,5].map(i => +document.getElementById('order'+i).value),
+                selfs:  [1,2,3,4,5].map(i => document.getElementById('self'+i).value)
+            };
+        }
+
+        // ===== 应用到预览 =====
+        function apply(){
+            const c = readControls();
+            // 容器
+            stage.style.display = 'flex';
+            stage.style.flexDirection = c.direction;
+            stage.style.flexWrap = c.wrap;
+            stage.style.justifyContent = c.justify;
+            stage.style.alignItems = c.items;
+            stage.style.alignContent = c.content;
+            // gap / row-gap / column-gap（row-gap 和 column-gap 不为 0 时优先）
+            if (c.rowGap || c.colGap) {
+                stage.style.gap = '';
+                stage.style.rowGap = c.rowGap + 'px';
+                stage.style.columnGap = c.colGap + 'px';
+            } else {
+                stage.style.rowGap = '';
+                stage.style.columnGap = '';
+                stage.style.gap = c.gap ? c.gap + 'px' : '';
+            }
+            // 主轴方向 class（用于指示器）
+            stage.className = 'stage dir-' + c.direction;
+            // 项目级：每项独立属性
+            items.forEach((it, idx) => {
+                it.style.flexGrow = c.grows[idx];
+                it.style.flexShrink = c.shrinks[idx];
+                it.style.flexBasis = c.bases[idx] === 'auto' ? 'auto' : c.bases[idx];
+                it.style.order = c.orders[idx];
+                it.style.alignSelf = c.selfs[idx] === 'auto' ? '' : c.selfs[idx];
+            });
+            renderCode(c);
+        }
+
+        // ===== 生成 CSS 代码（带语法高亮）=====
+        function renderCode(c){
+            const sel = s => `<span class="sel">${s}</span>`;
+            const prop = p => `<span class="prop">${p}</span>`;
+            const val = v => `<span class="val">${v}</span>`;
+            const p_ = c => `<span class="punc">${c}</span>`;
+            const cmt = t => `<span class="cmt">${t}</span>`;
+
+            let out = '';
+
+            // 容器属性
+            out += `${cmt('/* flex 容器 —— 6 大容器属性 + gap */')}\n`;
+            out += `${sel('.flex')} ${p_('{')}\n`;
+            out += `  ${prop('display')}: ${val('flex')};\n`;
+            out += `  ${prop('flex-direction')}: ${val(c.direction)};\n`;
+            out += `  ${prop('flex-wrap')}: ${val(c.wrap)};\n`;
+            out += `  ${prop('justify-content')}: ${val(c.justify)};\n`;
+            out += `  ${prop('align-items')}: ${val(c.items)};\n`;
+            out += `  ${prop('align-content')}: ${val(c.content)};\n`;
+            if (c.rowGap || c.colGap) {
+                out += `  ${prop('row-gap')}: ${val(c.rowGap + 'px')};\n`;
+                out += `  ${prop('column-gap')}: ${val(c.colGap + 'px')};\n`;
+            } else if (c.gap) {
+                out += `  ${prop('gap')}: ${val(c.gap + 'px')};\n`;
+            }
+            out += `${p_('}')}\n\n`;
+
+            // 项目属性（每项独立，仅输出非默认值）
+            let itemLines = [];
+            [1,2,3,4,5].forEach((n, i) => {
+                let decls = [];
+                if (c.grows[i] !== 0)    decls.push(`${prop('flex-grow')}: ${val(c.grows[i])}`);
+                if (c.shrinks[i] !== 1)  decls.push(`${prop('flex-shrink')}: ${val(c.shrinks[i])}`);
+                if (c.bases[i] !== 'auto') decls.push(`${prop('flex-basis')}: ${val(c.bases[i])}`);
+                if (c.orders[i] !== 0)   decls.push(`${prop('order')}: ${val(c.orders[i])}`);
+                if (c.selfs[i] !== 'auto') decls.push(`${prop('align-self')}: ${val(c.selfs[i])}`);
+                if (decls.length) {
+                    itemLines.push(`${sel('.flex-item:nth-child(' + n + ')')} ${p_('{')} ${decls.join('; ')}; ${p_('}')}`);
+                }
+            });
+
+            if (itemLines.length) {
+                out += `${cmt('/* flex 项目属性 —— flex-grow / flex-shrink / flex-basis / order / align-self */')}\n`;
+                itemLines.forEach(line => out += line + '\n');
+            }
+
+            codeOut.innerHTML = out;
+        }
+
+        // ===== 拖拽重排（与 order 输入联动）=====
+        let orderChanged = false;
+        let dragSrc = null;
+        items.forEach(it => {
+            it.addEventListener('dragstart', e => {
+                dragSrc = it;
+                it.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            });
+            it.addEventListener('dragend', () => {
+                it.classList.remove('dragging');
+            });
+            it.addEventListener('dragover', e => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+            });
+            it.addEventListener('drop', e => {
+                e.preventDefault();
+                if (dragSrc && dragSrc !== it) {
+                    const all = [...stage.querySelectorAll('.item')];
+                    const srcIdx = all.indexOf(dragSrc);
+                    const tgtIdx = all.indexOf(it);
+                    if (srcIdx < tgtIdx) {
+                        stage.insertBefore(dragSrc, it.nextSibling);
+                    } else {
+                        stage.insertBefore(dragSrc, it);
+                    }
+                    // 同步更新 order 输入框：拖拽后每个项目的 order = 新位置 - 原编号
+                    orderChanged = true;
+                    const allNew = [...stage.querySelectorAll('.item')];
+                    allNew.forEach((el, newIdx) => {
+                        const origIdx = +el.textContent - 1;  // 原编号（1-based）→ 0-based
+                        document.getElementById('order' + (origIdx + 1)).value = newIdx - origIdx;
+                    });
+                    apply();
+                }
+            });
+        });
+
+        // ===== 一键重置 order（拖拽后可用）=====
+        const resetBtn = document.createElement('button');
+        resetBtn.textContent = '↺ 重置 order';
+        resetBtn.style.cssText = 'padding:5px 10px;font-size:.74em;color:var(--purple);background:rgba(175,82,222,.08);border:1px solid rgba(175,82,222,.2);border-radius:8px;cursor:pointer;margin-top:6px;';
+        resetBtn.addEventListener('click', () => {
+            [1,2,3,4,5].forEach(i => { document.getElementById('order' + i).value = 0; });
+            // 重置 DOM 顺序
+            items.forEach(it => stage.appendChild(it));
+            orderChanged = false;
+            apply();
+        });
+        document.querySelector('.presets').parentNode.appendChild(resetBtn);
+
+        // ===== 预设布局 =====
+        const presets = {
+            center:   {direction:'row',wrap:'nowrap',justify:'center',items:'center',content:'stretch',gap:0,rowGap:0,colGap:0,grows:[0,0,0,0,0],shrinks:[1,1,1,1,1],bases:['auto','auto','auto','auto','auto'],orders:[0,0,0,0,0],selfs:['auto','auto','auto','auto','auto']},
+            navbar:   {direction:'row',wrap:'nowrap',justify:'space-between',items:'center',content:'stretch',gap:12,rowGap:0,colGap:0,grows:[1,0,0,0,1],shrinks:[1,1,1,1,1],bases:['auto','auto','auto','auto','auto'],orders:[0,0,0,0,0],selfs:['auto','auto','auto','auto','auto']},
+            between:  {direction:'row',wrap:'nowrap',justify:'space-between',items:'flex-start',content:'stretch',gap:0,rowGap:0,colGap:0,grows:[0,0,0,0,0],shrinks:[1,1,1,1,1],bases:['auto','auto','auto','auto','auto'],orders:[0,0,0,0,0],selfs:['auto','auto','auto','auto','auto']},
+            card:     {direction:'row',wrap:'wrap',justify:'space-around',items:'stretch',content:'space-between',gap:12,rowGap:8,colGap:12,grows:[1,1,1,1,1],shrinks:[1,1,1,1,1],bases:['auto','auto','auto','auto','auto'],orders:[0,0,0,0,0],selfs:['auto','auto','auto','auto','auto']},
+            column:   {direction:'column',wrap:'nowrap',justify:'center',items:'center',content:'stretch',gap:10,rowGap:0,colGap:0,grows:[0,0,0,0,0],shrinks:[1,1,1,1,1],bases:['auto','auto','auto','auto','auto'],orders:[0,0,0,0,0],selfs:['auto','auto','auto','auto','auto']},
+            holy:     {direction:'row',wrap:'nowrap',justify:'flex-start',items:'stretch',content:'stretch',gap:10,rowGap:0,colGap:0,grows:[0,1,0,0,0],shrinks:[1,1,1,1,1],bases:['auto','auto','auto','auto','auto'],orders:[0,0,0,0,0],selfs:['auto','auto','auto','auto','auto']},
+            media:    {direction:'row',wrap:'nowrap',justify:'flex-start',items:'center',content:'stretch',gap:14,rowGap:0,colGap:0,grows:[0,1,0,0,0],shrinks:[1,1,1,1,1],bases:['auto','auto','auto','auto','auto'],orders:[0,0,0,0,0],selfs:['auto','auto','auto','auto','auto']}
+        };
+        // 预设按钮追加
+        const presetBtns = document.querySelectorAll('.presets button');
+        const presetBtn = document.createElement('button');
+        presetBtn.dataset.preset = 'holy'; presetBtn.textContent = '圣杯布局';
+        const presetBtn2 = document.createElement('button');
+        presetBtn2.dataset.preset = 'media'; presetBtn2.textContent = '媒体对象';
+        document.querySelector('.presets').appendChild(presetBtn);
+        document.querySelector('.presets').appendChild(presetBtn2);
+
+        function applyPreset(p){
+            document.querySelector(`input[name="direction"][value="${p.direction}"]`).checked = true;
+            document.querySelector(`input[name="wrap"][value="${p.wrap}"]`).checked = true;
+            document.querySelector(`input[name="justify"][value="${p.justify}"]`).checked = true;
+            document.querySelector(`input[name="items"][value="${p.items}"]`).checked = true;
+            document.querySelector(`input[name="content"][value="${p.content}"]`).checked = true;
+            // gap
+            document.getElementById('gap').value = p.gap;
+            document.getElementById('gapv').textContent = p.gap;
+            document.getElementById('rowGap').value = p.rowGap;
+            document.getElementById('rowGapv').textContent = p.rowGap;
+            document.getElementById('colGap').value = p.colGap;
+            document.getElementById('colGapv').textContent = p.colGap;
+            // grows
+            p.grows.forEach((v, i) => {
+                document.getElementById('grow'+(i+1)).value = v;
+                document.getElementById('grow'+(i+1)+'v').textContent = v;
+            });
+            // shrinks
+            p.shrinks.forEach((v, i) => {
+                document.getElementById('shrink'+(i+1)).value = v;
+                document.getElementById('shrink'+(i+1)+'v').textContent = v;
+            });
+            // bases
+            p.bases.forEach((v, i) => {
+                document.getElementById('basis'+(i+1)).value = v;
+            });
+            // orders
+            p.orders.forEach((v, i) => {
+                document.getElementById('order'+(i+1)).value = v;
+            });
+            // selfs
+            p.selfs.forEach((v, i) => {
+                document.getElementById('self'+(i+1)).value = v;
+            });
+            apply();
+        }
+        document.querySelectorAll('.presets button').forEach(btn => {
+            btn.addEventListener('click', () => applyPreset(presets[btn.dataset.preset]));
+        });
+
+        // ===== 监听所有控件变化 =====
+        // radio / checkbox / text / number / select 直接 change
+        document.querySelectorAll('.controls input[type=radio], .controls input[type=text], .controls input[type=number], .controls select').forEach(el => {
+            el.addEventListener('change', apply);
+        });
+        // range 滑块：实时更新显示 + 应用
+        [1,2,3,4,5].forEach(i => {
+            const sl = document.getElementById('grow'+i);
+            const lab = document.getElementById('grow'+i+'v');
+            sl.addEventListener('input', () => { lab.textContent = sl.value; apply(); });
+
+            const ss = document.getElementById('shrink'+i);
+            const ssLab = document.getElementById('shrink'+i+'v');
+            ss.addEventListener('input', () => { ssLab.textContent = ss.value; apply(); });
+        });
+        ['gap','rowGap','colGap'].forEach(id => {
+            const el = document.getElementById(id);
+            const lab = document.getElementById(id + 'v');
+            el.addEventListener('input', () => { lab.textContent = el.value; apply(); });
+        });
+
+        // ===== 复制代码 =====
+        document.getElementById('copyBtn').addEventListener('click', e => {
+            const text = codeOut.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                e.target.textContent = '已复制 ✓';
+                e.target.classList.add('done');
+                setTimeout(() => {
+                    e.target.textContent = '复制';
+                    e.target.classList.remove('done');
+                }, 1500);
+            });
+        });
+
+        // ===== 鼠标 3D 倾斜 =====
+        document.querySelectorAll('.scene').forEach(scene => {
+            const tilt = scene.querySelector('.tilt');
+            let raf = null;
+            scene.addEventListener('mousemove', e => {
+                const r = scene.getBoundingClientRect();
+                const px = (e.clientX - r.left) / r.width - 0.5;
+                const py = (e.clientY - r.top) / r.height - 0.5;
+                const ty = px * 8;
+                const tx = -py * 8;
+                if (!raf) {
+                    raf = requestAnimationFrame(() => {
+                        tilt.style.transform = `rotateX(${tx}deg) rotateY(${ty}deg)`;
+                        raf = null;
+                    });
+                }
+            });
+            scene.addEventListener('mouseleave', () => {
+                tilt.style.transition = 'transform .6s cubic-bezier(.2,.8,.2,1)';
+                tilt.style.transform = 'rotateX(0) rotateY(0)';
+                setTimeout(() => tilt.style.transition = 'transform .18s ease-out', 600);
+            });
+        });
+
+        // ===== 初始化 =====
+        apply();
+    </script>
+</body>
+</html>
