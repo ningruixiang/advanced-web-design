@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS3 3D 动画 · 宁瑞祥 · 计算机23005</title>
+    <style>
+        /* ===== 全局重置：苹果极简风 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(180deg, #f5f7fa 0%, #ffffff 50%, #f0f2f5 100%);
+            color: #1d1d1f;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* ===== Hero ===== */
+        .yuan_hero {
+            position: relative;
+            padding: 60px 20px 48px;
+            text-align: center;
+            background: linear-gradient(135deg, #007aff 0%, #5ac8fa 50%, #af52de 100%);
+            color: #ffffff;
+            overflow: hidden;
+        }
+        .yuan_hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, rgba(255,255,255,0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .yuan_hero .yuan_badge {
+            display: inline-block;
+            padding: 5px 16px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 999px;
+            font-size: 0.85em;
+            margin-bottom: 14px;
+            position: relative;
+        }
+        .yuan_hero h1 {
+            font-size: clamp(1.8em, 5vw, 2.6em);
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .yuan_hero .yuan_sub {
+            font-size: clamp(0.95em, 2.5vw, 1.1em);
+            opacity: 0.95;
+            position: relative;
+        }
+        .yuan_back {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 8px 22px;
+            background: rgba(255,255,255,0.22);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 999px;
+            font-size: 0.9em;
+            border: 1px solid rgba(255,255,255,0.35);
+            transition: background 0.25s, transform 0.25s;
+            position: relative;
+        }
+        .yuan_back:hover { background: rgba(255,255,255,0.35); transform: translateY(-2px); }
+
+        /* ===== 主容器 ===== */
+        .yuan_container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px 60px;
+        }
+
+        .yuan_section {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 28px;
+            margin-bottom: 26px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .yuan_section h2 {
+            font-size: 1.35em;
+            font-weight: 600;
+            margin-bottom: 6px;
+            padding-left: 14px;
+            border-left: 4px solid #007aff;
+        }
+        .yuan_section .yuan_desc {
+            color: #6e6e73;
+            font-size: 0.92em;
+            margin-bottom: 20px;
+            padding-left: 18px;
+        }
+        .yuan_section .yuan_know {
+            margin-top: 18px;
+            padding: 14px 16px;
+            background: #f0f7ff;
+            border-left: 4px solid #007aff;
+            border-radius: 8px;
+            font-size: 0.9em;
+            color: #1d1d1f;
+            line-height: 1.8;
+        }
+        .yuan_section .yuan_know code {
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            background: #ffffff;
+            border: 1px solid rgba(0,122,255,0.2);
+            border-radius: 5px;
+            padding: 1px 7px;
+            color: #007aff;
+            font-size: 0.92em;
+        }
+        .yuan_section .yuan_know.purple {
+            background: #f7f0ff;
+            border-left-color: #af52de;
+        }
+        .yuan_section .yuan_know.purple code {
+            color: #af52de;
+            border-color: rgba(175,82,222,0.25);
+        }
+
+        /* ===== 3D 立方体 ===== */
+        .yuan_cube_wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 0 6px;
+        }
+        .yuan_persp {
+            perspective: 900px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .yuan_cube {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            transform-style: preserve-3d;
+            animation: yuan_cubeSpin 10s linear infinite;
+        }
+        @keyframes yuan_cubeSpin {
+            0%   { transform: rotateX(-18deg) rotateY(0deg); }
+            100% { transform: rotateX(-18deg) rotateY(360deg); }
+        }
+        .yuan_face {
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 1em;
+            letter-spacing: 1px;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.35), 0 10px 30px rgba(0,0,0,0.12);
+            backface-visibility: visible;
+        }
+        .yuan_face small {
+            font-weight: 400;
+            font-size: 0.78em;
+            opacity: 0.9;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+        }
+        .yuan_face1 { background: linear-gradient(135deg, #007aff, #5ac8fa); transform: translateZ(80px); }
+        .yuan_face2 { background: linear-gradient(135deg, #af52de, #bf5af2); transform: rotateY(90deg) translateZ(80px); }
+        .yuan_face3 { background: linear-gradient(135deg, #ff375f, #ff453a); transform: rotateY(180deg) translateZ(80px); }
+        .yuan_face4 { background: linear-gradient(135deg, #ff9500, #ffcc00); transform: rotateY(-90deg) translateZ(80px); }
+        .yuan_face5 { background: linear-gradient(135deg, #34c759, #30d158); transform: rotateX(90deg) translateZ(80px); }
+        .yuan_face6 { background: linear-gradient(135deg, #5e5ce6, #7d7aff); transform: rotateX(-90deg) translateZ(80px); }
+
+        /* ===== 速度控制 ===== */
+        .yuan_ctl {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 14px;
+            background: #f8f9fb;
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: 14px;
+            padding: 16px 18px;
+            margin-bottom: 6px;
+            max-width: 560px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .yuan_ctl label { font-weight: 600; font-size: 0.9em; white-space: nowrap; }
+        .yuan_ctl input[type="range"] { flex: 1; min-width: 150px; accent-color: #007aff; }
+        .yuan_ctl .yuan_val {
+            min-width: 64px;
+            text-align: center;
+            padding: 5px 10px;
+            background: #ffffff;
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 10px;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            color: #007aff;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+
+        /* ===== 3D 翻转卡片 ===== */
+        .yuan_flip_grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+        .yuan_flip_wrap {
+            perspective: 1200px;
+            height: 260px;
+            cursor: pointer;
+        }
+        .yuan_flip_inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.4, 0.1, 0.2, 1);
+        }
+        .yuan_flip_wrap:hover .yuan_flip_inner { transform: rotateY(180deg); }
+        .yuan_flip_face {
+            position: absolute;
+            inset: 0;
+            border-radius: 16px;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+        }
+        .yuan_flip_front { background: linear-gradient(135deg, #007aff, #5ac8fa); color: #ffffff; }
+        .yuan_flip_back { background: #ffffff; border: 1px solid rgba(0,0,0,0.06); transform: rotateY(180deg); color: #1d1d1f; }
+        .yuan_flip_face .yuan_icon {
+            width: 56px;
+            height: 56px;
+            line-height: 56px;
+            text-align: center;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.25);
+            font-size: 1.5em;
+        }
+        .yuan_flip_back .yuan_icon { background: #f0f7ff; }
+        .yuan_flip_face h3 { font-size: 1.1em; font-weight: 600; }
+        .yuan_flip_face p { font-size: 0.85em; opacity: 0.92; line-height: 1.7; }
+        .yuan_flip_back p { color: #6e6e73; }
+
+        /* ===== 独立透视数值对比 ===== */
+        .yuan_persp_grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 18px;
+        }
+        .yuan_persp_demo {
+            perspective: 500px;
+            background: #f8f9fb;
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: 14px;
+            padding: 22px 14px;
+            text-align: center;
+        }
+        .yuan_persp_demo.near  { perspective: 300px; }
+        .yuan_persp_demo.far   { perspective: 1200px; }
+        .yuan_persp_demo .yuan_cap { font-size: 0.85em; color: #6e6e73; margin-bottom: 14px; font-family: "SF Mono", Menlo, Consolas, monospace; }
+        .yuan_tile {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #007aff, #af52de);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            letter-spacing: 1px;
+            animation: yuan_tileRot 5s ease-in-out infinite;
+        }
+        @keyframes yuan_tileRot {
+            0%, 20%  { transform: rotateY(0deg); }
+            50%, 70% { transform: rotateY(60deg); }
+            100%     { transform: rotateY(0deg); }
+        }
+
+        /* ===== 页脚 ===== */
+        .yuan_footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: #6e6e73;
+            font-size: 0.85em;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            background: rgba(255,255,255,0.6);
+        }
+        .yuan_footer a { color: #007aff; text-decoration: none; }
+
+        @media (max-width: 600px) {
+            .yuan_container { padding: 24px 14px 40px; }
+            .yuan_section { padding: 20px; }
+            .yuan_cube { width: 130px; height: 130px; }
+            .yuan_face { width: 130px; height: 130px; }
+            .yuan_face1 { transform: translateZ(65px); }
+            .yuan_face2 { transform: rotateY(90deg) translateZ(65px); }
+            .yuan_face3 { transform: rotateY(180deg) translateZ(65px); }
+            .yuan_face4 { transform: rotateY(-90deg) translateZ(65px); }
+            .yuan_face5 { transform: rotateX(90deg) translateZ(65px); }
+            .yuan_face6 { transform: rotateX(-90deg) translateZ(65px); }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="yuan_hero">
+        <span class="yuan_badge">CSS3 3D 动画 · 13-1</span>
+        <h1>CSS3 3D 动画实验室</h1>
+        <p class="yuan_sub">perspective · preserve-3d · rotateX/Y/Z · translate3d</p>
+        <a class="yuan_back" href="index.html">← 返回首页</a>
+    </header>
+
+    <main class="yuan_container">
+
+        <!-- ===== 自动旋转立方体 ===== -->
+        <section class="yuan_section">
+            <h2>自动旋转的 3D 立方体</h2>
+            <p class="yuan_desc">六个面分别以 rotateX / rotateY + translateZ 定位到立方体的六个方位，父容器 transform-style: preserve-3d 让它们保留在同一个 3D 空间中。</p>
+            <div class="yuan_cube_wrap">
+                <div class="yuan_persp">
+                    <div class="yuan_cube" id="yuan_cube">
+                        <div class="yuan_face yuan_face1">前面<small>translateZ(80px)</small></div>
+                        <div class="yuan_face yuan_face2">右面<small>rotateY(90deg)</small></div>
+                        <div class="yuan_face yuan_face3">后面<small>rotateY(180deg)</small></div>
+                        <div class="yuan_face yuan_face4">左面<small>rotateY(-90deg)</small></div>
+                        <div class="yuan_face yuan_face5">顶面<small>rotateX(90deg)</small></div>
+                        <div class="yuan_face yuan_face6">底面<small>rotateX(-90deg)</small></div>
+                    </div>
+                </div>
+            </div>
+            <div class="yuan_ctl">
+                <label for="yuan_speedRange">旋转速度</label>
+                <input type="range" id="yuan_speedRange" min="2" max="20" step="1" value="10">
+                <span class="yuan_val" id="yuan_speedVal">10s/圈</span>
+                <button id="yuan_pauseBtn">暂停 / 继续</button>
+            </div>
+            <div class="yuan_know">
+                <b>知识点：</b>立方体本身只做 <code>rotateX(-18deg) rotateY(0→360deg)</code> 动画；外层容器必须设置 <code>perspective</code> 产生近大远小的透视效果；立方体容器必须声明 <code>transform-style: preserve-3d</code>，否则六个面会被压平成一张纸。
+            </div>
+        </section>
+
+        <!-- ===== 鼠标悬停 3D 翻转卡片 ===== -->
+        <section class="yuan_section">
+            <h2>鼠标悬停 3D 翻转卡片</h2>
+            <p class="yuan_desc">把鼠标移到卡片上，卡片沿 Y 轴旋转 180° 露出背面。正反面都设置 backface-visibility: hidden，翻过去的一面自动隐藏。</p>
+            <div class="yuan_flip_grid">
+                <div class="yuan_flip_wrap">
+                    <div class="yuan_flip_inner">
+                        <div class="yuan_flip_face yuan_flip_front">
+                            <span class="yuan_icon">📱</span>
+                            <h3>iPhone 17</h3>
+                            <p>悬停查看详情</p>
+                        </div>
+                        <div class="yuan_flip_face yuan_flip_back">
+                            <span class="yuan_icon">💡</span>
+                            <h3>rotateY(180deg)</h3>
+                            <p>backface-visibility: hidden 隐藏背面；transition 让翻转平滑过渡。</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="yuan_flip_wrap">
+                    <div class="yuan_flip_inner">
+                        <div class="yuan_flip_face yuan_flip_front">
+                            <span class="yuan_icon">🖥️</span>
+                            <h3>MacBook Pro</h3>
+                            <p>悬停查看详情</p>
+                        </div>
+                        <div class="yuan_flip_face yuan_flip_back">
+                            <span class="yuan_icon">💡</span>
+                            <h3>preserve-3d</h3>
+                            <p>翻转容器需 transform-style: preserve-3d，否则正反面会交叉穿模。</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="yuan_flip_wrap">
+                    <div class="yuan_flip_inner">
+                        <div class="yuan_flip_face yuan_flip_front">
+                            <span class="yuan_icon">🎧</span>
+                            <h3>AirPods</h3>
+                            <p>悬停查看详情</p>
+                        </div>
+                        <div class="yuan_flip_face yuan_flip_back">
+                            <span class="yuan_icon">💡</span>
+                            <h3>perspective: 1200px</h3>
+                            <p>数值越小透视越夸张，越大越接近正交投影，翻转更自然。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="yuan_know purple">
+                <b>知识点：</b><code>perspective</code> 加在外层容器上，为整个场景提供视距；<code>:hover .yuan_flip_inner { rotateY(180deg) }</code> 触发翻转；<code>transition: transform 0.8s</code> 保证动画流畅。
+            </div>
+        </section>
+
+        <!-- ===== 透视值对比 ===== -->
+        <section class="yuan_section">
+            <h2>perspective 透视值对比</h2>
+            <p class="yuan_desc">同一块旋转 60° 的面板，在不同 perspective 数值下透视强度不同：300px 近大远小非常夸张，1200px 接近平面投影。</p>
+            <div class="yuan_persp_grid">
+                <div class="yuan_persp_demo near"><div class="yuan_cap">perspective: 300px</div><div class="yuan_tile">近视距</div></div>
+                <div class="yuan_persp_demo"><div class="yuan_cap">perspective: 500px</div><div class="yuan_tile">默认</div></div>
+                <div class="yuan_persp_demo far"><div class="yuan_cap">perspective: 1200px</div><div class="yuan_tile">远视距</div></div>
+            </div>
+            <div class="yuan_know">
+                <b>知识点：</b>透视值等于「观察者与屏幕的距离」，值越小立体感越强、变形越大；一般推荐 <code>600px ~ 1000px</code>。若不加 perspective，rotateY 只表现为宽度压缩的平面效果，没有纵深感。
+            </div>
+        </section>
+
+        <!-- ===== rotate 三轴对比 ===== -->
+        <section class="yuan_section">
+            <h2>rotateX / rotateY / rotateZ 三轴对比</h2>
+            <p class="yuan_desc">X 轴水平穿过屏幕左右（前后翻），Y 轴垂直穿过屏幕上下（左右翻），Z 轴垂直指向你的眼睛（平面旋转）。</p>
+            <div class="yuan_persp_grid">
+                <div class="yuan_persp_demo"><div class="yuan_cap">rotateX(55deg)</div><div class="yuan_tile" style="animation:none;transform:rotateX(55deg);">X 轴</div></div>
+                <div class="yuan_persp_demo"><div class="yuan_cap">rotateY(55deg)</div><div class="yuan_tile" style="animation:none;transform:rotateY(55deg);">Y 轴</div></div>
+                <div class="yuan_persp_demo"><div class="yuan_cap">rotateZ(55deg)</div><div class="yuan_tile" style="animation:none;transform:rotateZ(55deg);">Z 轴</div></div>
+            </div>
+            <div class="yuan_know">
+                <b>知识点：</b><code>translate3d(x, y, z)</code> 是 3D 平移，可同时移动三个方向（本页立方体面用的 translateZ 就是 z 方向平移）。transform 多个函数按书写顺序从左到右依次作用，顺序不同结果不同。
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="yuan_footer">
+        <p>© 2026 宁瑞祥 · 计算机23005 ·《高级网页设计》课堂实践 · 纯原生 HTML / CSS / JS</p>
+        <p><a href="index.html">← 返回 index.html</a></p>
+    </footer>
+
+    <script>
+        // ===== 立方体旋转速度控制 =====
+        var yuan_cube = document.getElementById('yuan_cube');
+        var yuan_speedRange = document.getElementById('yuan_speedRange');
+        var yuan_speedVal = document.getElementById('yuan_speedVal');
+        var yuan_paused = false;
+
+        function yuan_applySpeed() {
+            var yuan_sec = Number(yuan_speedRange.value);
+            yuan_cube.style.animationDuration = yuan_sec + 's';
+            yuan_speedVal.textContent = yuan_sec + 's/圈';
+        }
+        yuan_speedRange.addEventListener('input', yuan_applySpeed);
+
+        document.getElementById('yuan_pauseBtn').addEventListener('click', function () {
+            yuan_paused = !yuan_paused;
+            yuan_cube.style.animationPlayState = yuan_paused ? 'paused' : 'running';
+        });
+    </script>
+
+</body>
+</html>

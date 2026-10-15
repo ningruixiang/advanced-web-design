@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS 长度单位 · 宁瑞祥 · 计算机23005</title>
+    <style>
+        /* ===== 全局重置：苹果极简风 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(180deg, #f5f7fa 0%, #ffffff 50%, #f0f2f5 100%);
+            color: #1d1d1f;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* ===== Hero ===== */
+        .yuan_hero {
+            position: relative;
+            padding: 60px 20px 48px;
+            text-align: center;
+            background: linear-gradient(135deg, #007aff 0%, #5ac8fa 50%, #af52de 100%);
+            color: #ffffff;
+            overflow: hidden;
+        }
+        .yuan_hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, rgba(255,255,255,0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .yuan_hero .yuan_badge {
+            display: inline-block;
+            padding: 5px 16px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 999px;
+            font-size: 0.85em;
+            margin-bottom: 14px;
+            position: relative;
+        }
+        .yuan_hero h1 {
+            font-size: clamp(1.8em, 5vw, 2.6em);
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .yuan_hero .yuan_sub {
+            font-size: clamp(0.95em, 2.5vw, 1.1em);
+            opacity: 0.95;
+            position: relative;
+        }
+        .yuan_back {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 8px 22px;
+            background: rgba(255,255,255,0.22);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 999px;
+            font-size: 0.9em;
+            border: 1px solid rgba(255,255,255,0.35);
+            transition: background 0.25s, transform 0.25s;
+            position: relative;
+        }
+        .yuan_back:hover { background: rgba(255,255,255,0.35); transform: translateY(-2px); }
+
+        /* ===== 主容器 ===== */
+        .yuan_container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px 60px;
+        }
+
+        .yuan_section {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 28px;
+            margin-bottom: 26px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .yuan_section h2 {
+            font-size: 1.35em;
+            font-weight: 600;
+            margin-bottom: 6px;
+            padding-left: 14px;
+            border-left: 4px solid #007aff;
+        }
+        .yuan_section .yuan_desc {
+            color: #6e6e73;
+            font-size: 0.92em;
+            margin-bottom: 20px;
+            padding-left: 18px;
+        }
+
+        /* ===== 单位卡片网格 ===== */
+        .yuan_grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(235px, 1fr));
+            gap: 18px;
+        }
+        .yuan_card {
+            background: #f8f9fb;
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: 14px;
+            padding: 18px;
+            text-align: center;
+            transition: transform 0.25s, box-shadow 0.25s;
+        }
+        .yuan_card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 24px rgba(0,122,255,0.12);
+        }
+        .yuan_card h3 {
+            font-size: 1.05em;
+            color: #007aff;
+            margin-bottom: 4px;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+        }
+        .yuan_card .yuan_name {
+            font-size: 0.82em;
+            color: #86868b;
+            margin-bottom: 12px;
+        }
+        .yuan_card p {
+            font-size: 0.88em;
+            color: #6e6e73;
+            text-align: left;
+            line-height: 1.65;
+        }
+
+        /* ===== 示例方块 ===== */
+        .yuan_box_px      { width: 64px; height: 64px; background: linear-gradient(135deg, #007aff, #5ac8fa); }
+        .yuan_box_em      { width: 4em; height: 4em; background: linear-gradient(135deg, #af52de, #bf5af2); }
+        .yuan_box_rem     { width: 4rem; height: 4rem; background: linear-gradient(135deg, #34c759, #30d158); }
+        .yuan_box_percent { width: 55%; height: 55%; background: linear-gradient(135deg, #ff9500, #ffcc00); }
+        .yuan_box_vw      { width: 9vw; height: 9vw; background: linear-gradient(135deg, #ff375f, #ff453a); }
+        .yuan_box_vh      { width: 9vh; height: 9vh; background: linear-gradient(135deg, #5e5ce6, #7d7aff); }
+        .yuan_box_vmin    { width: 9vmin; height: 9vmin; background: linear-gradient(135deg, #30d158, #66d4cf); }
+        .yuan_box_vmax    { width: 9vmax; height: 9vmax; background: linear-gradient(135deg, #ff9f0a, #ff6482); }
+        .yuan_box_px, .yuan_box_em, .yuan_box_rem,
+        .yuan_box_percent, .yuan_box_vw, .yuan_box_vh,
+        .yuan_box_vmin, .yuan_box_vmax {
+            margin: 0 auto 14px;
+            border-radius: 12px;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.35), 0 4px 12px rgba(0,0,0,0.10);
+        }
+
+        /* ===== em 嵌套演示（内层 font-size 继承） ===== */
+        .yuan_nest {
+            width: 60%;
+            margin: 12px auto 0;
+            padding: 12px;
+            background: #f1e6fc;
+            border: 1px dashed #af52de;
+            border-radius: 10px;
+            font-size: 1.4em;
+            color: #1d1d1f;
+        }
+        .yuan_nest .yuan_inner {
+            background: #ffffff;
+            border: 1px dashed #af52de;
+            border-radius: 8px;
+            padding: 8px;
+            margin-top: 8px;
+            font-size: 1.4em;
+        }
+
+        /* ===== 根字号滑块 ===== */
+        .yuan_ctl {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 14px;
+            background: #f8f9fb;
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 22px;
+        }
+        .yuan_ctl label {
+            font-weight: 600;
+            font-size: 0.95em;
+            white-space: nowrap;
+        }
+        .yuan_ctl input[type="range"] {
+            flex: 1;
+            min-width: 200px;
+            accent-color: #007aff;
+        }
+        .yuan_ctl .yuan_val {
+            display: inline-block;
+            min-width: 74px;
+            text-align: center;
+            padding: 6px 12px;
+            background: #ffffff;
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 10px;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            color: #007aff;
+            font-weight: 600;
+        }
+        .yuan_ctl button {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 999px;
+            background: #007aff;
+            color: #fff;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .yuan_ctl button:hover { background: #0063cc; transform: translateY(-1px); }
+
+        /* ===== 视口信息面板 ===== */
+        .yuan_viewport {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+        .yuan_vp_item {
+            flex: 1;
+            min-width: 150px;
+            background: #f8f9fb;
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center;
+        }
+        .yuan_vp_item .yuan_vp_k {
+            font-size: 0.8em;
+            color: #86868b;
+            margin-bottom: 4px;
+        }
+        .yuan_vp_item .yuan_vp_v {
+            font-size: 1.05em;
+            font-weight: 600;
+            color: #1d1d1f;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+        }
+
+        /* ===== 视口横条演示 ===== */
+        .yuan_bar_row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .yuan_bar_row .yuan_bar_k { width: 120px; font-size: 0.85em; color: #6e6e73; text-align: right; flex-shrink: 0; font-family: "SF Mono", Menlo, Consolas, monospace; }
+        .yuan_bar_track {
+            flex: 1;
+            height: 22px;
+            background: #f0f2f5;
+            border-radius: 11px;
+            overflow: hidden;
+        }
+        .yuan_bar_vw  { height: 100%; width: 50vw; background: linear-gradient(90deg, #ff375f, #ff453a); border-radius: 11px; transition: width 0.15s linear; }
+        .yuan_bar_vh  { height: 100%; width: 50vh; background: linear-gradient(90deg, #5e5ce6, #7d7aff); border-radius: 11px; transition: width 0.15s linear; }
+        .yuan_bar_vmin { height: 100%; width: 50vmin; background: linear-gradient(90deg, #30d158, #66d4cf); border-radius: 11px; transition: width 0.15s linear; }
+        .yuan_bar_vmax { height: 100%; width: 50vmax; background: linear-gradient(90deg, #ff9f0a, #ff6482); border-radius: 11px; transition: width 0.15s linear; }
+        .yuan_bar_pct { height: 100%; width: 50%; background: linear-gradient(90deg, #ff9500, #ffcc00); border-radius: 11px; transition: width 0.15s linear; }
+
+        /* ===== 单位对照表 ===== */
+        .yuan_table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+        .yuan_table th, .yuan_table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            text-align: left;
+        }
+        .yuan_table th {
+            background: #f8f9fb;
+            color: #6e6e73;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+        .yuan_table td:first-child {
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            color: #007aff;
+            font-weight: 600;
+        }
+
+        /* ===== 页脚 ===== */
+        .yuan_footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: #6e6e73;
+            font-size: 0.85em;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            background: rgba(255,255,255,0.6);
+        }
+        .yuan_footer a { color: #007aff; text-decoration: none; }
+
+        @media (max-width: 600px) {
+            .yuan_container { padding: 24px 14px 40px; }
+            .yuan_section { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="yuan_hero">
+        <span class="yuan_badge">CSS 长度单位 · 12-1</span>
+        <h1>CSS 长度单位实验室</h1>
+        <p class="yuan_sub">px / em / rem / % / vw / vh / vmin / vmax 八大单位可视化对比</p>
+        <a class="yuan_back" href="index.html">← 返回首页</a>
+    </header>
+
+    <main class="yuan_container">
+
+        <!-- ===== 交互控件：根字号 ===== -->
+        <section class="yuan_section">
+            <h2>交互控件 · 修改根字号</h2>
+            <p class="yuan_desc">拖动滑块实时修改 html 的 font-size。注意观察：rem 方块立即变化，而 em 方块跟随父元素字号、不受根字号影响 —— 这就是 em 与 rem 的本质区别。</p>
+            <div class="yuan_ctl">
+                <label for="yuan_rootRange">html 根字号</label>
+                <input type="range" id="yuan_rootRange" min="8" max="28" step="1" value="16">
+                <span class="yuan_val" id="yuan_rootVal">16px</span>
+                <button id="yuan_resetBtn">重置 16px</button>
+            </div>
+            <div class="yuan_viewport">
+                <div class="yuan_vp_item"><div class="yuan_vp_k">视口宽度</div><div class="yuan_vp_v" id="yuan_vpW">--</div></div>
+                <div class="yuan_vp_item"><div class="yuan_vp_k">视口高度</div><div class="yuan_vp_v" id="yuan_vpH">--</div></div>
+                <div class="yuan_vp_item"><div class="yuan_vp_k">1rem 当前值</div><div class="yuan_vp_v" id="yuan_remVal">--</div></div>
+                <div class="yuan_vp_item"><div class="yuan_vp_k">当前 vmin</div><div class="yuan_vp_v" id="yuan_vminVal">--</div></div>
+                <div class="yuan_vp_item"><div class="yuan_vp_k">当前 vmax</div><div class="yuan_vp_v" id="yuan_vmaxVal">--</div></div>
+            </div>
+        </section>
+
+        <!-- ===== 绝对单位 ===== -->
+        <section class="yuan_section">
+            <h2>绝对单位</h2>
+            <p class="yuan_desc">与视口、父元素、根字号都无关，大小永远固定。</p>
+            <div class="yuan_grid">
+                <div class="yuan_card">
+                    <h3>px</h3>
+                    <div class="yuan_name">像素 · 绝对单位</div>
+                    <div class="yuan_box_px"></div>
+                    <p>1px 就是屏幕上的一个物理像素点，大小固定不变。是最常用的基础单位，适合边框、阴影等精确尺寸。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== 字体相对单位 ===== -->
+        <section class="yuan_section">
+            <h2>字体相对单位</h2>
+            <p class="yuan_desc">相对字号计算：em 看父元素，rem 只看根元素（html）。拖动上方滑块，rem 方块会实时变大变小，em 方块岿然不动。</p>
+            <div class="yuan_grid">
+                <div class="yuan_card">
+                    <h3>em</h3>
+                    <div class="yuan_name">相对父元素 font-size · 1em = 父字号</div>
+                    <div class="yuan_box_em"></div>
+                    <p>1em 等于当前元素 font-size（由父元素继承而来）。方块 4em×4em 永远等于「父字号 × 4」。</p>
+                    <div class="yuan_nest">
+                        em 嵌套 · 父 1.4em
+                        <div class="yuan_inner">子元素也是 1.4em —— em 会逐级叠加放大！</div>
+                    </div>
+                </div>
+                <div class="yuan_card">
+                    <h3>rem</h3>
+                    <div class="yuan_name">相对根元素 font-size · 1rem = 根字号</div>
+                    <div class="yuan_box_rem"></div>
+                    <p>1rem 永远等于 html 元素的 font-size（默认 16px）。方块 4rem×4rem 随滑块实时缩放，适合做全局间距。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== 百分比单位 ===== -->
+        <section class="yuan_section">
+            <h2>百分比单位</h2>
+            <p class="yuan_desc">相对父元素同类属性计算：宽度相对父元素宽度，高度相对父元素高度。</p>
+            <div class="yuan_grid">
+                <div class="yuan_card">
+                    <h3>%</h3>
+                    <div class="yuan_name">相对父元素 · 55% × 55%</div>
+                    <div style="width:100%;height:140px;background:#f0f2f5;border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                        <div class="yuan_box_percent"></div>
+                    </div>
+                    <p>方块占父容器的 55%。父元素变宽变高时它也等比变化 —— 常见于响应式布局的宽度设置。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== 视口单位 ===== -->
+        <section class="yuan_section">
+            <h2>视口单位</h2>
+            <p class="yuan_desc">1 单位 = 浏览器窗口（视口）尺寸的 1%。试试拖拽浏览器窗口边缘缩放，方块和色条会实时变化！</p>
+            <div class="yuan_grid">
+                <div class="yuan_card">
+                    <h3>vw</h3>
+                    <div class="yuan_name">1vw = 视口宽度的 1%</div>
+                    <div class="yuan_box_vw"></div>
+                    <p>方块恒为窗口宽度的 9%。窗口越宽方块越大，适合做全屏大标题的流体字号。</p>
+                </div>
+                <div class="yuan_card">
+                    <h3>vh</h3>
+                    <div class="yuan_name">1vh = 视口高度的 1%</div>
+                    <div class="yuan_box_vh"></div>
+                    <p>方块恒为窗口高度的 9%。窗口越高方块越大，适合做占满一屏的首屏 hero 区。</p>
+                </div>
+                <div class="yuan_card">
+                    <h3>vmin</h3>
+                    <div class="yuan_name">视口宽、高中的较小值 × 1%</div>
+                    <div class="yuan_box_vmin"></div>
+                    <p>取宽度与高度中更小的那个作为基准，适合做「永不超框」的正方形、圆形。</p>
+                </div>
+                <div class="yuan_card">
+                    <h3>vmax</h3>
+                    <div class="yuan_name">视口宽、高中的较大值 × 1%</div>
+                    <div class="yuan_box_vmax"></div>
+                    <p>取宽度与高度中更大的那个作为基准，适合做大背景装饰、遮罩层。</p>
+                </div>
+            </div>
+            <h2 style="margin-top:26px;border-left-color:#af52de;">实时对比色条</h2>
+            <p class="yuan_desc">每条色条宽度分别是 50vw / 50vh / 50vmin / 50vmax / 50%。缩放窗口，观察它们如何随视口变化。</p>
+            <div class="yuan_bar_row"><span class="yuan_bar_k">50vw</span><div class="yuan_bar_track"><div class="yuan_bar_vw"></div></div></div>
+            <div class="yuan_bar_row"><span class="yuan_bar_k">50vh</span><div class="yuan_bar_track"><div class="yuan_bar_vh"></div></div></div>
+            <div class="yuan_bar_row"><span class="yuan_bar_k">50vmin</span><div class="yuan_bar_track"><div class="yuan_bar_vmin"></div></div></div>
+            <div class="yuan_bar_row"><span class="yuan_bar_k">50vmax</span><div class="yuan_bar_track"><div class="yuan_bar_vmax"></div></div></div>
+            <div class="yuan_bar_row"><span class="yuan_bar_k">50%</span><div class="yuan_bar_track"><div class="yuan_bar_pct"></div></div></div>
+        </section>
+
+        <!-- ===== 对照表 ===== -->
+        <section class="yuan_section">
+            <h2>八大单位速查表</h2>
+            <p class="yuan_desc">一张表看懂全部知识点。</p>
+            <table class="yuan_table">
+                <thead>
+                    <tr><th>单位</th><th>类型</th><th>相对基准</th><th>典型用途</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>px</td><td>绝对</td><td>物理像素</td><td>边框、阴影、图标</td></tr>
+                    <tr><td>em</td><td>字体相对</td><td>父元素 font-size</td><td>组件内随字号缩放的间距</td></tr>
+                    <tr><td>rem</td><td>字体相对</td><td>根元素 font-size</td><td>全局统一的间距与字号</td></tr>
+                    <tr><td>%</td><td>相对</td><td>父元素同属性</td><td>响应式宽度、网格</td></tr>
+                    <tr><td>vw</td><td>视口</td><td>视口宽度 × 1%</td><td>流体大标题</td></tr>
+                    <tr><td>vh</td><td>视口</td><td>视口高度 × 1%</td><td>全屏 hero 区块</td></tr>
+                    <tr><td>vmin</td><td>视口</td><td>视口较小边 × 1%</td><td>自适应正方形</td></tr>
+                    <tr><td>vmax</td><td>视口</td><td>视口较大边 × 1%</td><td>大背景装饰</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+    </main>
+
+    <footer class="yuan_footer">
+        <p>© 2026 宁瑞祥 · 计算机23005 ·《高级网页设计》课堂实践 · 纯原生 HTML / CSS / JS</p>
+        <p><a href="index.html">← 返回 index.html</a></p>
+    </footer>
+
+    <script>
+        // ===== 根字号滑块：实时修改 html font-size =====
+        var yuan_rootRange = document.getElementById('yuan_rootRange');
+        var yuan_rootVal = document.getElementById('yuan_rootVal');
+        var yuan_remVal = document.getElementById('yuan_remVal');
+
+        function yuan_updateRoot() {
+            var yuan_px = yuan_rootRange.value;
+            document.documentElement.style.fontSize = yuan_px + 'px';
+            yuan_rootVal.textContent = yuan_px + 'px';
+            yuan_remVal.textContent = yuan_px + 'px';
+        }
+        yuan_rootRange.addEventListener('input', yuan_updateRoot);
+        yuan_updateRoot();
+
+        document.getElementById('yuan_resetBtn').addEventListener('click', function () {
+            yuan_rootRange.value = 16;
+            yuan_updateRoot();
+        });
+
+        // ===== 视口信息实时刷新 =====
+        function yuan_updateViewport() {
+            document.getElementById('yuan_vpW').textContent = window.innerWidth + 'px';
+            document.getElementById('yuan_vpH').textContent = window.innerHeight + 'px';
+            document.getElementById('yuan_vminVal').textContent = Math.min(window.innerWidth, window.innerHeight) / 100 + 'px';
+            document.getElementById('yuan_vmaxVal').textContent = Math.max(window.innerWidth, window.innerHeight) / 100 + 'px';
+        }
+        window.addEventListener('resize', yuan_updateViewport);
+        yuan_updateViewport();
+    </script>
+
+</body>
+</html>
