@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>宁瑞祥 · Lucide SVG 图标</title>
+<script src="cdn/lucide/lucide.min.js"></script>
+<style>
+:root{
+    --bg-1:#1a2e2a;--bg-2:#0f1e1a;
+    --panel:rgba(255,255,255,.05);--line:rgba(255,255,255,.1);
+    --txt:#f5f5f7;--sub:rgba(255,255,255,.55);
+    --blue:#0a84ff;--purple:#bf5af2;--orange:#ff9f0a;--green:#30d158;
+    --r:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:linear-gradient(135deg,var(--bg-1),var(--bg-2));
+    color:var(--txt);min-height:100vh;padding:2rem 1.5rem 3rem;
+}
+.wrap{max-width:72rem;margin:0 auto;}
+
+.hero{text-align:center;margin-bottom:2rem;}
+.hero .eyebrow{font-size:.8rem;letter-spacing:.3em;color:var(--sub);text-transform:uppercase;margin-bottom:.75rem;}
+.hero h1{
+    font-size:2.75rem;font-weight:800;letter-spacing:-.02em;
+    background:linear-gradient(180deg,#fff,#a0a0a8);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    margin-bottom:.5rem;
+}
+.hero p{color:var(--sub);font-size:.95rem;}
+.hero p b{color:var(--green);}
+
+/* 原理 */
+.principle{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem;margin-bottom:2rem;}
+.principle .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:1.25rem;backdrop-filter:blur(10px);}
+.principle .card h3{font-size:1rem;margin-bottom:.5rem;display:flex;align-items:center;gap:.6rem;}
+.principle .card h3 svg{color:var(--green);}
+.principle .card p{font-size:.85rem;color:var(--sub);line-height:1.6;}
+.principle code{font-family:"SF Mono",Consolas,monospace;font-size:.78rem;color:var(--orange);background:rgba(0,0,0,.3);padding:.15rem .4rem;border-radius:.3rem;}
+
+/* 控制台 —— SVG 特有参数 */
+.console{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+    padding:1.25rem 1.5rem;margin-bottom:2rem;backdrop-filter:blur(10px);
+    display:flex;flex-wrap:wrap;gap:1.5rem;align-items:center;
+}
+.console label{font-size:.85rem;color:var(--sub);display:flex;align-items:center;gap:.6rem;}
+.console input[type=range]{accent-color:var(--green);width:9rem;}
+.console input[type=color]{width:2.4rem;height:2rem;border:none;background:none;cursor:pointer;}
+.console .preview-box{
+    margin-left:auto;display:flex;align-items:center;justify-content:center;
+    width:6rem;height:6rem;border-radius:1rem;background:rgba(0,0,0,.25);
+    border:1px solid var(--line);
+}
+.console .preview-box svg{transition:all .2s ease;}
+.console .sw{font-family:"SF Mono",Consolas,monospace;color:var(--green);min-width:2.4ch;}
+
+/* 网格 */
+.section-title{font-size:1.25rem;font-weight:700;margin:2rem 0 1rem;display:flex;align-items:center;gap:.6rem;}
+.section-title svg{color:var(--purple);}
+.grid{display:grid;gap:.75rem;grid-template-columns:repeat(auto-fill,minmax(7.5rem,1fr));}
+.icon-cell{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+    padding:1.25rem .5rem;text-align:center;cursor:pointer;
+    transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease;
+}
+.icon-cell:hover{transform:translateY(-4px);border-color:var(--green);box-shadow:0 .75rem 1.75rem rgba(48,209,88,.18);}
+.icon-cell svg{width:1.75rem;height:1.75rem;transition:transform .3s ease;}
+.icon-cell:hover svg{transform:scale(1.2) rotate(-8deg);}
+.icon-cell .label{font-size:.75rem;color:var(--txt);margin-top:.5rem;}
+.icon-cell .name{font-size:.65rem;color:var(--sub);margin-top:.1rem;font-family:"SF Mono",Consolas,monospace;word-break:break-all;}
+
+/* SVG 源码查看器 */
+.src-panel{
+    background:rgba(0,0,0,.4);border:1px solid var(--line);border-radius:var(--r);
+    padding:1.25rem 1.5rem;margin-top:2rem;
+}
+.src-panel h3{font-size:1rem;margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem;}
+.src-panel pre{
+    font-family:"SF Mono",Consolas,monospace;font-size:.78rem;line-height:1.7;color:#c8e8d0;
+    overflow-x:auto;white-space:pre-wrap;word-break:break-all;
+}
+
+/* 用法代码 */
+.codebox{background:rgba(0,0,0,.4);border:1px solid var(--line);border-radius:var(--r);padding:1.25rem 1.5rem;margin-top:1.5rem;position:relative;}
+.codebox pre{font-family:"SF Mono",Consolas,monospace;font-size:.82rem;line-height:1.7;color:#e8e8ed;overflow-x:auto;}
+.codebox .c-p{color:#ff7ab2;} .codebox .c-t{color:#78dce8;} .codebox .c-a{color:#ffd866;} .codebox .c-s{color:#a9dc76;}
+.copy-btn{
+    position:absolute;top:.75rem;right:.75rem;
+    background:rgba(255,255,255,.08);border:1px solid var(--line);color:var(--txt);
+    border-radius:.5rem;padding:.35rem .8rem;font-size:.75rem;cursor:pointer;transition:background .2s ease;
+}
+.copy-btn:hover{background:var(--green);}
+
+.toast{
+    position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(5rem);
+    background:var(--green);color:#0a1a0f;padding:.7rem 1.4rem;border-radius:2rem;
+    font-size:.85rem;font-weight:600;opacity:0;transition:all .3s ease;z-index:99;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+footer{text-align:center;margin-top:2.5rem;font-size:.8rem;color:var(--sub);}
+footer b{color:var(--txt);}
+footer .hint{margin-top:.35rem;font-size:.72rem;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+    <header class="hero">
+        <div class="eyebrow">SVG Icon · 矢量图标</div>
+        <h1>宁瑞祥 · Lucide SVG 图标</h1>
+        <p>SVG 图标原理：图标是<b>矢量代码</b>（path + stroke），可控制<b>描边宽度、任意 CSS 属性</b>，无限缩放不失真</p>
+    </header>
+
+    <section class="principle">
+        <div class="card">
+            <h3><svg data-lucide="code-2"></svg> 本质是矢量代码</h3>
+            <p>每个图标是一段 <code>&lt;svg&gt;</code> 路径。JS 库把 <code>&lt;i data-lucide="name"&gt;</code> 替换成内联 SVG。</p>
+        </div>
+        <div class="card">
+            <h3><svg data-lucide="sliders-horizontal"></svg> 属性即样式</h3>
+            <p><code>stroke</code> 控制颜色（默认 <code>currentColor</code>），<code>stroke-width</code> 控制线条粗细，CSS 可直接覆盖。</p>
+        </div>
+        <div class="card">
+            <h3><svg data-lucide="folder-open"></svg> 本地化部署</h3>
+            <p>UMD 库已下载到 <code>cdn/lucide/lucide.min.js</code>，完全离线可用，包含全部 1500+ 图标。</p>
+        </div>
+    </section>
+
+    <!-- SVG 特有：描边宽度/大小/颜色实时控制 -->
+    <section class="console">
+        <label>大小 <input type="range" id="sizeRange" min="16" max="72" value="40"><span id="sizeVal">40px</span></label>
+        <label>描边 <input type="range" id="strokeRange" min="1" max="4" step="0.25" value="2"><span class="sw" id="strokeVal">2</span></label>
+        <label>颜色 <input type="color" id="colorPick" value="#30d158"></label>
+        <div class="preview-box"><svg data-lucide="rocket" id="previewIcon"></svg></div>
+    </section>
+
+    <h2 class="section-title"><svg data-lucide="layout-grid"></svg> 界面图标</h2>
+    <div class="grid" id="uiGrid"></div>
+
+    <h2 class="section-title"><svg data-lucide="shapes"></svg> 通用图标</h2>
+    <div class="grid" id="commonGrid"></div>
+
+    <h2 class="section-title"><svg data-lucide="brush"></svg> 媒体与工具</h2>
+    <div class="grid" id="mediaGrid"></div>
+
+    <div class="src-panel">
+        <h3><svg data-lucide="file-code-2"></svg> 当前预览图标的 SVG 源码</h3>
+        <pre id="svgSource">加载中…</pre>
+    </div>
+
+    <div class="codebox">
+        <button class="copy-btn" id="copyBtn">复制代码</button>
+<pre id="codeHtml">&lt;<span class="c-p">script</span> <span class="c-a">src</span>=<span class="c-s">"cdn/lucide/lucide.min.js"</span>&gt;&lt;/<span class="c-p">script</span>&gt;
+
+<span class="c-p">&lt;i</span> <span class="c-a">data-lucide</span>=<span class="c-s">"rocket"</span><span class="c-p">&gt;&lt;/i&gt;</span>     <span class="c-t">&lt;!-- 占位元素 --&gt;</span>
+<span class="c-p">&lt;script&gt;</span>lucide.createIcons();<span class="c-p">&lt;/script&gt;</span>  <span class="c-t">&lt;!-- 替换为 SVG --&gt;</span>
+
+<span class="c-t">&lt;!-- 替换后的 SVG 可自由控制属性 --&gt;</span>
+<span class="c-p">&lt;svg</span> <span class="c-a">stroke</span>=<span class="c-s">"currentColor"</span> <span class="c-a">stroke-width</span>=<span class="c-s">"2"</span> <span class="c-a">fill</span>=<span class="c-s">"none"</span><span class="c-p">&gt;</span>…<span class="c-p">&lt;/svg&gt;</span></pre>
+    </div>
+
+    <footer>
+        <div><b>宁瑞祥</b> · 班级 503 · 学号 2001010503 · 高级网页设计 · SVG 图标实践</div>
+        <div class="hint">点击任意图标复制其 data-lucide 名称</div>
+    </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+    var ui=[
+        ['house','房子'],['user','用户'],['heart','心形'],['star','星形'],['bell','铃铛'],['search','搜索'],
+        ['settings','设置'],['mail','邮件'],['phone','电话'],['camera','相机'],['calendar','日历'],['clock','时钟'],
+        ['folder','文件夹'],['file','文件'],['download','下载'],['upload','上传'],['trash-2','删除'],['edit-3','编辑'],
+        ['plus','加号'],['minus','减号'],['check','对勾'],['x','叉号'],['menu','菜单'],['more-horizontal','更多']
+    ];
+    var common=[
+        ['sun','太阳'],['moon','月亮'],['cloud','云'],['cloud-rain','下雨'],['snowflake','雪花'],['wind','风'],
+        ['map-pin','定位'],['navigation','导航'],['globe','地球'],['wifi','Wi-Fi'],['battery-full','电池'],['bluetooth','蓝牙'],
+        ['music','音乐'],['play','播放'],['pause','暂停'],['volume-2','音量'],['mic','麦克风'],['headphones','耳机'],
+        ['gift','礼物'],['shopping-cart','购物车'],['credit-card','银行卡'],['tag','标签'],['bookmark','书签'],['award','奖章']
+    ];
+    var media=[
+        ['image','图片'],['video','视频'],['film','影片'],['tv','电视'],['radio','收音机'],['smartphone','手机'],
+        ['laptop','笔记本'],['monitor','显示器'],['tablet','平板'],['printer','打印机'],['keyboard','键盘'],['mouse','鼠标'],
+        ['cpu','处理器'],['hard-drive','硬盘'],['usb','USB'],['battery-charging','充电'],['power','电源'],['zap','闪电'],
+        ['thermometer','温度计'],['air-vent','通风'],['plug','插头'],['wifi-off','断网'],['signal','信号'],['satellite','卫星']
+    ];
+
+    function fill(id,list){
+        var g=document.getElementById(id);
+        list.forEach(function(it){
+            var d=document.createElement('div');
+            d.className='icon-cell';
+            d.innerHTML='<i data-lucide="'+it[0]+'"></i><div class="label">'+it[1]+'</div><div class="name">'+it[0]+'</div>';
+            d.addEventListener('click',function(){
+                var t='<i data-lucide="'+it[0]+'"></i>';
+                navigator.clipboard.writeText(t).then(function(){showToast('已复制 '+t);});
+            });
+            g.appendChild(d);
+        });
+    }
+    fill('uiGrid',ui);
+    fill('commonGrid',common);
+    fill('mediaGrid',media);
+
+    lucide.createIcons();
+
+    /* ===== SVG 特性实时控制 ===== */
+    var sizeR=document.getElementById('sizeRange'),sizeV=document.getElementById('sizeVal'),
+        strokeR=document.getElementById('strokeRange'),strokeV=document.getElementById('strokeVal'),
+        colorP=document.getElementById('colorPick'),
+        prev=document.getElementById('previewIcon'),
+        srcPre=document.getElementById('svgSource');
+
+    function apply(){
+        var sz=sizeR.value,sw=strokeR.value,col=colorP.value;
+        sizeV.textContent=sz+'px';
+        strokeV.textContent=sw;
+        prev.setAttribute('width',sz);
+        prev.setAttribute('height',sz);
+        prev.setAttribute('stroke-width',sw);
+        prev.style.color=col;
+        prev.style.filter='drop-shadow(0 0 '+(sw*3)+'px '+col+'66)';
+        // 输出真实 SVG 源码
+        var clone=prev.cloneNode(true);
+        clone.removeAttribute('id');
+        clone.removeAttribute('style');
+        clone.setAttribute('stroke',col);
+        var html=clone.outerHTML.replace(/></g,'>\n<');
+        srcPre.textContent=html;
+    }
+    sizeR.addEventListener('input',apply);
+    strokeR.addEventListener('input',apply);
+    colorP.addEventListener('input',apply);
+    apply();
+
+    var toast=document.getElementById('toast'),tt;
+    function showToast(msg){
+        toast.textContent=msg;toast.classList.add('show');
+        clearTimeout(tt);tt=setTimeout(function(){toast.classList.remove('show');},1600);
+    }
+
+    document.getElementById('copyBtn').addEventListener('click',function(){
+        var txt=document.getElementById('codeHtml').textContent;
+        navigator.clipboard.writeText(txt).then(function(){showToast('代码已复制');});
+    });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>宁瑞祥 · Font Awesome 字体图标</title>
+<link rel="stylesheet" href="cdn/fontawesome/css/all.min.css">
+<style>
+:root{
+    --bg-1:#1a1a2e;--bg-2:#0f0f1e;
+    --panel:rgba(255,255,255,.05);--line:rgba(255,255,255,.1);
+    --txt:#f5f5f7;--sub:rgba(255,255,255,.55);
+    --blue:#0a84ff;--purple:#bf5af2;--orange:#ff9f0a;
+    --r:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:linear-gradient(135deg,var(--bg-1),var(--bg-2));
+    color:var(--txt);min-height:100vh;padding:2rem 1.5rem 3rem;
+}
+.wrap{max-width:72rem;margin:0 auto;}
+
+.hero{text-align:center;margin-bottom:2rem;}
+.hero .eyebrow{font-size:.8rem;letter-spacing:.3em;color:var(--sub);text-transform:uppercase;margin-bottom:.75rem;}
+.hero h1{
+    font-size:2.75rem;font-weight:800;letter-spacing:-.02em;
+    background:linear-gradient(180deg,#fff,#a0a0a8);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    margin-bottom:.5rem;
+}
+.hero p{color:var(--sub);font-size:.95rem;}
+.hero p b{color:var(--orange);}
+
+/* 原理说明 */
+.principle{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem;margin-bottom:2rem;
+}
+.principle .card{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+    padding:1.25rem;backdrop-filter:blur(10px);
+}
+.principle .card h3{font-size:1rem;margin-bottom:.5rem;display:flex;align-items:center;gap:.6rem;}
+.principle .card h3 i{color:var(--blue);}
+.principle .card p{font-size:.85rem;color:var(--sub);line-height:1.6;}
+.principle code{
+    font-family:"SF Mono",Consolas,monospace;font-size:.78rem;color:var(--orange);
+    background:rgba(0,0,0,.3);padding:.15rem .4rem;border-radius:.3rem;
+}
+
+/* 控制台 */
+.console{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+    padding:1.25rem 1.5rem;margin-bottom:2rem;backdrop-filter:blur(10px);
+    display:flex;flex-wrap:wrap;gap:1.5rem;align-items:center;
+}
+.console label{font-size:.85rem;color:var(--sub);display:flex;align-items:center;gap:.6rem;}
+.console input[type=range]{accent-color:var(--blue);width:9rem;}
+.console input[type=color]{width:2.4rem;height:2rem;border:none;background:none;cursor:pointer;}
+.console .preview-box{
+    margin-left:auto;display:flex;align-items:center;justify-content:center;
+    width:6rem;height:6rem;border-radius:1rem;background:rgba(0,0,0,.25);
+    border:1px solid var(--line);
+}
+.console .preview-box i{transition:all .2s ease;}
+
+/* 图标网格 */
+.section-title{font-size:1.25rem;font-weight:700;margin:2rem 0 1rem;display:flex;align-items:center;gap:.6rem;}
+.section-title i{color:var(--purple);}
+.grid{
+    display:grid;gap:.75rem;
+    grid-template-columns:repeat(auto-fill,minmax(7.5rem,1fr));
+}
+.icon-cell{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+    padding:1.25rem .5rem;text-align:center;cursor:pointer;
+    transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease;
+}
+.icon-cell:hover{
+    transform:translateY(-4px);border-color:var(--blue);
+    box-shadow:0 .75rem 1.75rem rgba(10,132,255,.18);
+}
+.icon-cell i{font-size:1.75rem;color:var(--txt);transition:color .25s ease;}
+.icon-cell:hover i{color:var(--blue);}
+.icon-cell .name{
+    margin-top:.6rem;font-size:.65rem;color:var(--sub);
+    font-family:"SF Mono",Consolas,monospace;word-break:break-all;
+}
+.icon-cell .label{font-size:.75rem;color:var(--txt);margin-top:.15rem;}
+
+/* 动画演示 */
+.anim-grid{
+    display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(9rem,1fr));
+}
+.anim-cell{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+    padding:1.5rem .5rem;text-align:center;
+}
+.anim-cell i{font-size:2rem;color:var(--orange);}
+.anim-cell .name{margin-top:.75rem;font-size:.75rem;color:var(--sub);font-family:"SF Mono",Consolas,monospace;}
+
+/* 代码区 */
+.codebox{
+    background:rgba(0,0,0,.4);border:1px solid var(--line);border-radius:var(--r);
+    padding:1.25rem 1.5rem;margin-top:1.5rem;position:relative;
+}
+.codebox pre{
+    font-family:"SF Mono",Consolas,monospace;font-size:.82rem;line-height:1.7;
+    color:#e8e8ed;overflow-x:auto;
+}
+.codebox .c-p{color:#ff7ab2;} .codebox .c-t{color:#78dce8;} .codebox .c-a{color:#ffd866;} .codebox .c-s{color:#a9dc76;}
+.copy-btn{
+    position:absolute;top:.75rem;right:.75rem;
+    background:rgba(255,255,255,.08);border:1px solid var(--line);color:var(--txt);
+    border-radius:.5rem;padding:.35rem .8rem;font-size:.75rem;cursor:pointer;
+    transition:background .2s ease;
+}
+.copy-btn:hover{background:var(--blue);}
+
+/* 点击提示 */
+.toast{
+    position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(5rem);
+    background:var(--blue);color:#fff;padding:.7rem 1.4rem;border-radius:2rem;
+    font-size:.85rem;font-weight:600;opacity:0;transition:all .3s ease;z-index:99;
+    box-shadow:0 .5rem 1.5rem rgba(10,132,255,.4);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+footer{text-align:center;margin-top:2.5rem;font-size:.8rem;color:var(--sub);}
+footer b{color:var(--txt);}
+footer .hint{margin-top:.35rem;font-size:.72rem;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+    <header class="hero">
+        <div class="eyebrow">Icon Font · 图标字体</div>
+        <h1>宁瑞祥 · Font Awesome 字体图标</h1>
+        <p>字体图标原理：把图标做成 <b>字体文件（.woff2）</b>，图标即「文字」—— 用 <b>color</b> 上色、<b>font-size</b> 缩放，加载一次、全部可用</p>
+    </header>
+
+    <section class="principle">
+        <div class="card">
+            <h3><i class="fa-solid fa-font"></i> 本质是字体</h3>
+            <p>图标对应 Unicode 字符，由 <code>@font-face</code> 加载的字体文件渲染。颜色随 <code>color</code>，大小随 <code>font-size</code>。</p>
+        </div>
+        <div class="card">
+            <h3><i class="fa-solid fa-link"></i> 类名即字符</h3>
+            <p><code>&lt;i class="fa-solid fa-star"&gt;</code> 通过 <code>::before</code> 注入字符，浏览器用图标字体渲染出图形。</p>
+        </div>
+        <div class="card">
+            <h3><i class="fa-solid fa-folder-open"></i> 本地化部署</h3>
+            <p>CSS 与 <code>.woff2</code> 字体已下载到 <code>cdn/fontawesome/</code>，完全离线可用，无需联网 CDN。</p>
+        </div>
+    </section>
+
+    <section class="console">
+        <label>大小 <input type="range" id="sizeRange" min="16" max="72" value="40"><span id="sizeVal">40px</span></label>
+        <label>颜色 <input type="color" id="colorPick" value="#0a84ff"></label>
+        <div class="preview-box"><i id="previewIcon" class="fa-solid fa-star"></i></div>
+    </section>
+
+    <h2 class="section-title"><i class="fa-solid fa-solid fa-bolt"></i> Solid 实心图标</h2>
+    <div class="grid" id="solidGrid"></div>
+
+    <h2 class="section-title"><i class="fa-regular fa-bell"></i> Regular 线框图标</h2>
+    <div class="grid" id="regularGrid"></div>
+
+    <h2 class="section-title"><i class="fa-brands fa-github"></i> Brands 品牌图标</h2>
+    <div class="grid" id="brandsGrid"></div>
+
+    <h2 class="section-title"><i class="fa-solid fa-play"></i> 内置动画类（纯 CSS）</h2>
+    <div class="anim-grid">
+        <div class="anim-cell"><i class="fa-solid fa-spinner fa-spin"></i><div class="name">fa-spin</div></div>
+        <div class="anim-cell"><i class="fa-solid fa-heart fa-beat"></i><div class="name">fa-beat</div></div>
+        <div class="anim-cell"><i class="fa-solid fa-circle-notch fa-spin-reverse"></i><div class="name">fa-spin-reverse</div></div>
+        <div class="anim-cell"><i class="fa-solid fa-bell fa-shake"></i><div class="name">fa-shake</div></div>
+        <div class="anim-cell"><i class="fa-solid fa-arrows-rotate fa-rotate"></i><div class="name">fa-rotate</div></div>
+        <div class="anim-cell"><i class="fa-solid fa-water fa-flip"></i><div class="name">fa-flip</div></div>
+    </div>
+
+    <div class="codebox">
+        <button class="copy-btn" id="copyBtn">复制代码</button>
+<pre id="codeHtml">&lt;<span class="c-p">link</span> <span class="c-a">rel</span>=<span class="c-s">"stylesheet"</span> <span class="c-a">href</span>=<span class="c-s">"cdn/fontawesome/css/all.min.css"</span>&gt;
+
+<span class="c-p">&lt;i</span> <span class="c-a">class</span>=<span class="c-s">"fa-solid fa-star"</span><span class="c-p">&gt;&lt;/i&gt;</span>          <span class="c-t">&lt;!-- 实心 --&gt;</span>
+<span class="c-p">&lt;i</span> <span class="c-a">class</span>=<span class="c-s">"fa-regular fa-bell"</span><span class="c-p">&gt;&lt;/i&gt;</span>       <span class="c-t">&lt;!-- 线框 --&gt;</span>
+<span class="c-p">&lt;i</span> <span class="c-a">class</span>=<span class="c-s">"fa-brands fa-github"</span><span class="c-p">&gt;&lt;/i&gt;</span>      <span class="c-t">&lt;!-- 品牌 --&gt;</span>
+<span class="c-p">&lt;i</span> <span class="c-a">class</span>=<span class="c-s">"fa-solid fa-spinner fa-spin"</span><span class="c-p">&gt;&lt;/i&gt;</span> <span class="c-t">&lt;!-- 旋转 --&gt;</span></pre>
+    </div>
+
+    <footer>
+        <div><b>宁瑞祥</b> · 班级 503 · 学号 2001010503 · 高级网页设计 · 字体图标实践</div>
+        <div class="hint">点击任意图标复制其类名</div>
+    </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+    var solid=[
+        ['house','房子'],['user','用户'],['heart','心形'],['star','星形'],['bell','铃铛'],['magnifying-glass','搜索'],
+        ['gear','齿轮'],['envelope','信封'],['phone','电话'],['camera','相机'],['music','音乐'],['cloud','云'],
+        ['fire','火焰'],['bolt','闪电'],['rocket','火箭'],['car','汽车'],['plane','飞机'],['gift','礼物'],
+        ['check','对勾'],['xmark','叉号'],['trash','删除'],['download','下载'],['upload','上传'],['play','播放'],
+        ['wifi','Wi-Fi'],['battery-full','电池'],['moon','月亮'],['sun','太阳'],['map','地图'],['book','书本']
+    ];
+    var regular=[
+        ['bell','铃铛'],['heart','心形'],['star','星形'],['user','用户'],['envelope','信封'],['clock','时钟'],
+        ['calendar','日历'],['image','图片'],['file','文件'],['folder','文件夹'],['comment','评论'],['bookmark','书签']
+    ];
+    var brands=[
+        ['apple','苹果'],['github','GitHub'],['wechat','微信'],['qq','QQ'],['bilibili','B站'],['chrome','Chrome'],
+        ['windows','Windows'],['alipay','支付宝'],['html5','HTML5'],['css3-alt','CSS3'],['js','JS'],['discord','Discord']
+    ];
+
+    function fill(id,list,cls){
+        var g=document.getElementById(id);
+        list.forEach(function(it){
+            var d=document.createElement('div');
+            d.className='icon-cell';
+            d.innerHTML='<i class="'+cls+' fa-'+it[0]+'"></i><div class="label">'+it[1]+'</div><div class="name">'+cls+' fa-'+it[0]+'</div>';
+            d.addEventListener('click',function(){
+                var t='<i class="'+cls+' fa-'+it[0]+'"></i>';
+                navigator.clipboard.writeText(t).then(function(){showToast('已复制 '+t);});
+            });
+            g.appendChild(d);
+        });
+    }
+    fill('solidGrid',solid,'fa-solid');
+    fill('regularGrid',regular,'fa-regular');
+    fill('brandsGrid',brands,'fa-brands');
+
+    var sizeR=document.getElementById('sizeRange'),
+        sizeV=document.getElementById('sizeVal'),
+        colorP=document.getElementById('colorPick'),
+        prev=document.getElementById('previewIcon');
+    sizeR.addEventListener('input',function(){
+        sizeV.textContent=sizeR.value+'px';
+        prev.style.fontSize=sizeR.value+'px';
+    });
+    colorP.addEventListener('input',function(){prev.style.color=colorP.value;});
+
+    var toast=document.getElementById('toast'),tt;
+    function showToast(msg){
+        toast.textContent=msg;toast.classList.add('show');
+        clearTimeout(tt);tt=setTimeout(function(){toast.classList.remove('show');},1600);
+    }
+
+    document.getElementById('copyBtn').addEventListener('click',function(){
+        var txt=document.getElementById('codeHtml').textContent;
+        navigator.clipboard.writeText(txt).then(function(){showToast('代码已复制');});
+    });
+})();
+</script>
+</body>
+</html>
