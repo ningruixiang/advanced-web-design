@@ -1,11 +1,685 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>JavaScript 六大数据类型 · 宁瑞祥 · 计算机23005</title>
+    <style>
+        /* ===== 全局重置：苹果极简风 ===== */
+        :root {
+            --yl-blue: #007aff;
+            --yl-green: #34c759;
+            --yl-purple: #af52de;
+            --yl-gray: #8e8e93;
+            --yl-orange: #ff9500;
+            --yl-pink: #ff2d55;
+            --yl-ink: #1d1d1f;
+            --yl-sub: #6e6e73;
+            --yl-ease: cubic-bezier(.25, .46, .45, .94);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Roboto, sans-serif;
+        }
+        html { scroll-behavior: smooth; }
+        body {
+            background: linear-gradient(180deg, #f5f7fa 0%, #ffffff 50%, #f0f2f5 100%);
+            color: var(--yl-ink);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ===== 顶部 Hero ===== */
+        .yl_hero {
+            position: relative;
+            padding: 70px 20px 50px;
+            text-align: center;
+            background: linear-gradient(135deg, #007aff 0%, #5ac8fa 50%, #af52de 100%);
+            color: #fff;
+            overflow: hidden;
+        }
+        .yl_hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(255,255,255,.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, rgba(255,255,255,.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .yl_hero h1 {
+            position: relative;
+            font-size: clamp(1.8em, 5vw, 3em);
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 12px rgba(0,0,0,.15);
+        }
+        .yl_hero .yl_sub {
+            position: relative;
+            margin-top: 10px;
+            font-size: clamp(.95em, 2.5vw, 1.15em);
+            opacity: .95;
+        }
+        .yl_hero .yl_author {
+            position: relative;
+            display: inline-block;
+            margin-top: 18px;
+            padding: 6px 16px;
+            background: rgba(255,255,255,.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,.3);
+            border-radius: 999px;
+            font-size: .9em;
+        }
+
+        /* ===== 主体 ===== */
+        .yl_main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px 30px;
+        }
+        .yl_section-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            padding-left: 14px;
+            border-left: 4px solid var(--yl-blue);
+            margin-bottom: 6px;
+        }
+        .yl_section-desc {
+            color: var(--yl-sub);
+            font-size: .95em;
+            padding-left: 18px;
+            margin-bottom: 24px;
+        }
+        .yl_section-desc code {
+            background: #eef2f7;
+            color: var(--yl-blue);
+            padding: 1px 7px;
+            border-radius: 6px;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: .92em;
+        }
+
+        /* ===== 六类型卡片网格 ===== */
+        .yl_grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 22px;
+            perspective: 1400px;
+        }
+        .yl_card {
+            position: relative;
+            background: #fff;
+            border-radius: 18px;
+            padding: 24px;
+            border: 1px solid rgba(0,0,0,.05);
+            box-shadow: 0 4px 20px rgba(0,0,0,.06);
+            transform-style: preserve-3d;
+            transition: transform .5s var(--yl-ease), box-shadow .5s var(--yl-ease);
+            overflow: hidden;
+        }
+        .yl_card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 4px;
+            background: var(--yl-accent, var(--yl-blue));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform .4s var(--yl-ease);
+        }
+        .yl_card:hover {
+            transform: translateY(-6px) rotateX(3deg);
+            box-shadow: 0 16px 36px rgba(0,0,0,.14);
+        }
+        .yl_card:hover::before { transform: scaleX(1); }
+        .yl_card.yl_reveal { opacity: 0; transform: translateY(26px); }
+        .yl_card.yl_reveal.yl_in {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity .7s var(--yl-ease), transform .7s var(--yl-ease), box-shadow .5s var(--yl-ease);
+        }
+        .yl_card-head {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        .yl_badge {
+            width: 40px; height: 40px;
+            line-height: 40px;
+            text-align: center;
+            border-radius: 50%;
+            color: #fff;
+            font-weight: 600;
+            background: var(--yl-accent, var(--yl-blue));
+            box-shadow: 0 4px 10px var(--yl-accent, var(--yl-blue));
+            flex: none;
+        }
+        .yl_card h3 { font-size: 1.12em; }
+        .yl_card h3 small { color: var(--yl-sub); font-weight: 400; margin-left: 6px; font-size: .78em; }
+        .yl_desc { color: var(--yl-sub); font-size: .88em; margin-bottom: 14px; min-height: 3.2em; }
+
+        /* 值展示舞台 */
+        .yl_stage {
+            position: relative;
+            background: #f5f7fa;
+            border: 1px solid rgba(0,0,0,.05);
+            border-radius: 14px;
+            padding: 18px 16px 14px;
+            text-align: center;
+            margin-bottom: 12px;
+            perspective: 600px;
+        }
+        .yl_value {
+            display: inline-block;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: 1.25em;
+            font-weight: 600;
+            color: var(--yl-accent, var(--yl-blue));
+            padding: 8px 18px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,.08);
+            transform-style: preserve-3d;
+            transition: transform .5s var(--yl-ease), box-shadow .5s var(--yl-ease);
+            word-break: break-all;
+            max-width: 100%;
+        }
+        .yl_card:hover .yl_value {
+            transform: rotateY(12deg) translateZ(14px);
+            box-shadow: -6px 8px 18px rgba(0,0,0,.14);
+        }
+        .yl_typeof {
+            margin-top: 10px;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: .85em;
+            color: var(--yl-sub);
+        }
+        .yl_typeof b { color: var(--yl-ink); font-weight: 600; }
+        .yl_warn {
+            display: none;
+            margin-top: 8px;
+            font-size: .8em;
+            color: #b25000;
+            background: #fff3e0;
+            border-radius: 8px;
+            padding: 3px 10px;
+        }
+        .yl_warn.yl_show { display: inline-block; }
+
+        /* 示例按钮 */
+        .yl_btns { display: flex; flex-wrap: wrap; gap: 8px; }
+        .yl_btn {
+            border: 1.5px solid var(--yl-accent, var(--yl-blue));
+            background: #fff;
+            color: var(--yl-accent, var(--yl-blue));
+            border-radius: 999px;
+            padding: 5px 14px;
+            font-size: .85em;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            cursor: pointer;
+            transition: background .35s var(--yl-ease), color .35s var(--yl-ease),
+                        transform .35s var(--yl-ease), box-shadow .35s var(--yl-ease);
+        }
+        .yl_btn:hover {
+            background: var(--yl-accent, var(--yl-blue));
+            color: #fff;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 14px var(--yl-accent, var(--yl-blue));
+        }
+        .yl_btn.yl_active {
+            background: var(--yl-accent, var(--yl-blue));
+            color: #fff;
+        }
+
+        /* ===== typeof 检测台 ===== */
+        .yl_console {
+            background: #161822;
+            border-radius: 18px;
+            padding: 26px;
+            box-shadow: 0 10px 30px rgba(0,0,0,.25);
+            margin-bottom: 40px;
+        }
+        .yl_console-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .yl_dot { width: 12px; height: 12px; border-radius: 50%; }
+        .yl_console-title {
+            color: #9aa0b4;
+            font-size: .85em;
+            margin-left: 8px;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+        }
+        .yl_row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            transition: background .3s var(--yl-ease);
+        }
+        .yl_row:hover { background: rgba(255,255,255,.05); }
+        .yl_code {
+            flex: 1;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: .88em;
+            color: #e6e8ef;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .yl_kw { color: #ff7ab2; }
+        .yl_str { color: #ff8170; }
+        .yl_num { color: #d0bf69; }
+        .yl_cmt { color: #7f8c98; }
+        .yl_fn { color: #82c4ff; }
+        .yl_run {
+            flex: none;
+            width: 64px;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 0;
+            background: var(--yl-blue);
+            color: #fff;
+            font-size: .82em;
+            cursor: pointer;
+            transition: transform .3s var(--yl-ease), background .3s var(--yl-ease), box-shadow .3s var(--yl-ease);
+        }
+        .yl_run:hover { transform: translateY(-2px); background: #3395ff; box-shadow: 0 6px 14px rgba(0,122,255,.4); }
+        .yl_out {
+            flex: none;
+            min-width: 130px;
+            text-align: right;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: .84em;
+            color: #9aa0b4;
+        }
+        .yl_out.yl_ok { color: #4cd964; }
+        .yl_out.yl_hit { animation: yl_pop .45s var(--yl-ease); }
+        .yl_value.yl_hit { animation: yl_pop .45s var(--yl-ease); }
+        @keyframes yl_pop {
+            0% { transform: scale(.6); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* ===== 速查表 ===== */
+        .yl_table-wrap {
+            overflow-x: auto;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 4px 20px rgba(0,0,0,.06);
+            border: 1px solid rgba(0,0,0,.04);
+            margin-bottom: 46px;
+        }
+        .yl_table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .92em;
+            min-width: 560px;
+        }
+        .yl_table th, .yl_table td {
+            padding: 12px 18px;
+            text-align: left;
+            border-bottom: 1px solid rgba(0,0,0,.06);
+        }
+        .yl_table th {
+            background: #f5f7fa;
+            font-weight: 600;
+            color: var(--yl-ink);
+        }
+        .yl_table tr:last-child td { border-bottom: none; }
+        .yl_table tbody tr { transition: background .3s var(--yl-ease); }
+        .yl_table tbody tr:hover { background: #f7faff; }
+        .yl_table code {
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            background: #eef2f7;
+            color: var(--yl-blue);
+            padding: 1px 7px;
+            border-radius: 6px;
+            font-size: .92em;
+        }
+        .yl_table .yl_quirk { color: #b25000; }
+
+        /* ===== 页脚 ===== */
+        .yl_footer {
+            text-align: center;
+            padding: 28px 20px 34px;
+            color: var(--yl-sub);
+            font-size: .85em;
+            border-top: 1px solid rgba(0,0,0,.05);
+            background: rgba(255,255,255,.6);
+        }
+
+        /* ===== 动效降级 ===== */
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            *, *::before, *::after {
+                animation: none !important;
+                transition: none !important;
+            }
+            .yl_card.yl_reveal { opacity: 1; transform: none; }
+        }
+        @media (max-width: 480px) {
+            .yl_row { flex-wrap: wrap; }
+            .yl_out { text-align: left; min-width: 0; }
+        }
+    </style>
 </head>
 <body>
-    <h2>宁瑞祥503的JavaScript</h2>
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  日期：2026-10-22
+  功能：JavaScript 基本六种数据类型演示
+-->
+    <!-- ===== Hero ===== -->
+    <header class="yl_hero">
+        <h1>JavaScript 基本六大数据类型</h1>
+        <p class="yl_sub">Number · String · Boolean · Undefined · Null · Object</p>
+        <span class="yl_author">宁瑞祥 · 计算机23005 · 2001010503</span>
+    </header>
+
+    <main class="yl_main">
+        <!-- ===== 六类型卡片 ===== -->
+        <h2 class="yl_section-title">六大类型一览</h2>
+        <p class="yl_section-desc">点击卡片下方的示例按钮，实时查看值的变化与 <code>typeof</code> 检测结果；悬停卡片体验 3D 视差。</p>
+        <div class="yl_grid" id="yl_grid">
+
+            <!-- 1 Number -->
+            <section class="yl_card yl_reveal" style="--yl-accent: var(--yl-blue);" data-yl-type="number">
+                <div class="yl_card-head">
+                    <span class="yl_badge">01</span>
+                    <h3>Number 数值<small>typeof → "number"</small></h3>
+                </div>
+                <p class="yl_desc">整数与浮点数统称，含特殊值 Infinity（无穷）与 NaN（非数值）。</p>
+                <div class="yl_stage">
+                    <div class="yl_value" id="yl_val_number">42</div>
+                    <div class="yl_typeof">typeof 值 → <b id="yl_type_number">"number"</b></div>
+                </div>
+                <div class="yl_btns">
+                    <button class="yl_btn yl_active" data-yl-s="num42">42</button>
+                    <button class="yl_btn" data-yl-s="numPi">3.14</button>
+                    <button class="yl_btn" data-yl-s="numNeg">-7</button>
+                    <button class="yl_btn" data-yl-s="numInf">Infinity</button>
+                    <button class="yl_btn" data-yl-s="numNaN">NaN</button>
+                </div>
+            </section>
+
+            <!-- 2 String -->
+            <section class="yl_card yl_reveal" style="--yl-accent: var(--yl-green);" data-yl-type="string">
+                <div class="yl_card-head">
+                    <span class="yl_badge">02</span>
+                    <h3>String 字符串<small>typeof → "string"</small></h3>
+                </div>
+                <p class="yl_desc">由单引号、双引号或反引号包裹的文本，"123" 加引号后不再是数值。</p>
+                <div class="yl_stage">
+                    <div class="yl_value" id="yl_val_string">"宁瑞祥"</div>
+                    <div class="yl_typeof">typeof 值 → <b id="yl_type_string">"string"</b></div>
+                </div>
+                <div class="yl_btns">
+                    <button class="yl_btn yl_active" data-yl-s="strName">"宁瑞祥"</button>
+                    <button class="yl_btn" data-yl-s="strHello">'Hello'</button>
+                    <button class="yl_btn" data-yl-s="strNum">"123"</button>
+                    <button class="yl_btn" data-yl-s="strEmpty">""</button>
+                </div>
+            </section>
+
+            <!-- 3 Boolean -->
+            <section class="yl_card yl_reveal" style="--yl-accent: var(--yl-purple);" data-yl-type="boolean">
+                <div class="yl_card-head">
+                    <span class="yl_badge">03</span>
+                    <h3>Boolean 布尔<small>typeof → "boolean"</small></h3>
+                </div>
+                <p class="yl_desc">逻辑值只有 true 与 false 两个，常用于条件判断与开关状态。</p>
+                <div class="yl_stage">
+                    <div class="yl_value" id="yl_val_boolean">true</div>
+                    <div class="yl_typeof">typeof 值 → <b id="yl_type_boolean">"boolean"</b></div>
+                </div>
+                <div class="yl_btns">
+                    <button class="yl_btn yl_active" data-yl-s="booTrue">true</button>
+                    <button class="yl_btn" data-yl-s="booFalse">false</button>
+                    <button class="yl_btn" data-yl-s="booExpr">3 &gt; 2</button>
+                    <button class="yl_btn" data-yl-s="booExpr2">1 === '1'</button>
+                </div>
+            </section>
+
+            <!-- 4 Undefined -->
+            <section class="yl_card yl_reveal" style="--yl-accent: var(--yl-gray);" data-yl-type="undefined">
+                <div class="yl_card-head">
+                    <span class="yl_badge">04</span>
+                    <h3>Undefined 未定义<small>typeof → "undefined"</small></h3>
+                </div>
+                <p class="yl_desc">变量声明后尚未赋值时的默认值，表示"此处应有值但还没有"。</p>
+                <div class="yl_stage">
+                    <div class="yl_value" id="yl_val_undefined">undefined</div>
+                    <div class="yl_typeof">typeof 值 → <b id="yl_type_undefined">"undefined"</b></div>
+                </div>
+                <div class="yl_btns">
+                    <button class="yl_btn yl_active" data-yl-s="undLit">undefined</button>
+                    <button class="yl_btn" data-yl-s="undDecl">let yl_x; yl_x</button>
+                    <button class="yl_btn" data-yl-s="undMiss">obj.yl_不存在</button>
+                </div>
+            </section>
+
+            <!-- 5 Null -->
+            <section class="yl_card yl_reveal" style="--yl-accent: var(--yl-orange);" data-yl-type="null">
+                <div class="yl_card-head">
+                    <span class="yl_badge">05</span>
+                    <h3>Null 空值<small>typeof → "object" ⚠</small></h3>
+                </div>
+                <p class="yl_desc">表示"刻意为空"的占位值。注意：typeof null 返回 "object"，是 JS 的历史遗留 Bug。</p>
+                <div class="yl_stage">
+                    <div class="yl_value" id="yl_val_null">null</div>
+                    <div class="yl_typeof">typeof 值 → <b id="yl_type_null">"object"</b></div>
+                    <span class="yl_warn yl_show" id="yl_warn_null">⚠ 历史 Bug：null 并不是对象</span>
+                </div>
+                <div class="yl_btns">
+                    <button class="yl_btn yl_active" data-yl-s="nulLit">null</button>
+                    <button class="yl_btn" data-yl-s="nulUse">清空对象引用</button>
+                </div>
+            </section>
+
+            <!-- 6 Object -->
+            <section class="yl_card yl_reveal" style="--yl-accent: var(--yl-pink);" data-yl-type="object">
+                <div class="yl_card-head">
+                    <span class="yl_badge">06</span>
+                    <h3>Object 对象<small>typeof → "object"</small></h3>
+                </div>
+                <p class="yl_desc">键值对集合；数组与函数同属对象体系，数组 typeof 仍为 "object"，函数则特殊返回 "function"。</p>
+                <div class="yl_stage">
+                    <div class="yl_value" id="yl_val_object">{ name: "宁瑞祥" }</div>
+                    <div class="yl_typeof">typeof 值 → <b id="yl_type_object">"object"</b></div>
+                </div>
+                <div class="yl_btns">
+                    <button class="yl_btn yl_active" data-yl-s="objLit">{ name: "宁瑞祥" }</button>
+                    <button class="yl_btn" data-yl-s="objArr">[1, 2, 3]</button>
+                    <button class="yl_btn" data-yl-s="objFn">function(){}</button>
+                </div>
+            </section>
+        </div>
+
+        <!-- ===== typeof 检测台 ===== -->
+        <h2 class="yl_section-title" style="margin-top: 44px;">typeof 检测台</h2>
+        <p class="yl_section-desc">逐条运行下面的语句，观察每条语句执行后 <code>typeof</code> 的返回结果。</p>
+        <div class="yl_console">
+            <div class="yl_console-head">
+                <span class="yl_dot" style="background:#ff5f57;"></span>
+                <span class="yl_dot" style="background:#febc2e;"></span>
+                <span class="yl_dot" style="background:#28c840;"></span>
+                <span class="yl_console-title">yl_typeof_console.js — 浏览器控制台演示</span>
+            </div>
+            <div id="yl_rows"></div>
+        </div>
+
+        <!-- ===== 速查表 ===== -->
+        <h2 class="yl_section-title">typeof 速查表</h2>
+        <p class="yl_section-desc">六大类型常见值的检测结果对照（含两个易错点）。</p>
+        <div class="yl_table-wrap">
+            <table class="yl_table">
+                <thead>
+                    <tr><th>值</th><th>typeof 结果</th><th>说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>42</code> / <code>3.14</code> / <code>NaN</code></td><td><code>"number"</code></td><td>NaN 意为 Not a Number，但类型仍是数值</td></tr>
+                    <tr><td><code>"宁瑞祥"</code> / <code>""</code></td><td><code>"string"</code></td><td>空字符串也是字符串类型</td></tr>
+                    <tr><td><code>true</code> / <code>false</code></td><td><code>"boolean"</code></td><td>注意与字符串 "true" 区分</td></tr>
+                    <tr><td><code>undefined</code></td><td><code>"undefined"</code></td><td>声明未赋值、访问不存在的属性</td></tr>
+                    <tr><td><code>null</code></td><td><code class="yl_quirk">"object"</code></td><td class="yl_quirk">易错：历史遗留 Bug，可用 === null 判断</td></tr>
+                    <tr><td><code>{ }</code> / <code>[1,2,3]</code></td><td><code>"object"</code></td><td class="yl_quirk">易错：数组不是独立的第 7 种类型</td></tr>
+                    <tr><td><code>function(){}</code></td><td><code>"function"</code></td><td>函数是特殊的对象，typeof 单独识别</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <footer class="yl_footer">
+        <p>© 2026 宁瑞祥 · 2001010503 · 计算机23005 ·《高级网页设计》课堂实践 · 纯原生 HTML / CSS / JS，未使用任何 CDN</p>
+    </footer>
+
+    <script>
+        /* ===== 全部变量与函数均以 yl_ 前缀命名 ===== */
+
+        /* 示例值仓库：key → { code: 展示文本, val: 真实 JS 值 } */
+        var yl_samples = {
+            num42:  { code: "42",                  val: 42 },
+            numPi:  { code: "3.14",                val: 3.14 },
+            numNeg: { code: "-7",                  val: -7 },
+            numInf: { code: "Infinity",            val: Infinity },
+            numNaN: { code: "NaN",                 val: NaN },
+            strName:  { code: '"宁瑞祥"',           val: "宁瑞祥" },
+            strHello: { code: "'Hello'",           val: "Hello" },
+            strNum:   { code: '"123"',             val: "123" },
+            strEmpty: { code: '""',                val: "" },
+            booTrue:  { code: "true",              val: true },
+            booFalse: { code: "false",             val: false },
+            booExpr:  { code: "3 > 2",             val: 3 > 2 },
+            booExpr2: { code: "1 === '1'",         val: 1 === "1" },
+            undLit:   { code: "undefined",         val: undefined },
+            undDecl:  { code: "let yl_x; yl_x",    val: (function () { var yl_x; return yl_x; })() },
+            undMiss:  { code: "obj.yl_不存在",     val: ({ name: "宁瑞祥" }).yl_notExist },
+            nulLit:   { code: "null",              val: null },
+            nulUse:   { code: "yl_stu = null",     val: null },
+            objLit: { code: '{ name: "宁瑞祥" }',  val: { name: "宁瑞祥" } },
+            objArr: { code: "[1, 2, 3]",           val: [1, 2, 3] },
+            objFn:  { code: "function(){}",        val: function yl_demo() {} }
+        };
+
+        /* 检测台语句：html 为带语法高亮的代码，fn 返回真实值 */
+        var yl_statements = [
+            { html: '<span class="yl_kw">let</span> yl_age = <span class="yl_num">21</span>;  <span class="yl_kw">typeof</span> yl_age', fn: function () { var yl_age = 21; return yl_age; } },
+            { html: '<span class="yl_kw">let</span> yl_name = <span class="yl_str">"宁瑞祥"</span>;  <span class="yl_kw">typeof</span> yl_name', fn: function () { var yl_name = "宁瑞祥"; return yl_name; } },
+            { html: '<span class="yl_kw">let</span> yl_ok = <span class="yl_kw">true</span>;  <span class="yl_kw">typeof</span> yl_ok', fn: function () { var yl_ok = true; return yl_ok; } },
+            { html: '<span class="yl_kw">let</span> yl_unk;  <span class="yl_kw">typeof</span> yl_unk', fn: function () { var yl_unk; return yl_unk; } },
+            { html: '<span class="yl_kw">let</span> yl_empty = <span class="yl_kw">null</span>;  <span class="yl_kw">typeof</span> yl_empty  <span class="yl_cmt">// "object" ⚠</span>', fn: function () { var yl_empty = null; return yl_empty; } },
+            { html: '<span class="yl_kw">let</span> yl_stu = { name: <span class="yl_str">"宁瑞祥"</span> };  <span class="yl_kw">typeof</span> yl_stu', fn: function () { var yl_stu = { name: "宁瑞祥" }; return yl_stu; } },
+            { html: '<span class="yl_kw">let</span> yl_arr = [<span class="yl_num">1</span>, <span class="yl_num">2</span>, <span class="yl_num">3</span>];  <span class="yl_kw">typeof</span> yl_arr', fn: function () { var yl_arr = [1, 2, 3]; return yl_arr; } },
+            { html: '<span class="yl_kw">function</span> <span class="yl_fn">yl_hi</span>(){}  <span class="yl_kw">typeof</span> yl_hi', fn: function () { function yl_hi() {} return yl_hi; } }
+        ];
+
+        /* 将任意 JS 值格式化为展示文本 */
+        function yl_fmt(yl_v) {
+            var yl_t = typeof yl_v;
+            if (yl_t === "string") { return '"' + yl_v + '"'; }
+            if (yl_v === null) { return "null"; }
+            if (yl_t === "undefined") { return "undefined"; }
+            if (yl_t === "function") { return "ƒ yl_demo(){}"; }
+            if (Array.isArray(yl_v)) { return "[1, 2, 3]"; }
+            if (yl_t === "object") { return '{ name: "宁瑞祥" }'; }
+            return String(yl_v);
+        }
+
+        /* 卡片示例按钮点击 */
+        function yl_onSample(yl_btn) {
+            var yl_card = yl_btn.closest(".yl_card");
+            var yl_key = yl_btn.getAttribute("data-yl-s");
+            var yl_item = yl_samples[yl_key];
+            if (!yl_card || !yl_item) { return; }
+            var yl_t = yl_card.getAttribute("data-yl-type");
+            var yl_valEl = document.getElementById("yl_val_" + yl_t);
+            var yl_typeEl = document.getElementById("yl_type_" + yl_t);
+            yl_valEl.textContent = yl_item.code;
+            yl_typeEl.textContent = '"' + typeof yl_item.val + '"';
+            var yl_btns = yl_card.querySelectorAll(".yl_btn");
+            for (var yl_i = 0; yl_i < yl_btns.length; yl_i++) { yl_btns[yl_i].classList.remove("yl_active"); }
+            yl_btn.classList.add("yl_active");
+            yl_valEl.classList.remove("yl_hit");
+            void yl_valEl.offsetWidth; /* 重新触发动画 */
+            yl_valEl.classList.add("yl_hit");
+        }
+
+        /* 检测台：渲染行 + 运行 */
+        function yl_buildConsole() {
+            var yl_wrap = document.getElementById("yl_rows");
+            var yl_html = "";
+            for (var yl_i = 0; yl_i < yl_statements.length; yl_i++) {
+                yl_html += '<div class="yl_row">'
+                    + '<div class="yl_code">' + yl_statements[yl_i].html + '</div>'
+                    + '<button class="yl_run" data-yl-i="' + yl_i + '">运行</button>'
+                    + '<div class="yl_out">— 点击运行 —</div>'
+                    + '</div>';
+            }
+            yl_wrap.innerHTML = yl_html;
+            yl_wrap.addEventListener("click", function (yl_e) {
+                var yl_btn = yl_e.target.closest(".yl_run");
+                if (!yl_btn) { return; }
+                var yl_idx = parseInt(yl_btn.getAttribute("data-yl-i"), 10);
+                var yl_v = yl_statements[yl_idx].fn();
+                var yl_out = yl_btn.nextElementSibling;
+                yl_out.textContent = '"' + typeof yl_v + '"';
+                yl_out.className = "yl_out yl_ok yl_hit";
+            });
+        }
+
+        /* 滚动渐显 */
+        function yl_initReveal() {
+            var yl_cards = document.querySelectorAll(".yl_reveal");
+            var yl_io = new IntersectionObserver(function (yl_entries) {
+                yl_entries.forEach(function (yl_en) {
+                    if (yl_en.isIntersecting) {
+                        yl_en.target.classList.add("yl_in");
+                        yl_io.unobserve(yl_en.target);
+                    }
+                });
+            }, { threshold: 0.15 });
+            yl_cards.forEach(function (yl_c, yl_i) {
+                yl_c.style.transitionDelay = (yl_i % 3) * 0.08 + "s";
+                yl_io.observe(yl_c);
+            });
+        }
+
+        /* 卡片 3D 视差倾斜 */
+        function yl_initTilt() {
+            if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { return; }
+            var yl_cards = document.querySelectorAll(".yl_card");
+            yl_cards.forEach(function (yl_card) {
+                yl_card.addEventListener("mousemove", function (yl_e) {
+                    var yl_r = yl_card.getBoundingClientRect();
+                    var yl_x = (yl_e.clientX - yl_r.left) / yl_r.width - 0.5;
+                    var yl_y = (yl_e.clientY - yl_r.top) / yl_r.height - 0.5;
+                    yl_card.style.transform = "translateY(-6px) rotateX(" + (-yl_y * 6) + "deg) rotateY(" + (yl_x * 8) + "deg)";
+                });
+                yl_card.addEventListener("mouseleave", function () {
+                    yl_card.style.transform = "";
+                });
+            });
+        }
+
+        /* 初始化 */
+        function yl_init() {
+            document.getElementById("yl_grid").addEventListener("click", function (yl_e) {
+                var yl_btn = yl_e.target.closest(".yl_btn");
+                if (yl_btn) { yl_onSample(yl_btn); }
+            });
+            yl_buildConsole();
+            yl_initReveal();
+            yl_initTilt();
+        }
+        document.addEventListener("DOMContentLoaded", yl_init);
+    </script>
 </body>
 </html>

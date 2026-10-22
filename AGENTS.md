@@ -12,11 +12,24 @@ Static HTML/CSS course-practice repo (《高级网页设计》student exercises)
 
 ## Mandatory rules (实训硬性要求)
 
-### Naming prefix `yuan_`
+### Naming prefix `yl_`
 
-- In ALL newly created HTML/CSS/JS code, every CSS class name, `id`, and JavaScript variable/function name MUST begin with the prefix `yuan_` (e.g. `.yuan_card`, `#yuan_box`, `let yuan_index = 0`, `function yuan_init()`).
+- In ALL newly created HTML/CSS/JS code, every CSS class name, `id`, and JavaScript variable/function name MUST begin with the prefix `yl_` (e.g. `.yl_card`, `#yl_box`, `let yl_index = 0`, `function yl_init()`).（自 2026-10-22 起由原 `yuan_` 前缀变更而来，仅约束新写代码。）
 - Existing exercise files and `index.html` keep their current class/id/variable names — never rename existing code; the prefix rule applies to newly written code only.
 - When adding cards to `index.html`, reuse its existing markup and class names verbatim (no new CSS classes needed there).
+
+### Page header comment (页面头注释)
+
+- Every newly created HTML page MUST include an HTML comment immediately after the `<body>` opening tag, containing the student's name, date, student ID, and the page's function name:
+
+```html
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  日期：YYYY-MM-DD（创建当天）
+  功能：<该页面的功能名称，如“移动端底部导航栏”>
+-->
+```
 
 ### Prompt log `yuan_prompt.md`
 
