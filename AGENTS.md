@@ -20,14 +20,15 @@ Static HTML/CSS course-practice repo (《高级网页设计》student exercises)
 
 ### Page header comment (页面头注释)
 
-- Every newly created HTML page MUST include an HTML comment immediately after the `<body>` opening tag, containing the student's name, date, student ID, and the page's function name:
+- Every newly created HTML page MUST include an HTML comment immediately after the `<body>` opening tag, containing the student's name, creation time, the AI model used to build the page, and the page's function name（2026-10-26 更新：日期字段改为"建立时间"精确到秒，并新增"使用的大模型"字段）:
 
 ```html
 <!--
   姓名：宁瑞祥
   学号：2001010503
-  日期：YYYY-MM-DD（创建当天）
-  功能：<该页面的功能名称，如“移动端底部导航栏”>
+  建立时间：YYYY-MM-DD HH:mm:ss（创建当天的本地时刻）
+  使用的大模型：<本次实际使用的模型 id，如 GLM-5.3-Flash>
+  功能：<该页面的功能名称，如"移动端底部导航栏">
 -->
 ```
 

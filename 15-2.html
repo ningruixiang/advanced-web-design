@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>逢7过（数7游戏） · 宁瑞祥 · 计算机23005</title>
+    <style>
+        /* ===== 全局重置：苹果极简风 ===== */
+        :root {
+            --yl-blue: #007aff;
+            --yl-orange: #ff9500;
+            --yl-ink: #1d1d1f;
+            --yl-sub: #6e6e73;
+            --yl-ease: cubic-bezier(.25, .46, .45, .94);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Roboto, sans-serif;
+        }
+        body {
+            background: linear-gradient(180deg, #f5f7fa 0%, #ffffff 50%, #f0f2f5 100%);
+            color: var(--yl-ink);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* ===== 页面顶部标题区 ===== */
+        .yl_hero {
+            text-align: center;
+            padding: 46px 20px 30px;
+        }
+        .yl_hero h1 {
+            font-size: clamp(1.8em, 5vw, 2.8em);
+            font-weight: 700;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, #007aff, #af52de);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .yl_hero p {
+            margin-top: 8px;
+            color: var(--yl-sub);
+            font-size: .98em;
+        }
+
+        /* ===== 规则说明卡 ===== */
+        .yl_rules {
+            max-width: 900px;
+            margin: 0 auto 22px;
+            padding: 16px 24px;
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid rgba(0,0,0,.05);
+            box-shadow: 0 4px 18px rgba(0,0,0,.06);
+            font-size: .92em;
+            color: var(--yl-sub);
+        }
+        .yl_rules b { color: var(--yl-ink); }
+        .yl_rules code {
+            background: #eef2f7;
+            color: var(--yl-blue);
+            padding: 1px 7px;
+            border-radius: 6px;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: .92em;
+        }
+
+        /* ===== 统计条与图例 ===== */
+        .yl_stats {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 12px 22px;
+            margin-bottom: 26px;
+            font-size: .92em;
+        }
+        .yl_stats .yl_item { color: var(--yl-sub); }
+        .yl_stats .yl_item b {
+            color: var(--yl-ink);
+            font-size: 1.15em;
+            margin: 0 2px;
+        }
+        .yl_dot {
+            display: inline-block;
+            width: 14px; height: 14px;
+            border-radius: 5px;
+            vertical-align: -2px;
+            margin-right: 6px;
+        }
+        .yl_dot.yl_num-dot { background: #eaf3ff; border: 1.5px solid var(--yl-blue); }
+        .yl_dot.yl_skip-dot { background: linear-gradient(135deg, #fff3e0, #ffe0b2); border: 1.5px dashed var(--yl-orange); }
+
+        /* ===== 盒子容器：flex 弹性布局 + 自动换行 ===== */
+        .yl_boxes {
+            display: flex;              /* 弹性布局 */
+            flex-wrap: wrap;            /* 自动换行 */
+            justify-content: center;    /* 主轴居中 */
+            gap: 12px;                  /* 盒子间距 */
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 10px 20px 50px;
+        }
+
+        /* ===== 单个盒子：统一宽高 / 边框 / 内边距 / 居中文字 ===== */
+        .yl_box {
+            width: 76px;
+            height: 60px;
+            padding: 4px;                        /* 内边距 */
+            display: flex;                        /* 内部 flex 居中 */
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15em;
+            font-weight: 600;
+            border: 1.5px solid var(--yl-blue);   /* 边框 */
+            border-radius: 12px;                  /* 圆角 */
+            background: #eaf3ff;                  /* 有数字盒子：淡蓝 */
+            color: var(--yl-blue);
+            cursor: pointer;
+            user-select: none;
+            /* 过渡：0.5s / 弹性缓动，与全站一致 */
+            transition: transform .5s var(--yl-ease), box-shadow .5s var(--yl-ease), background .5s var(--yl-ease);
+            /* 入场动画：透明度 + 上浮，配合 JS 逐个延迟 */
+            animation: yl_in .5s var(--yl-ease) backwards;
+        }
+        @keyframes yl_in {
+            from { opacity: 0; transform: translateY(18px) scale(.85); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        /* 悬停：3D 上浮 + 投影 */
+        .yl_box:hover {
+            transform: translateY(-5px) scale(1.06);
+            box-shadow: 0 10px 20px rgba(0,122,255,.25);
+        }
+
+        /* 空盒子（逢7过）：橙色渐变 + 虚线边框做区分 */
+        .yl_box.yl_skip {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+            border: 1.5px dashed var(--yl-orange);
+            color: transparent;              /* 不展示数字 → 文字透明 */
+            cursor: pointer;
+        }
+        .yl_box.yl_skip:hover {
+            box-shadow: 0 10px 20px rgba(255,149,0,.28);
+            transform: translateY(-5px) scale(1.06) rotate(2deg);
+        }
+        /* 点击空盒子：临时“偷看”被跳过的数字（教学观察用） */
+        .yl_box.yl_skip.yl_peek {
+            color: var(--yl-orange);
+            font-size: .95em;
+            text-decoration: line-through;
+        }
+
+        /* ===== 页脚 ===== */
+        .yl_footer {
+            text-align: center;
+            padding: 26px 20px 34px;
+            color: var(--yl-sub);
+            font-size: .85em;
+            border-top: 1px solid rgba(0,0,0,.05);
+            background: rgba(255,255,255,.6);
+        }
+
+        /* ===== 动效降级：尊重系统减弱动态设置 ===== */
+        @media (prefers-reduced-motion: reduce) {
+            .yl_box { animation: none; transition: none; }
+            .yl_box:hover { transform: none; box-shadow: none; }
+        }
+        /* 小屏适配：盒子略缩小 */
+        @media (max-width: 480px) {
+            .yl_box { width: calc((100% - 24px) / 4); height: 52px; font-size: 1em; }
+        }
+    </style>
+</head>
+<body>
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  日期：2026-10-26
+  功能：逢7过（数7游戏）
+-->
+    <!-- ===== 顶部标题 ===== -->
+    <header class="yl_hero">
+        <h1>逢7过（数7游戏）</h1>
+        <p>1 ~ 100 报数 · 遇到 7 就“过”</p>
+    </header>
+
+    <!-- ===== 规则说明 ===== -->
+    <section class="yl_rules">
+        <b>游戏规则：</b>报数时，如果数字是 <code>7 的倍数</code>，或者数字里<code>含有数字 7</code>
+        （如 7、17、70、77），该数字不能报出来，需要“过”——所以它的盒子是空的；
+        其余数字正常显示。点击橙色空盒子可以偷看被跳过的数字。
+    </section>
+
+    <!-- ===== 统计条与图例（数据由 JS 计算填充） ===== -->
+    <div class="yl_stats">
+        <span class="yl_item">总盒子 <b id="yl_stat_total">0</b> 个</span>
+        <span class="yl_item">正常报数 <b id="yl_stat_show">0</b> 个</span>
+        <span class="yl_item">逢7过 <b id="yl_stat_skip">0</b> 个</span>
+        <span class="yl_item"><span class="yl_dot yl_num-dot"></span>正常数字盒</span>
+        <span class="yl_item"><span class="yl_dot yl_skip-dot"></span>逢7过空盒</span>
+    </div>
+
+    <!-- ===== 100 个盒子容器（由 JS 批量生成） ===== -->
+    <main class="yl_boxes" id="yl_boxes"></main>
+
+    <footer class="yl_footer">
+        <p>© 2026 宁瑞祥 · 2001010503 · 计算机23005 ·《高级网页设计》课堂实践 · 纯原生 HTML / CSS / JS，未使用任何外部框架</p>
+    </footer>
+
+    <script>
+        /* ===== 全部变量与函数均以 yl_ 前缀命名 ===== */
+
+        /* 数7规则判断：
+           是 7 的倍数，或者数字字符串中含有字符 '7' → 返回 true（要“过”） */
+        function yl_isSkip(yl_n) {
+            return yl_n % 7 === 0 || String(yl_n).indexOf('7') !== -1;
+        }
+
+        /* 批量生成 1~100 共 100 个盒子 */
+        function yl_buildBoxes() {
+            var yl_wrap = document.getElementById('yl_boxes');
+            var yl_html = '';        /* 拼接 HTML 字符串，最后一次性写入，性能更好 */
+            var yl_showCount = 0;    /* 正常显示数字的盒子数量 */
+            var yl_skipCount = 0;    /* 逢7过空盒数量 */
+
+            for (var yl_i = 1; yl_i <= 100; yl_i++) {
+                /* 逐个入场动画延迟：每个 12ms，形成波浪效果 */
+                var yl_delay = 'style="animation-delay:' + yl_i * 12 + 'ms"';
+
+                if (yl_isSkip(yl_i)) {
+                    /* 满足数7规则 → 空盒子，不展示数字，加 yl_skip 类做橙色区分 */
+                    yl_html += '<div class="yl_box yl_skip" ' + yl_delay
+                             + ' data-yl-num="' + yl_i + '">&nbsp;</div>';
+                    yl_skipCount++;
+                } else {
+                    /* 不满足 → 正常显示当前数字 */
+                    yl_html += '<div class="yl_box" ' + yl_delay + '>' + yl_i + '</div>';
+                    yl_showCount++;
+                }
+            }
+            yl_wrap.innerHTML = yl_html;
+
+            /* 填充统计条 */
+            document.getElementById('yl_stat_total').textContent = 100;
+            document.getElementById('yl_stat_show').textContent = yl_showCount;
+            document.getElementById('yl_stat_skip').textContent = yl_skipCount;
+        }
+
+        /* 交互：点击空盒子“偷看”被跳过的数字，再点一次隐藏 */
+        function yl_initPeek() {
+            document.getElementById('yl_boxes').addEventListener('click', function (yl_e) {
+                var yl_box = yl_e.target.closest('.yl_skip');
+                if (!yl_box) { return; }
+                yl_box.classList.toggle('yl_peek');
+                /* 偷看时临时显示真实数字；恢复时空盒文字回到空白 */
+                yl_box.textContent = yl_box.classList.contains('yl_peek')
+                    ? yl_box.getAttribute('data-yl-num') + ' 过'
+                    : '\u00A0';   /* &nbsp; 保持盒子高度 */
+            });
+        }
+
+        /* ===== 初始化入口 ===== */
+        function yl_init() {
+            yl_buildBoxes();
+            yl_initPeek();
+        }
+        document.addEventListener('DOMContentLoaded', yl_init);
+    </script>
+</body>
+</html>
