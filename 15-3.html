@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript 循环与条件 · 宁瑞祥 · 计算机23005</title>
+    <style>
+        /* ===== 全局重置：苹果极简风 ===== */
+        :root {
+            --yl-blue: #007aff;
+            --yl-green: #34c759;
+            --yl-orange: #ff9500;
+            --yl-purple: #af52de;
+            --yl-pink: #ff2d55;
+            --yl-teal: #5ac8fa;
+            --yl-ink: #1d1d1f;
+            --yl-sub: #6e6e73;
+            --yl-ease: cubic-bezier(.25, .46, .45, .94);
+        }
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Roboto, sans-serif;
+        }
+        body {
+            background: linear-gradient(180deg, #f5f7fa 0%, #ffffff 50%, #f0f2f5 100%);
+            color: var(--yl-ink);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* ===== 顶部 Hero ===== */
+        .yl_hero {
+            text-align: center;
+            padding: 52px 20px 36px;
+            background: linear-gradient(135deg, #007aff 0%, #5ac8fa 50%, #af52de 100%);
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+        .yl_hero::before {
+            content: "";
+            position: absolute; inset: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(255,255,255,.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, rgba(255,255,255,.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .yl_hero h1 {
+            position: relative;
+            font-size: clamp(1.8em, 5vw, 2.8em);
+            font-weight: 700; letter-spacing: 2px;
+        }
+        .yl_hero p { position: relative; margin-top: 8px; opacity: .95; font-size: .98em; }
+        .yl_hero .yl_badge {
+            position: relative;
+            display: inline-block; margin-top: 16px;
+            padding: 6px 16px;
+            background: rgba(255,255,255,.2); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,.3); border-radius: 999px; font-size: .88em;
+        }
+
+        /* ===== 主体 ===== */
+        .yl_main { max-width: 1100px; margin: 0 auto; padding: 40px 20px 50px; }
+        .yl_section-title {
+            font-size: 1.5em; font-weight: 600;
+            padding-left: 14px; border-left: 4px solid var(--yl-blue);
+            margin: 20px 0 6px;
+        }
+        .yl_section-desc { color: var(--yl-sub); font-size: .95em; padding-left: 18px; margin-bottom: 22px; }
+
+        /* ===== 双列卡片网格 ===== */
+        .yl_grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+            gap: 22px;
+        }
+        .yl_card {
+            background: #fff;
+            border-radius: 18px;
+            border: 1px solid rgba(0,0,0,.05);
+            box-shadow: 0 4px 20px rgba(0,0,0,.06);
+            overflow: hidden;
+            transition: transform .5s var(--yl-ease), box-shadow .5s var(--yl-ease);
+        }
+        .yl_card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,.12); }
+
+        /* 卡片头部 */
+        .yl_card-head {
+            display: flex; align-items: center; gap: 12px;
+            padding: 18px 22px 10px;
+        }
+        .yl_num {
+            width: 36px; height: 36px; line-height: 36px; text-align: center;
+            border-radius: 50%; color: #fff; font-weight: 600; font-size: .9em;
+            background: var(--yl-accent, var(--yl-blue));
+            box-shadow: 0 3px 8px var(--yl-accent, var(--yl-blue));
+            flex: none;
+        }
+        .yl_card h3 { font-size: 1.1em; }
+        .yl_card h3 small { color: var(--yl-sub); font-weight: 400; margin-left: 6px; font-size: .8em; }
+        .yl_card-desc { color: var(--yl-sub); font-size: .86em; padding: 0 22px 12px; }
+
+        /* 代码块 */
+        .yl_code {
+            background: #161822; color: #e6e8ef;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: .85em;
+            padding: 14px 18px;
+            border-radius: 0;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.55;
+        }
+        .yl_code .yl_kw { color: #ff7ab2; }
+        .yl_code .yl_str { color: #ff8170; }
+        .yl_code .yl_num { color: #d0bf69; }
+        .yl_code .yl_cmt { color: #7f8c98; }
+        .yl_code .yl_fn { color: #82c4ff; }
+
+        /* 运行按钮 */
+        .yl_runbar {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 22px;
+            background: #fafbfd;
+            border-top: 1px solid rgba(0,0,0,.04);
+        }
+        .yl_run {
+            border: none; border-radius: 8px; padding: 6px 16px;
+            background: var(--yl-accent, var(--yl-blue)); color: #fff;
+            font-size: .85em; cursor: pointer;
+            transition: transform .3s var(--yl-ease), box-shadow .3s var(--yl-ease);
+        }
+        .yl_run:hover { transform: translateY(-2px); box-shadow: 0 6px 14px var(--yl-accent, var(--yl-blue)); }
+        .yl_clear {
+            border: 1px solid var(--yl-sub); background: #fff;
+            border-radius: 8px; padding: 5px 14px; color: var(--yl-sub);
+            font-size: .82em; cursor: pointer;
+            transition: all .3s var(--yl-ease);
+        }
+        .yl_clear:hover { border-color: var(--yl-pink); color: var(--yl-pink); }
+
+        /* 输出区域 */
+        .yl_output {
+            padding: 12px 22px; min-height: 44px;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: .86em; color: var(--yl-ink);
+            background: #fff; border-top: 1px solid rgba(0,0,0,.04);
+        }
+        .yl_output:empty::before {
+            content: "// 点击「运行」查看结果"; color: var(--yl-sub);
+        }
+        .yl_line { margin-bottom: 2px; }
+        .yl_line.yl_ok { color: var(--yl-green); }
+        .yl_line.yl_err { color: var(--yl-pink); }
+        .yl_line.yl_log { color: var(--yl-ink); }
+
+        /* ===== 速查表 ===== */
+        .yl_table-wrap {
+            overflow-x: auto; background: #fff;
+            border-radius: 18px; box-shadow: 0 4px 20px rgba(0,0,0,.06);
+            border: 1px solid rgba(0,0,0,.04); margin-top: 24px;
+        }
+        .yl_table { width: 100%; border-collapse: collapse; font-size: .9em; min-width: 560px; }
+        .yl_table th, .yl_table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(0,0,0,.06); }
+        .yl_table th { background: #f5f7fa; font-weight: 600; }
+        .yl_table tr:last-child td { border-bottom: none; }
+        .yl_table tbody tr { transition: background .3s var(--yl-ease); }
+        .yl_table tbody tr:hover { background: #f7faff; }
+        .yl_table code {
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            background: #eef2f7; color: var(--yl-blue);
+            padding: 1px 7px; border-radius: 6px; font-size: .92em;
+        }
+
+        /* ===== 页脚 ===== */
+        .yl_footer {
+            text-align: center; padding: 26px 20px 34px;
+            color: var(--yl-sub); font-size: .85em;
+            border-top: 1px solid rgba(0,0,0,.05); background: rgba(255,255,255,.6);
+        }
+
+        /* ===== 动效降级 ===== */
+        @media (prefers-reduced-motion: reduce) {
+            .yl_card { transition: none; }
+            .yl_card:hover { transform: none; }
+        }
+        @media (max-width: 560px) {
+            .yl_grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  建立时间：2026-10-26 14:39:35
+  使用的大模型：GLM-5.3-Flash
+  功能：JavaScript 循环与条件程序结构演示
+-->
+    <header class="yl_hero">
+        <h1>JavaScript 循环 · 条件</h1>
+        <p>for / while / do-while / for...of / for...in  ·  if / else if / else / 三元 / switch</p>
+        <span class="yl_badge">宁瑞祥 · 计算机23005 · 2001010503</span>
+    </header>
+
+    <main class="yl_main">
+        <!-- ===== 循环章节 ===== -->
+        <h2 class="yl_section-title">循环结构（Loop）</h2>
+        <p class="yl_section-desc">重复执行一段代码。点击「运行」实时看每段循环的输出结果。</p>
+        <section class="yl_grid">
+
+            <!-- 1 for -->
+            <article class="yl_card" style="--yl-accent: var(--yl-blue);" data-yl-key="for">
+                <div class="yl_card-head"><span class="yl_num">01</span><h3>for<small>已知次数</small></h3></div>
+                <p class="yl_card-desc">三段式：初始化 + 条件 + 更新。最常用的循环，次数明确时首选。</p>
+<pre class="yl_code"><span class="yl_kw">for</span> (<span class="yl_kw">let</span> i = <span class="yl_num">1</span>; i &lt;= <span class="yl_num">5</span>; i++) {
+    <span class="yl_kw">console</span>.<span class="yl_fn">log</span>(<span class="yl_str">"第 "</span> + i + <span class="yl_str">" 次"</span>);
+}</pre>
+                <div class="yl_runbar">
+                    <button class="yl_run">▶ 运行</button>
+                    <button class="yl_clear">清空</button>
+                </div>
+                <div class="yl_output"></div>
+            </article>
+
+            <!-- 2 while -->
+            <article class="yl_card" style="--yl-accent: var(--yl-green);" data-yl-key="while">
+                <div class="yl_card-head"><span class="yl_num">02</span><h3>while<small>先判断</small></h3></div>
+                <p class="yl_card-desc">先判断条件，条件为真才执行循环体。次数未知时使用。</p>
+<pre class="yl_code"><span class="yl_kw">let</span> n = <span class="yl_num">1</span>;
+<span class="yl_kw">while</span> (n &lt;= <span class="yl_num">3</span>) {
+    <span class="yl_kw">console</span>.<span class="yl_fn">log</span>(<span class="yl_str">"n = "</span> + n);
+    n++;
+}</pre>
+                <div class="yl_runbar">
+                    <button class="yl_run">▶ 运行</button>
+                    <button class="yl_clear">清空</button>
+                </div>
+                <div class="yl_output"></div>
+            </article>
+
+            <!-- 3 do-while -->
+            <article class="yl_card" style="--yl-accent: var(--yl-orange);" data-yl-key="dowhile">
+                <div class="yl_card-head"><span class="yl_num">03</span><h3>do...while<small>先执行</small></h3></div>
+                <p class="yl_card-desc">先执行一次循环体，再判断条件。无论条件真假，至少跑一次。</p>
+<pre class="yl_code"><span class="yl_kw">let</span> i = <span class="yl_num">10</span>;
+<span class="yl_kw">do</span> {
+    <span class="yl_kw">console</span>.<span class="yl_fn">log</span>(<span class="yl_str">"至少跑一次"</span>);
+    i++;
+} <span class="yl_kw">while</span> (i &lt; <span class="yl_num">3</span>);</pre>
+                <div class="yl_runbar">
+                    <button class="yl_run">▶ 运行</button>
+                    <button class="yl_clear">清空</button>
+                </div>
+                <div class="yl_output"></div>
+            </article>
+
+            <!-- 4 for...of -->
+            <article class="yl_card" style="--yl-accent: var(--yl-purple);" data-yl-key="forof">
+                <div class="yl_card-head"><span class="yl_num">04</span><h3>for...of<small>遍历数组/字符串</small></h3></div>
+                <p class="yl_card-desc">ES6 新语法，直接拿到数组或字符串的元素值，写起来最简洁。</p>
+<pre class="yl_code"><span class="yl_kw">const</span> fruits = [<span class="yl_str">"苹果"</span>, <span class="yl_str">"香蕉"</span>, <span class="yl_str">"橙子"</span>];
+<span class="yl_kw">for</span> (<span class="yl_kw">let</span> f <span class="yl_kw">of</span> fruits) {
+    <span class="yl_kw">console</span>.<span class="yl_fn">log</span>(<span class="yl_str">"水果："</span>, f);
+}
+<span class="yl_cmt">// 字符串也能遍历</span>
+<span class="yl_kw">for</span> (<span class="yl_kw">let</span> c <span class="yl_kw">of</span> <span class="yl_str">"Hi"</span>) { <span class="yl_kw">console</span>.<span class="yl_fn">log</span>(c); }</pre>
+                <div class="yl_runbar">
+                    <button class="yl_run">▶ 运行</button>
+                    <button class="yl_clear">清空</button>
+                </div>
+                <div class="yl_output"></div>
+            </article>
+
+            <!-- 5 for...in -->
+            <article class="yl_card" style="--yl-accent: var(--yl-pink);" data-yl-key="forin">
+                <div class="yl_card-head"><span class="yl_num">05</span><h3>for...in<small>遍历对象键</small></h3></div>
+                <p class="yl_card-desc">遍历对象的可枚举属性名（key）。数组也能用，但不推荐——可能遍历到继承属性。</p>
+<pre class="yl_code"><span class="yl_kw">const</span> stu = { name: <span class="yl_str">"宁瑞祥"</span>, age: <span class="yl_num">21</span>, id: <span class="yl_str">"2001010503"</span> };
+<span class="yl_kw">for</span> (<span class="yl_kw">let</span> k <span class="yl_kw">in</span> stu) {
+    <span class="yl_kw">console</span>.<span class="yl_fn">log</span>(k + <span class="yl_str">" → "</span> + stu[k]);
+}</pre>
+                <div class="yl_runbar">
+                    <button class="yl_run">▶ 运行</button>
+                    <button class="yl_clear">清空</button>
+                </div>
+                <div class="yl_output"></div>
+            </article>
+
+        </section>
+
+        <!-- ===== 条件章节 ===== -->
+        <h2 class="yl_section-title" style="margin-top: 44px;">条件结构（Conditional）</h2>
+        <p class="yl_section-desc">根据条件真假走不同分支。每种条件都绑定一个实际场景。</p>
+        <section class="yl_grid">
+
+            <!-- 6 if / else if / else -->
+            <article class="yl_card" style="--yl-accent: var(--yl-blue);" data-yl-key="if">
+                <div class="yl_card-head"><span class="yl_num">06</span><h3>if / else if / else</h3></div>
+                <p class="yl_card-desc">多分支判断，从上到下依次检查，命中即停止。下面演示分数等级判定。</p>
+<pre class="yl_code"><span class="yl_kw">function</span> <span class="yl_fn">grade</span>(score) {
+    <span class="yl_kw">if</span> (score &gt;= <span class="yl_num">90</span>) <span class="yl_kw">return</span> <span class="yl_str">"A 优秀"</span>;
+    <span class="yl_kw">else if</span> (score &gt;= <span class="yl_num">80</span>) <span class="yl_kw">return</span> <span class="yl_str">"B 良好"</span>;
+    <span class="yl_kw">else if</span> (score &gt;= <span class="yl_num">60</span>) <span class="yl_kw">return</span> <span class="yl_str">"C 及格"</span>;
+    <span class="yl_kw">else</span> <span class="yl_kw">return</span> <span class="yl_str">"D 不及格"</span>;
+}
+<span class="yl_kw">for</span> (<span class="yl_kw">let</span> s <span class="yl_kw">of</span> [<span class="yl_num">95</span>, <span class="yl_num">85</span>, <span class="yl_num">70</span>, <span class="yl_num">55</span>]) {
+    <span class="yl_kw">console</span>.<span class="yl_fn">log</span>(s + <span class="yl_str">" 分 → "</span> + grade(s));
+}</pre>
+                <div class="yl_runbar">
+                    <button class="yl_run">▶ 运行</button>
+                    <button class="yl_clear">清空</button>
+                </div>
+                <div class="yl_output"></div>
+            </article>
+
+            <!-- 7 三元运算符 -->
+            <article class="yl_card" style="--yl-accent: var(--yl-green);" data-yl-key="ternary">
+                <div class="yl_card-head"><span class="yl_num">07</span><h3>三元运算符<small>条件 ? A : B</small></h3></div>
+                <p class="yl_card-desc">if/else 的极简写法。条件为真取 A，为假取 B。常用于简单赋值。</p>
+<pre class="yl_code"><span class="yl_kw">let</span> age = <span class="yl_num">21</span>;
+<span class="yl_kw">let</span> status = age &gt;= <span class="yl_num">18</span> ? <span class="yl_str">"成年"</span> : <span class="yl_str">"未成年"</span>;
+<span class="yl_kw">console</span>.<span class="yl_fn">log</span>(age + <span class="yl_str">" 岁："</span> + status);
+
+<span class="yl_cmt">// 嵌套也可以，但别太深</span>
+<span class="yl_kw">let</span> score = <span class="yl_num">85</span>;
+<span class="yl_kw">let</span> level = score &gt;= <span class="yl_num">90</span> ? <span class="yl_str">"A"</span>
+            : score &gt;= <span class="yl_num">60</span> ? <span class="yl_str">"B"</span> : <span class="yl_str">"C"</span>;
+<span class="yl_kw">console</span>.<span class="yl_fn">log</span>(<span class="yl_str">"等级："</span>, level);</pre>
+                <div class="yl_runbar">
+                    <button class="yl_run">▶ 运行</button>
+                    <button class="yl_clear">清空</button>
+                </div>
+                <div class="yl_output"></div>
+            </article>
+
+            <!-- 8 switch -->
+            <article class="yl_card" style="--yl-accent: var(--yl-orange);" data-yl-key="switch">
+                <div class="yl_card-head"><span class="yl_num">08</span><h3>switch<small>多值匹配</small></h3></div>
+                <p class="yl_card-desc">根据同一个表达式的不同取值走不同分支。记得每个 case 末尾加 <code>break</code>，否则会"穿透"到下一个 case。</p>
+<pre class="yl_code"><span class="yl_kw">let</span> day = <span class="yl_num">3</span>;
+<span class="yl_kw">switch</span> (day) {
+    <span class="yl_kw">case</span> <span class="yl_num">1</span>: <span class="yl_kw">console</span>.<span class="yl_fn">log</span>(<span class="yl_str">"周一"</span>); <span class="yl_kw">break</span>;
+    <span class="yl_kw">case</span> <span class="yl_num">2</span>: <span class="yl_kw">console</span>.<span class="yl_fn">log</span>(<span class="yl_str">"周二"</span>); <span class="yl_kw">break</span>;
+    <span class="yl_kw">case</span> <span class="yl_num">3</span>: <span class="yl_kw">console</span>.<span class="yl_fn">log</span>(<span class="yl_str">"周三"</span>); <span class="yl_kw">break</span>;
+    <span class="yl_kw">case</span> <span class="yl_num">4</span>: <span class="yl_kw">console</span>.<span class="yl_fn">log</span>(<span class="yl_str">"周四"</span>); <span class="yl_kw">break</span>;
+    <span class="yl_kw">case</span> <span class="yl_num">5</span>: <span class="yl_kw">console</span>.<span class="yl_fn">log</span>(<span class="yl_str">"周五"</span>); <span class="yl_kw">break</span>;
+    <span class="yl_kw">default</span>: <span class="yl_kw">console</span>.<span class="yl_fn">log</span>(<span class="yl_str">"周末"</span>);
+}</pre>
+                <div class="yl_runbar">
+                    <button class="yl_run">▶ 运行</button>
+                    <button class="yl_clear">清空</button>
+                </div>
+                <div class="yl_output"></div>
+            </article>
+
+            <!-- 9 break / continue -->
+            <article class="yl_card" style="--yl-accent: var(--yl-teal);" data-yl-key="breakcont">
+                <div class="yl_card-head"><span class="yl_num">09</span><h3>break / continue<small>循环控制</small></h3></div>
+                <p class="yl_card-desc"><code>break</code> 立即跳出整个循环；<code>continue</code> 跳过本次迭代、继续下一轮。</p>
+<pre class="yl_code"><span class="yl_kw">console</span>.<span class="yl_fn">log</span>(<span class="yl_str">"--- break：遇到 7 就停 ---"</span>);
+<span class="yl_kw">for</span> (<span class="yl_kw">let</span> i = <span class="yl_num">1</span>; i &lt;= <span class="yl_num">10</span>; i++) {
+    <span class="yl_kw">if</span> (i === <span class="yl_num">7</span>) <span class="yl_kw">break</span>;
+    <span class="yl_kw">console</span>.<span class="yl_fn">log</span>(i);
+}
+<span class="yl_kw">console</span>.<span class="yl_fn">log</span>(<span class="yl_str">"--- continue：跳过偶数 ---"</span>);
+<span class="yl_kw">for</span> (<span class="yl_kw">let</span> i = <span class="yl_num">1</span>; i &lt;= <span class="yl_num">8</span>; i++) {
+    <span class="yl_kw">if</span> (i % <span class="yl_num">2</span> === <span class="yl_num">0</span>) <span class="yl_kw">continue</span>;
+    <span class="yl_kw">console</span>.<span class="yl_fn">log</span>(i);
+}</pre>
+                <div class="yl_runbar">
+                    <button class="yl_run">▶ 运行</button>
+                    <button class="yl_clear">清空</button>
+                </div>
+                <div class="yl_output"></div>
+            </article>
+
+        </section>
+
+        <!-- ===== 速查表 ===== -->
+        <h2 class="yl_section-title">速查表</h2>
+        <p class="yl_section-desc">循环与条件的一句话总结，方便回顾。</p>
+        <div class="yl_table-wrap">
+            <table class="yl_table">
+                <thead>
+                    <tr><th>语法</th><th>类型</th><th>适用场景</th><th>关键要点</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>for (init; cond; update)</code></td><td>循环</td><td>次数明确</td><td>三段式，最通用</td></tr>
+                    <tr><td><code>while (cond)</code></td><td>循环</td><td>次数未知，先判断</td><td>别忘更新计数器，否则死循环</td></tr>
+                    <tr><td><code>do { } while (cond)</code></td><td>循环</td><td>至少执行一次</td><td>入口条件不满足也会跑一次</td></tr>
+                    <tr><td><code>for (let v of arr)</code></td><td>循环</td><td>遍历数组/字符串</td><td>直接拿到元素值，ES6+</td></tr>
+                    <tr><td><code>for (let k in obj)</code></td><td>循环</td><td>遍历对象键</td><td>数组慎用，可能遍历继承属性</td></tr>
+                    <tr><td><code>if / else if / else</code></td><td>条件</td><td>多分支</td><td>从上到下命中即停</td></tr>
+                    <tr><td><code>cond ? A : B</code></td><td>条件</td><td>二选一赋值</td><td>if/else 极简版</td></tr>
+                    <tr><td><code>switch (val)</code></td><td>条件</td><td>同一值多分支</td><td>每个 case 记得 <code>break</code></td></tr>
+                    <tr><td><code>break</code></td><td>控制</td><td>跳出当前循环</td><td>不再执行剩余迭代</td></tr>
+                    <tr><td><code>continue</code></td><td>控制</td><td>跳过本次迭代</td><td>继续下一轮循环</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <footer class="yl_footer">
+        <p>© 2026 宁瑞祥 · 2001010503 · 计算机23005 ·《高级网页设计》课堂实践 · 纯原生 HTML / CSS / JS，未使用任何外部框架</p>
+    </footer>
+
+    <script>
+        /* ===== 全部变量与函数均以 yl_ 前缀命名 ===== */
+
+        /* 每段演示代码对应的真实执行函数，返回输出行数组 */
+        var yl_demos = {
+            for: function () {
+                var yl_out = [];
+                for (var yl_i = 1; yl_i <= 5; yl_i++) { yl_out.push("第 " + yl_i + " 次"); }
+                return yl_out;
+            },
+            while: function () {
+                var yl_out = [], yl_n = 1;
+                while (yl_n <= 3) { yl_out.push("n = " + yl_n); yl_n++; }
+                return yl_out;
+            },
+            dowhile: function () {
+                var yl_out = [], yl_i = 10;
+                do { yl_out.push("至少跑一次"); yl_i++; } while (yl_i < 3);
+                return yl_out;
+            },
+            forof: function () {
+                var yl_out = [];
+                var yl_fruits = ["苹果", "香蕉", "橙子"];
+                for (var yl_f of yl_fruits) { yl_out.push("水果：" + yl_f); }
+                for (var yl_c of "Hi") { yl_out.push(yl_c); }
+                return yl_out;
+            },
+            forin: function () {
+                var yl_out = [];
+                var yl_stu = { name: "宁瑞祥", age: 21, id: "2001010503" };
+                for (var yl_k in yl_stu) { yl_out.push(yl_k + " → " + yl_stu[yl_k]); }
+                return yl_out;
+            },
+            "if": function () {
+                var yl_out = [];
+                var yl_grade = function (yl_score) {
+                    if (yl_score >= 90) return "A 优秀";
+                    else if (yl_score >= 80) return "B 良好";
+                    else if (yl_score >= 60) return "C 及格";
+                    else return "D 不及格";
+                };
+                var yl_scores = [95, 85, 70, 55];
+                for (var yl_i = 0; yl_i < yl_scores.length; yl_i++) {
+                    yl_out.push(yl_scores[yl_i] + " 分 → " + yl_grade(yl_scores[yl_i]));
+                }
+                return yl_out;
+            },
+            ternary: function () {
+                var yl_out = [];
+                var yl_age = 21;
+                yl_out.push(yl_age + " 岁：" + (yl_age >= 18 ? "成年" : "未成年"));
+                var yl_score = 85;
+                var yl_level = yl_score >= 90 ? "A" : yl_score >= 60 ? "B" : "C";
+                yl_out.push("等级：" + yl_level);
+                return yl_out;
+            },
+            "switch": function () {
+                var yl_out = [];
+                var yl_day = 3;
+                switch (yl_day) {
+                    case 1: yl_out.push("周一"); break;
+                    case 2: yl_out.push("周二"); break;
+                    case 3: yl_out.push("周三"); break;
+                    case 4: yl_out.push("周四"); break;
+                    case 5: yl_out.push("周五"); break;
+                    default: yl_out.push("周末");
+                }
+                return yl_out;
+            },
+            breakcont: function () {
+                var yl_out = [];
+                yl_out.push("--- break：遇到 7 就停 ---");
+                for (var yl_i = 1; yl_i <= 10; yl_i++) {
+                    if (yl_i === 7) break;
+                    yl_out.push(String(yl_i));
+                }
+                yl_out.push("--- continue：跳过偶数 ---");
+                for (var yl_i2 = 1; yl_i2 <= 8; yl_i2++) {
+                    if (yl_i2 % 2 === 0) continue;
+                    yl_out.push(String(yl_i2));
+                }
+                return yl_out;
+            }
+        };
+
+        /* 渲染输出区，带逐行出现动画 */
+        function yl_render(yl_outEl, yl_lines) {
+            yl_outEl.innerHTML = "";
+            for (var yl_i = 0; yl_i < yl_lines.length; yl_i++) {
+                var yl_div = document.createElement("div");
+                yl_div.className = "yl_line yl_log";
+                yl_div.textContent = yl_lines[yl_i];
+                yl_div.style.opacity = "0";
+                yl_div.style.transform = "translateX(-10px)";
+                yl_div.style.transition = "opacity .35s var(--yl-ease), transform .35s var(--yl-ease)";
+                yl_outEl.appendChild(yl_div);
+                (function (yl_node, yl_delay) {
+                    setTimeout(function () {
+                        yl_node.style.opacity = "1";
+                        yl_node.style.transform = "translateX(0)";
+                    }, yl_delay);
+                })(yl_div, yl_i * 80);
+            }
+        }
+
+        /* 事件委托：运行 / 清空 */
+        function yl_init() {
+            document.body.addEventListener("click", function (yl_e) {
+                var yl_btn = yl_e.target.closest(".yl_run");
+                var yl_card = yl_e.target.closest(".yl_card");
+                if (yl_btn && yl_card) {
+                    var yl_key = yl_card.getAttribute("data-yl-key");
+                    var yl_fn = yl_demos[yl_key];
+                    var yl_outEl = yl_card.querySelector(".yl_output");
+                    if (yl_fn && yl_outEl) {
+                        try {
+                            var yl_lines = yl_fn();
+                            yl_render(yl_outEl, yl_lines);
+                        } catch (yl_err) {
+                            yl_outEl.innerHTML = '<div class="yl_line yl_err">' + yl_err.message + "</div>";
+                        }
+                    }
+                }
+                var yl_clear = yl_e.target.closest(".yl_clear");
+                if (yl_clear) {
+                    var yl_card2 = yl_clear.closest(".yl_card");
+                    if (yl_card2) { yl_card2.querySelector(".yl_output").innerHTML = ""; }
+                }
+            });
+        }
+        document.addEventListener("DOMContentLoaded", yl_init);
+    </script>
+</body>
+</html>
