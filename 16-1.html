@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript 数组主要方法 · 宁瑞祥 · 计算机23005</title>
+    <style>
+        /* ===== 全局变量与重置 ===== */
+        :root {
+            --yl-blue: #007aff;
+            --yl-green: #34c759;
+            --yl-orange: #ff9500;
+            --yl-red: #ff3b30;
+            --yl-purple: #af52de;
+            --yl-teal: #5ac8fa;
+            --yl-ink: #1d1d1f;
+            --yl-sub: #6e6e73;
+            --yl-mono: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+            --yl-ease: cubic-bezier(.25, .46, .45, .94);
+        }
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Roboto, sans-serif;
+        }
+        body {
+            background: linear-gradient(180deg, #f5f7fa 0%, #ffffff 50%, #f0f2f5 100%);
+            color: var(--yl-ink);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* ===== 顶部 Hero ===== */
+        .yl_hero {
+            position: relative; overflow: hidden;
+            text-align: center; padding: 52px 20px 38px;
+            background: linear-gradient(135deg, #007aff 0%, #5ac8fa 50%, #af52de 100%);
+            color: #fff;
+        }
+        .yl_hero::before {
+            content: ""; position: absolute; inset: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(255,255,255,.16) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, rgba(255,255,255,.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .yl_hero h1 { position: relative; font-size: clamp(1.8em, 5vw, 2.7em); font-weight: 700; letter-spacing: 2px; }
+        .yl_hero p { position: relative; margin-top: 8px; font-size: .95em; opacity: .95; }
+        .yl_hero .yl_badge {
+            position: relative; display: inline-block; margin-top: 16px;
+            padding: 6px 16px; border-radius: 999px; font-size: .86em;
+            background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.32);
+            backdrop-filter: blur(10px);
+        }
+
+        /* ===== 主体 ===== */
+        .yl_main { max-width: 1180px; margin: 0 auto; padding: 40px 20px 50px; }
+        .yl_section-title {
+            font-size: 1.45em; font-weight: 600;
+            padding-left: 14px; border-left: 4px solid var(--yl-accent, var(--yl-blue));
+            margin: 34px 0 6px;
+        }
+        .yl_section-title:first-child { margin-top: 6px; }
+        .yl_section-desc { color: var(--yl-sub); font-size: .92em; padding-left: 18px; margin-bottom: 20px; }
+
+        /* ===== 实时实验台 ===== */
+        .yl_stage {
+            background: #fff; border-radius: 22px; padding: 22px 24px 18px;
+            border: 1px solid rgba(0,0,0,.05);
+            box-shadow: 0 8px 26px rgba(0,0,0,.08);
+        }
+        .yl_stage-head {
+            display: flex; align-items: center; gap: 10px;
+            font-size: .9em; color: var(--yl-sub); margin-bottom: 14px;
+        }
+        .yl_dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            background: var(--yl-green);
+            box-shadow: 0 0 0 0 rgba(52,199,89,.6);
+            animation: yl_pulse 2s infinite;
+        }
+        @keyframes yl_pulse {
+            0% { box-shadow: 0 0 0 0 rgba(52,199,89,.5); }
+            70% { box-shadow: 0 0 0 10px rgba(52,199,89,0); }
+            100% { box-shadow: 0 0 0 0 rgba(52,199,89,0); }
+        }
+        .yl_stage-head .yl_count { margin-left: auto; }
+        .yl_stage-head .yl_count b { color: var(--yl-blue); font-family: var(--yl-mono); }
+
+        /* 盒子容器（所有数组可视化通用） */
+        .yl_boxes { display: flex; flex-wrap: wrap; gap: 9px; align-items: center; }
+        .yl_box {
+            min-width: 46px; height: 46px; padding: 0 10px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 12px;
+            font-family: var(--yl-mono); font-size: .95em; font-weight: 600;
+            background: #eef4ff; color: #0a5fc0;
+            border: 1px solid rgba(0,122,255,.22);
+            transition: transform .45s var(--yl-ease), background .45s var(--yl-ease), color .45s var(--yl-ease);
+        }
+        .yl_box.yl_lit {
+            background: linear-gradient(135deg, #007aff, #5ac8fa);
+            color: #fff; border-color: transparent;
+            box-shadow: 0 4px 12px rgba(0,122,255,.35);
+        }
+        .yl_box.yl_tiny { font-size: .78em; padding: 0 8px; min-width: 40px; }
+
+        .yl_wb-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+        .yl_wb-actions button {
+            font-family: var(--yl-mono); font-size: .82em;
+            padding: 7px 14px; border-radius: 10px; cursor: pointer;
+            background: #f5f7fa; color: var(--yl-ink);
+            border: 1px solid rgba(0,0,0,.08);
+            transition: all .3s var(--yl-ease);
+        }
+        .yl_wb-actions button:hover {
+            transform: translateY(-2px); background: #eef4ff;
+            border-color: rgba(0,122,255,.4); color: var(--yl-blue);
+            box-shadow: 0 5px 12px rgba(0,122,255,.14);
+        }
+        .yl_wb-actions .yl_reset { background: #fff1f0; border-color: rgba(255,59,48,.25); color: var(--yl-red); }
+        .yl_wb-actions .yl_reset:hover { background: var(--yl-red); color: #fff; border-color: transparent; }
+        .yl_wb-ret {
+            margin-top: 16px; padding-top: 12px; border-top: 1px dashed rgba(0,0,0,.1);
+            font-size: .85em; color: var(--yl-sub);
+        }
+        .yl_wb-ret b { font-family: var(--yl-mono); color: var(--yl-green); }
+
+        /* ===== 方法卡片 ===== */
+        .yl_grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(430px, 1fr));
+            gap: 20px;
+        }
+        .yl_card {
+            background: #fff; border-radius: 18px; overflow: hidden;
+            border: 1px solid rgba(0,0,0,.05);
+            box-shadow: 0 4px 18px rgba(0,0,0,.06);
+            display: flex; flex-direction: column;
+            transition: transform .5s var(--yl-ease), box-shadow .5s var(--yl-ease);
+        }
+        .yl_card:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(0,0,0,.11); }
+        .yl_card-head {
+            display: flex; align-items: center; gap: 10px;
+            padding: 16px 20px 6px;
+        }
+        .yl_card-head h3 {
+            font-family: var(--yl-mono); font-size: 1.05em; color: var(--yl-accent, var(--yl-blue));
+        }
+        .yl_flag {
+            margin-left: auto; flex: none;
+            font-size: .72em; padding: 2px 9px; border-radius: 999px;
+            background: #f5f7fa; color: var(--yl-sub);
+            border: 1px solid rgba(0,0,0,.06);
+        }
+        .yl_desc { padding: 0 20px 12px; font-size: .87em; color: var(--yl-sub); }
+
+        /* 代码块 */
+        .yl_code {
+            margin: 0 20px; padding: 12px 14px;
+            background: #161822; color: #e6e8ef;
+            font-family: var(--yl-mono); font-size: .82em; line-height: 1.6;
+            border-radius: 12px; white-space: pre; overflow-x: auto;
+        }
+
+        /* 运行条 */
+        .yl_runbar {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 20px;
+        }
+        .yl_run {
+            border: none; cursor: pointer; border-radius: 9px;
+            padding: 6px 16px; font-size: .84em; color: #fff;
+            background: var(--yl-accent, var(--yl-blue));
+            transition: transform .3s var(--yl-ease), box-shadow .3s var(--yl-ease);
+        }
+        .yl_run:hover { transform: translateY(-2px); box-shadow: 0 6px 14px var(--yl-accent, var(--yl-blue)); }
+        .yl_hint { font-size: .78em; color: var(--yl-sub); }
+
+        /* 可视化区 */
+        .yl_visual {
+            margin-top: auto;
+            padding: 14px 20px 16px;
+            background: #fbfcfe;
+            border-top: 1px solid rgba(0,0,0,.04);
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .yl_vrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .yl_vlabel { flex: none; width: 44px; font-size: .74em; color: var(--yl-sub); }
+        .yl_visual .yl_boxes { gap: 7px; }
+        .yl_visual .yl_box {
+            min-width: 38px; height: 38px; font-size: .84em; padding: 0 8px;
+            background: #f1f2f5; color: #6e6e73; border-color: rgba(0,0,0,.08);
+        }
+        .yl_visual .yl_box.yl_lit {
+            background: linear-gradient(135deg, var(--yl-accent, var(--yl-blue)), var(--yl-accent2, #5ac8fa));
+            color: #fff; border-color: transparent;
+        }
+        .yl_scalar {
+            display: inline-flex; align-items: center;
+            max-width: 100%; padding: 5px 12px; border-radius: 9px;
+            font-family: var(--yl-mono); font-size: .82em;
+            background: #fff; color: var(--yl-accent, var(--yl-blue));
+            border: 1px dashed var(--yl-accent, var(--yl-blue));
+            word-break: break-all;
+        }
+        .yl_vret { font-size: .78em; color: var(--yl-sub); }
+        .yl_vret b { font-family: var(--yl-mono); color: var(--yl-accent, var(--yl-blue)); }
+
+        /* ===== 速查表 ===== */
+        .yl_table-wrap {
+            margin-top: 22px; overflow-x: auto; background: #fff;
+            border-radius: 18px; border: 1px solid rgba(0,0,0,.04);
+            box-shadow: 0 4px 18px rgba(0,0,0,.06);
+        }
+        .yl_table { width: 100%; border-collapse: collapse; font-size: .88em; min-width: 620px; }
+        .yl_table th, .yl_table td { padding: 11px 16px; text-align: left; border-bottom: 1px solid rgba(0,0,0,.06); }
+        .yl_table th { background: #f5f7fa; font-weight: 600; }
+        .yl_table tbody tr:last-child td { border-bottom: none; }
+        .yl_table tbody tr { transition: background .3s var(--yl-ease); }
+        .yl_table tbody tr:hover { background: #f7faff; }
+        .yl_table code {
+            font-family: var(--yl-mono); background: #eef2f7; color: var(--yl-blue);
+            padding: 1px 6px; border-radius: 6px;
+        }
+        .yl_tag-mut { color: var(--yl-orange); font-weight: 600; }
+        .yl_tag-new { color: var(--yl-blue); font-weight: 600; }
+
+        /* ===== 页脚 ===== */
+        .yl_footer {
+            text-align: center; padding: 26px 20px 34px;
+            color: var(--yl-sub); font-size: .84em;
+            border-top: 1px solid rgba(0,0,0,.05);
+            background: rgba(255,255,255,.6);
+        }
+
+        /* ===== 小屏与动效降级 ===== */
+        @media (max-width: 520px) {
+            .yl_grid { grid-template-columns: 1fr; }
+            .yl_box { min-width: 40px; height: 42px; font-size: .88em; }
+            .yl_vlabel { width: 38px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .yl_card, .yl_box, .yl_run, .yl_wb-actions button { transition: none; }
+            .yl_card:hover { transform: none; }
+            .yl_dot { animation: none; }
+        }
+    </style>
+</head>
+<body>
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  建立时间：2026-10-29 13:40:49
+  使用的大模型：DeepSeek-V4.1-Flash
+  功能：JavaScript 数组主要方法可视化演示（实时实验台 + 21 个方法卡片 + 速查表）
+-->
+    <header class="yl_hero">
+        <h1>JavaScript 数组方法</h1>
+        <p>把数组想成一排盒子 · 看每个方法怎么「搬动」这些盒子</p>
+        <span class="yl_badge">宁瑞祥 · 计算机23005 · 2001010503</span>
+    </header>
+
+    <main class="yl_main">
+
+        <!-- ===================== 实时实验台 ===================== -->
+        <h2 class="yl_section-title" style="--yl-accent: var(--yl-green);">实时实验台</h2>
+        <p class="yl_section-desc">下面这排盒子就是当前数组。点按钮直接改它，观察盒子的增减与顺序变化，以及方法的返回值。</p>
+
+        <div class="yl_stage">
+            <div class="yl_stage-head">
+                <span class="yl_dot"></span>
+                <span>当前数组 arr</span>
+                <span class="yl_count">长度 <b id="yl_wb-len">5</b></span>
+            </div>
+            <div class="yl_boxes" id="yl_wb-boxes"></div>
+            <div class="yl_wb-actions" id="yl_wb-actions">
+                <button data-yl-act="push">arr.push(6)</button>
+                <button data-yl-act="pop">arr.pop()</button>
+                <button data-yl-act="unshift">arr.unshift(0)</button>
+                <button data-yl-act="shift">arr.shift()</button>
+                <button data-yl-act="sort">arr.sort(降序)</button>
+                <button data-yl-act="reverse">arr.reverse()</button>
+                <button data-yl-act="map">arr.map(×2)</button>
+                <button data-yl-act="filter">arr.filter(&gt;3)</button>
+                <button data-yl-act="reset" class="yl_reset">重置为 [1,2,3,4,5]</button>
+            </div>
+            <div class="yl_wb-ret">返回值：<b id="yl_wb-ret">—</b></div>
+        </div>
+
+        <!-- ===================== 会改变原数组 ===================== -->
+        <h2 class="yl_section-title" style="--yl-accent: var(--yl-orange);">一、会改变原数组（原地修改）</h2>
+        <p class="yl_section-desc">这类方法直接动原数组本身。左上标签为橙色的卡片都属此类——它们会"就地"搬动盒子。</p>
+        <section class="yl_grid" id="yl_group-mut"></section>
+
+        <!-- ===================== 返回新数组 ===================== -->
+        <h2 class="yl_section-title" style="--yl-accent: var(--yl-blue);">二、返回新数组（原数组不变）</h2>
+        <p class="yl_section-desc">这类方法不碰原数组，而是"复制一份"再加工，返回全新的数组。原数组的盒子原地不动。</p>
+        <section class="yl_grid" id="yl_group-new"></section>
+
+        <!-- ===================== 查找与判断 ===================== -->
+        <h2 class="yl_section-title" style="--yl-accent: var(--yl-purple);">三、查找与判断</h2>
+        <p class="yl_section-desc">不修改数组，只回答"有没有""在哪里""是哪一个""是不是全都…"。</p>
+        <section class="yl_grid" id="yl_group-find"></section>
+
+        <!-- ===================== 迭代与汇总 ===================== -->
+        <h2 class="yl_section-title" style="--yl-accent: var(--yl-green);">四、迭代与汇总</h2>
+        <p class="yl_section-desc">按顺序把每个盒子过一遍，做统计或拼成字符串。</p>
+        <section class="yl_grid" id="yl_group-iter"></section>
+
+        <!-- ===================== 速查表 ===================== -->
+        <h2 class="yl_section-title">速查表</h2>
+        <p class="yl_section-desc">一句话记住每个方法：是否改原数组、返回什么。</p>
+        <div class="yl_table-wrap">
+            <table class="yl_table">
+                <thead>
+                    <tr><th>方法</th><th>是否改原数组</th><th>返回值</th><th>典型用途</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>push()</code></td><td class="yl_tag-mut">会改</td><td>新长度</td><td>末尾追加</td></tr>
+                    <tr><td><code>pop()</code></td><td class="yl_tag-mut">会改</td><td>被删除的元素</td><td>末尾删除</td></tr>
+                    <tr><td><code>unshift()</code></td><td class="yl_tag-mut">会改</td><td>新长度</td><td>开头插入</td></tr>
+                    <tr><td><code>shift()</code></td><td class="yl_tag-mut">会改</td><td>被删除的元素</td><td>开头删除</td></tr>
+                    <tr><td><code>splice()</code></td><td class="yl_tag-mut">会改</td><td>被删除元素组成的新数组</td><td>任意位置增删改</td></tr>
+                    <tr><td><code>sort()</code></td><td class="yl_tag-mut">会改</td><td>排序后的原数组</td><td>排序（记得传比较函数）</td></tr>
+                    <tr><td><code>reverse()</code></td><td class="yl_tag-mut">会改</td><td>反转后的原数组</td><td>反转顺序</td></tr>
+                    <tr><td><code>slice()</code></td><td class="yl_tag-new">不改</td><td>截取出的新数组</td><td>取片段（左闭右开）</td></tr>
+                    <tr><td><code>concat()</code></td><td class="yl_tag-new">不改</td><td>拼接后的新数组</td><td>合并数组</td></tr>
+                    <tr><td><code>map()</code></td><td class="yl_tag-new">不改</td><td>等长新数组</td><td>每个元素做变换</td></tr>
+                    <tr><td><code>filter()</code></td><td class="yl_tag-new">不改</td><td>筛选后的新数组</td><td>留下满足条件的</td></tr>
+                    <tr><td><code>flat()</code></td><td class="yl_tag-new">不改</td><td>拍平后的新数组</td><td>拆嵌套数组</td></tr>
+                    <tr><td><code>indexOf()</code></td><td class="yl_tag-new">不改</td><td>下标 / -1</td><td>找位置</td></tr>
+                    <tr><td><code>includes()</code></td><td class="yl_tag-new">不改</td><td>true / false</td><td>判断存在</td></tr>
+                    <tr><td><code>find()</code></td><td class="yl_tag-new">不改</td><td>第一个匹配元素 / undefined</td><td>按条件找元素</td></tr>
+                    <tr><td><code>findIndex()</code></td><td class="yl_tag-new">不改</td><td>第一个匹配下标 / -1</td><td>按条件找位置</td></tr>
+                    <tr><td><code>some()</code></td><td class="yl_tag-new">不改</td><td>true / false</td><td>是否至少一个满足</td></tr>
+                    <tr><td><code>every()</code></td><td class="yl_tag-new">不改</td><td>true / false</td><td>是否全部满足</td></tr>
+                    <tr><td><code>forEach()</code></td><td class="yl_tag-new">不改</td><td>undefined</td><td>逐个处理，不返回值</td></tr>
+                    <tr><td><code>reduce()</code></td><td class="yl_tag-new">不改</td><td>累加结果（任意类型）</td><td>求和 / 统计 / 归并</td></tr>
+                    <tr><td><code>join()</code></td><td class="yl_tag-new">不改</td><td>字符串</td><td>拼成字符串</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <footer class="yl_footer">
+        © 2026 宁瑞祥 · 2001010503 · 计算机23005 ·《高级网页设计》课堂实践 · 纯原生 HTML / CSS / JS，未使用任何外部框架
+    </footer>
+
+    <script>
+    /* =========================================================
+       一、公共工具：把数组渲染成一排盒子
+       ========================================================= */
+
+    /* 把任意元素转成盒子里显示的短文本 */
+    function yl_fmt(yl_v) {
+        if (Array.isArray(yl_v)) return JSON.stringify(yl_v);
+        if (typeof yl_v === "string") return '"' + yl_v + '"';
+        return String(yl_v);
+    }
+
+    /* 在容器里渲染一排盒子；val 不是数组时渲染成"标量芯片" */
+    function yl_renderBoxes(yl_el, yl_val, yl_lit) {
+        yl_el.innerHTML = "";
+        if (!Array.isArray(yl_val)) {
+            var yl_chip = document.createElement("span");
+            yl_chip.className = "yl_scalar";
+            yl_chip.textContent = yl_fmt(yl_val);
+            yl_el.appendChild(yl_chip);
+            return;
+        }
+        if (yl_val.length === 0) {
+            var yl_empty = document.createElement("span");
+            yl_empty.className = "yl_scalar";
+            yl_empty.textContent = "[]（空数组）";
+            yl_el.appendChild(yl_empty);
+            return;
+        }
+        for (var yl_i = 0; yl_i < yl_val.length; yl_i++) {
+            var yl_box = document.createElement("div");
+            var yl_text = yl_fmt(yl_val[yl_i]);
+            yl_box.className = "yl_box" + (yl_lit ? " yl_lit" : "") + (yl_text.length > 4 ? " yl_tiny" : "");
+            yl_box.textContent = yl_text;
+            /* 逐个弹出，形成"搬运"的节奏感 */
+            yl_box.style.opacity = "0";
+            yl_box.style.transform = "scale(.7) translateY(8px)";
+            yl_box.style.transition = "opacity .4s var(--yl-ease), transform .4s var(--yl-ease)";
+            yl_el.appendChild(yl_box);
+            (function (yl_n, yl_d) {
+                setTimeout(function () {
+                    yl_n.style.opacity = "1";
+                    yl_n.style.transform = "scale(1) translateY(0)";
+                }, yl_d);
+            })(yl_box, yl_i * 60);
+        }
+    }
+
+    /* =========================================================
+       二、实时实验台
+       ========================================================= */
+
+    var yl_cur = [1, 2, 3, 4, 5];               /* 实验台当前数组 */
+    var yl_wbBoxes = document.getElementById("yl_wb-boxes");
+    var yl_wbLen = document.getElementById("yl_wb-len");
+    var yl_wbRet = document.getElementById("yl_wb-ret");
+
+    /* 重绘实验台 */
+    function yl_wbDraw() {
+        yl_renderBoxes(yl_wbBoxes, yl_cur, true);
+        yl_wbLen.textContent = yl_cur.length;
+    }
+
+    /* 实验台按钮：原地操作数组并显示返回值 */
+    function yl_wbAct(yl_act) {
+        var yl_ret;
+        switch (yl_act) {
+            case "push":    yl_ret = yl_cur.push(6); break;
+            case "pop":     yl_ret = yl_cur.pop(); break;
+            case "unshift": yl_ret = yl_cur.unshift(0); break;
+            case "shift":   yl_ret = yl_cur.shift(); break;
+            case "sort":    yl_cur.sort(function (x, y) { return y - x; }); yl_ret = yl_cur; break;
+            case "reverse": yl_ret = yl_cur.reverse(); break;
+            case "map":     yl_cur = yl_cur.map(function (x) { return x * 2; }); yl_ret = yl_cur; break;
+            case "filter":  yl_cur = yl_cur.filter(function (x) { return x > 3; }); yl_ret = yl_cur; break;
+            case "reset":   yl_cur = [1, 2, 3, 4, 5]; yl_ret = yl_cur; break;
+        }
+        yl_wbRet.textContent = yl_fmt(yl_ret);
+        yl_wbDraw();
+    }
+
+    document.getElementById("yl_wb-actions").addEventListener("click", function (yl_e) {
+        var yl_btn = yl_e.target.closest("button[data-yl-act]");
+        if (yl_btn) yl_wbAct(yl_btn.getAttribute("data-yl-act"));
+    });
+
+    /* =========================================================
+       三、21 个方法的数据定义
+       每个 demo() 返回 { b: 原数组, a: 结果, ret: 返回值文本 }
+       ========================================================= */
+
+    var yl_base = [1, 2, 3, 4, 5];   /* 演示统一用 1~5，方便对照 */
+
+    var yl_methods = [
+        /* ---------- 一、会改变原数组 ---------- */
+        {
+            g: "mut", n: "push()", d: "在末尾追加元素，返回追加后的新长度。",
+            c: "let len = arr.push(6, 7);\n// len → 7，arr 末尾多出两个盒子",
+            demo: function () {
+                var a = yl_base.slice();
+                var r = a.push(6, 7);
+                return { b: yl_base.slice(), a: a, ret: r };
+            }
+        },
+        {
+            g: "mut", n: "pop()", d: "删掉最后一个元素，并把这个元素返回。",
+            c: "let last = arr.pop();\n// last → 5，arr 变短一格",
+            demo: function () {
+                var a = yl_base.slice();
+                var r = a.pop();
+                return { b: yl_base.slice(), a: a, ret: r };
+            }
+        },
+        {
+            g: "mut", n: "unshift()", d: "在开头插入元素，返回新长度。原有盒子整体右移。",
+            c: "let len = arr.unshift(0);\n// len → 6，0 排在最前面",
+            demo: function () {
+                var a = yl_base.slice();
+                var r = a.unshift(0);
+                return { b: yl_base.slice(), a: a, ret: r };
+            }
+        },
+        {
+            g: "mut", n: "shift()", d: "删掉第一个元素并返回它。后面的盒子整体左移。",
+            c: "let first = arr.shift();\n// first → 1，arr 从 2 开始",
+            demo: function () {
+                var a = yl_base.slice();
+                var r = a.shift();
+                return { b: yl_base.slice(), a: a, ret: r };
+            }
+        },
+        {
+            g: "mut", n: "splice()", d: "在任意位置删除 / 插入 / 替换，返回被删掉的元素组成的新数组。",
+            c: "let removed = arr.splice(1, 2, 99);\n// 从下标 1 起删 2 个，插入 99\n// removed → [2, 3]",
+            demo: function () {
+                var a = yl_base.slice();
+                var r = a.splice(1, 2, 99);
+                return { b: yl_base.slice(), a: a, ret: r };
+            }
+        },
+        {
+            g: "mut", n: "sort()", d: "原地排序。不传比较函数时按字符串规则排，数字排序一定要传 (x, y) => …。",
+            c: "arr.sort((x, y) => y - x);\n// 降序 → [5, 4, 3, 2, 1]",
+            demo: function () {
+                var a = yl_base.slice();
+                a.sort(function (x, y) { return y - x; });
+                return { b: yl_base.slice(), a: a, ret: a };
+            }
+        },
+        {
+            g: "mut", n: "reverse()", d: "原地反转顺序，返回反转后的原数组。",
+            c: "arr.reverse();\n// → [5, 4, 3, 2, 1]（原数组被改）",
+            demo: function () {
+                var a = yl_base.slice();
+                a.reverse();
+                return { b: yl_base.slice(), a: a, ret: a };
+            }
+        },
+
+        /* ---------- 二、返回新数组 ---------- */
+        {
+            g: "new", n: "slice()", d: "按左闭右开区间截取一段，返回新数组，原数组不动。",
+            c: "let part = arr.slice(1, 3);\n// 取下标 1、2 → [2, 3]",
+            demo: function () {
+                return { b: yl_base.slice(), a: yl_base.slice(1, 3), ret: yl_base.slice(1, 3) };
+            }
+        },
+        {
+            g: "new", n: "concat()", d: "拼接另一个数组或元素，返回新数组。",
+            c: "let all = arr.concat([6, 7]);\n// → [1, 2, 3, 4, 5, 6, 7]",
+            demo: function () {
+                return { b: yl_base.slice(), a: yl_base.concat([6, 7]), ret: yl_base.concat([6, 7]) };
+            }
+        },
+        {
+            g: "new", n: "map()", d: "每个盒子都过一遍函数，用返回值组成等长的新数组。",
+            c: "let doubled = arr.map(x => x * 2);\n// → [2, 4, 6, 8, 10]",
+            demo: function () {
+                var r = yl_base.map(function (x) { return x * 2; });
+                return { b: yl_base.slice(), a: r, ret: r };
+            }
+        },
+        {
+            g: "new", n: "filter()", d: "只留下函数返回 true 的盒子，组成新数组（可能变短）。",
+            c: "let odds = arr.filter(x => x % 2 === 1);\n// 留下奇数 → [1, 3, 5]",
+            demo: function () {
+                var r = yl_base.filter(function (x) { return x % 2 === 1; });
+                return { b: yl_base.slice(), a: r, ret: r };
+            }
+        },
+        {
+            g: "new", n: "flat()", d: "把嵌套数组拍平，参数是拍平的层数，Infinity 表示全部拍平。",
+            c: "let flat = [[1, [2]], 3].flat(2);\n// → [1, 2, 3]",
+            demo: function () {
+                var yl_nested = [1, [2, [3, 4]], 5];
+                var r = yl_nested.flat(2);
+                return { b: yl_nested, a: r, ret: r };
+            }
+        },
+
+        /* ---------- 三、查找与判断 ---------- */
+        {
+            g: "find", n: "indexOf()", d: "从头找某个值，返回它的下标；找不到返回 -1。",
+            c: "arr.indexOf(3);   // → 2\narr.indexOf(9);   // → -1",
+            demo: function () {
+                return { b: yl_base.slice(), a: yl_base.slice(), ret: yl_base.indexOf(3) };
+            }
+        },
+        {
+            g: "find", n: "includes()", d: "判断数组里有没有这个值，返回布尔值。比 indexOf 更直观。",
+            c: "arr.includes(3);  // → true\narr.includes(9);  // → false",
+            demo: function () {
+                return { b: yl_base.slice(), a: yl_base.slice(), ret: yl_base.includes(3) };
+            }
+        },
+        {
+            g: "find", n: "find()", d: "返回第一个满足条件的元素本身；找不到返回 undefined。",
+            c: "let big = arr.find(x => x > 3);\n// → 4（第一个大于 3 的）",
+            demo: function () {
+                var r = yl_base.find(function (x) { return x > 3; });
+                return { b: yl_base.slice(), a: yl_base.slice(), ret: r };
+            }
+        },
+        {
+            g: "find", n: "findIndex()", d: "返回第一个满足条件的元素下标；找不到返回 -1。",
+            c: "arr.findIndex(x => x > 3);\n// → 3（下标 3 的值是 4）",
+            demo: function () {
+                var r = yl_base.findIndex(function (x) { return x > 3; });
+                return { b: yl_base.slice(), a: yl_base.slice(), ret: r };
+            }
+        },
+        {
+            g: "find", n: "some()", d: "只要有一个满足条件就返回 true。",
+            c: "arr.some(x => x > 4);   // → true",
+            demo: function () {
+                var r = yl_base.some(function (x) { return x > 4; });
+                return { b: yl_base.slice(), a: yl_base.slice(), ret: r };
+            }
+        },
+        {
+            g: "find", n: "every()", d: "必须全部满足条件才返回 true。",
+            c: "arr.every(x => x > 0);  // → true",
+            demo: function () {
+                var r = yl_base.every(function (x) { return x > 0; });
+                return { b: yl_base.slice(), a: yl_base.slice(), ret: r };
+            }
+        },
+
+        /* ---------- 四、迭代与汇总 ---------- */
+        {
+            g: "iter", n: "forEach()", d: "逐个遍历，没有返回值（undefined）。只做事情，不产出数组。",
+            c: "arr.forEach((v, i) => {\n  console.log(i, v);\n});\n// 没有 return 值",
+            demo: function () {
+                var yl_log = [];
+                yl_base.forEach(function (v, i) { yl_log.push(i + ":" + v); });
+                return { b: yl_base.slice(), a: yl_base.slice(), ret: yl_log.join("  ") };
+            }
+        },
+        {
+            g: "iter", n: "reduce()", d: "把整个数组折叠成一个值，第二个参数是初始值。",
+            c: "let sum = arr.reduce((s, x) => s + x, 0);\n// → 15",
+            demo: function () {
+                var r = yl_base.reduce(function (s, x) { return s + x; }, 0);
+                return { b: yl_base.slice(), a: yl_base.slice(), ret: r };
+            }
+        },
+        {
+            g: "iter", n: "join()", d: "用指定分隔符把盒子拼成一个字符串，返回字符串。",
+            c: "arr.join(' - ');\n// → '1 - 2 - 3 - 4 - 5'",
+            demo: function () {
+                var r = yl_base.join(" - ");
+                return { b: yl_base.slice(), a: yl_base.slice(), ret: r };
+            }
+        }
+    ];
+
+    /* =========================================================
+       四、把数据渲染成卡片
+       ========================================================= */
+
+    var yl_groupMeta = {
+        mut:  { flag: "改变原数组", accent: "var(--yl-orange)", accent2: "#ffcc00" },
+        "new": { flag: "返回新数组", accent: "var(--yl-blue)", accent2: "#5ac8fa" },
+        find: { flag: "只读判断", accent: "var(--yl-purple)", accent2: "#c86bff" },
+        iter: { flag: "迭代汇总", accent: "var(--yl-green)", accent2: "#7ee787" }
+    };
+
+    /* 生成一张方法卡片 */
+    function yl_makeCard(yl_m) {
+        var yl_meta = yl_groupMeta[yl_m.g];
+        var yl_card = document.createElement("article");
+        yl_card.className = "yl_card";
+        yl_card.setAttribute("data-yl-key", yl_m.n);
+        yl_card.style.setProperty("--yl-accent", yl_meta.accent);
+        yl_card.style.setProperty("--yl-accent2", yl_meta.accent2);
+
+        /* 头部：方法名 + 类型标签 */
+        var yl_head = document.createElement("div");
+        yl_head.className = "yl_card-head";
+        yl_head.innerHTML = "<h3></h3><span class='yl_flag'></span>";
+        yl_head.querySelector("h3").textContent = yl_m.n;
+        yl_head.querySelector(".yl_flag").textContent = yl_meta.flag;
+
+        /* 说明 */
+        var yl_desc = document.createElement("p");
+        yl_desc.className = "yl_desc";
+        yl_desc.textContent = yl_m.d;
+
+        /* 代码块（用 textContent 写入，避免转义问题） */
+        var yl_code = document.createElement("pre");
+        yl_code.className = "yl_code";
+        yl_code.textContent = yl_m.c;
+
+        /* 运行条 */
+        var yl_bar = document.createElement("div");
+        yl_bar.className = "yl_runbar";
+        yl_bar.innerHTML = "<button class='yl_run'>▶ 演示</button><span class='yl_hint'>看盒子怎么变</span>";
+
+        /* 可视化区：原数组 → 结果 + 返回值 */
+        var yl_visual = document.createElement("div");
+        yl_visual.className = "yl_visual";
+        yl_visual.innerHTML =
+            "<div class='yl_vrow'><span class='yl_vlabel'>原 →</span><div class='yl_boxes yl_vb'></div></div>" +
+            "<div class='yl_vrow'><span class='yl_vlabel'>结果 →</span><div class='yl_boxes yl_va'></div></div>" +
+            "<div class='yl_vret'>返回值：<b>—</b></div>";
+        /* 初始先展示原数组，让卡片一进来就有内容 */
+        yl_renderBoxes(yl_visual.querySelector(".yl_vb"), yl_base.slice(), false);
+        yl_visual.querySelector(".yl_vret b").textContent = "点击「演示」";
+
+        yl_card.appendChild(yl_head);
+        yl_card.appendChild(yl_desc);
+        yl_card.appendChild(yl_code);
+        yl_card.appendChild(yl_bar);
+        yl_card.appendChild(yl_visual);
+        return yl_card;
+    }
+
+    /* 按分组把卡片塞进对应容器 */
+    function yl_buildCards() {
+        yl_methods.forEach(function (yl_m) {
+            var yl_target = document.getElementById("yl_group-" + yl_m.g);
+            if (yl_target) yl_target.appendChild(yl_makeCard(yl_m));
+        });
+    }
+
+    /* 点「演示」：重新跑一遍该方法的 demo，前后对比渲染 */
+    function yl_runCard(yl_card) {
+        var yl_key = yl_card.getAttribute("data-yl-key");
+        var yl_m = yl_methods.find(function (x) { return x.n === yl_key; });
+        if (!yl_m) return;
+        var yl_data = yl_m.demo();
+        yl_renderBoxes(yl_card.querySelector(".yl_vb"), yl_data.b, false);
+        yl_renderBoxes(yl_card.querySelector(".yl_va"), yl_data.a, true);
+        yl_card.querySelector(".yl_vret b").textContent = yl_fmt(yl_data.ret);
+    }
+
+    /* 事件委托：点击任意卡片里的「演示」按钮 */
+    document.body.addEventListener("click", function (yl_e) {
+        var yl_btn = yl_e.target.closest(".yl_run");
+        if (!yl_btn) return;
+        yl_runCard(yl_btn.closest(".yl_card"));
+    });
+
+    /* =========================================================
+       五、初始化
+       ========================================================= */
+    function yl_init() {
+        yl_buildCards();
+        yl_wbDraw();
+    }
+    document.addEventListener("DOMContentLoaded", yl_init);
+    </script>
+</body>
+</html>

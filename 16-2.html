@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript 对象主要操作 · 宁瑞祥 · 计算机23005</title>
+    <style>
+        /* ===== 全局变量与重置 ===== */
+        :root {
+            --yl-blue: #007aff;
+            --yl-green: #34c759;
+            --yl-orange: #ff9500;
+            --yl-red: #ff3b30;
+            --yl-purple: #af52de;
+            --yl-teal: #5ac8fa;
+            --yl-ink: #1d1d1f;
+            --yl-sub: #6e6e73;
+            --yl-mono: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+            --yl-ease: cubic-bezier(.25, .46, .45, .94);
+        }
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Roboto, sans-serif;
+        }
+        body {
+            background: linear-gradient(180deg, #f5f7fa 0%, #ffffff 50%, #f0f2f5 100%);
+            color: var(--yl-ink);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* ===== 顶部 Hero ===== */
+        .yl_hero {
+            position: relative; overflow: hidden;
+            text-align: center; padding: 52px 20px 38px;
+            background: linear-gradient(135deg, #af52de 0%, #007aff 55%, #5ac8fa 100%);
+            color: #fff;
+        }
+        .yl_hero::before {
+            content: ""; position: absolute; inset: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(255,255,255,.16) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, rgba(255,255,255,.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .yl_hero h1 { position: relative; font-size: clamp(1.8em, 5vw, 2.7em); font-weight: 700; letter-spacing: 2px; }
+        .yl_hero p { position: relative; margin-top: 8px; font-size: .95em; opacity: .95; }
+        .yl_hero .yl_badge {
+            position: relative; display: inline-block; margin-top: 16px;
+            padding: 6px 16px; border-radius: 999px; font-size: .86em;
+            background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.32);
+            backdrop-filter: blur(10px);
+        }
+
+        /* ===== 主体 ===== */
+        .yl_main { max-width: 1180px; margin: 0 auto; padding: 40px 20px 50px; }
+        .yl_section-title {
+            font-size: 1.45em; font-weight: 600;
+            padding-left: 14px; border-left: 4px solid var(--yl-accent, var(--yl-blue));
+            margin: 34px 0 6px;
+        }
+        .yl_section-title:first-child { margin-top: 6px; }
+        .yl_section-desc { color: var(--yl-sub); font-size: .92em; padding-left: 18px; margin-bottom: 20px; }
+
+        /* ===== 实时实验台 ===== */
+        .yl_stage {
+            background: #fff; border-radius: 22px; padding: 22px 24px 18px;
+            border: 1px solid rgba(0,0,0,.05);
+            box-shadow: 0 8px 26px rgba(0,0,0,.08);
+        }
+        .yl_stage-head {
+            display: flex; align-items: center; gap: 10px;
+            font-size: .9em; color: var(--yl-sub); margin-bottom: 14px;
+        }
+        .yl_dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            background: var(--yl-green);
+            box-shadow: 0 0 0 0 rgba(52,199,89,.6);
+            animation: yl_pulse 2s infinite;
+        }
+        @keyframes yl_pulse {
+            0% { box-shadow: 0 0 0 0 rgba(52,199,89,.5); }
+            70% { box-shadow: 0 0 0 10px rgba(52,199,89,0); }
+            100% { box-shadow: 0 0 0 0 rgba(52,199,89,0); }
+        }
+        .yl_stage-head .yl_count { margin-left: auto; }
+        .yl_stage-head .yl_count b { color: var(--yl-purple); font-family: var(--yl-mono); }
+
+        /* 键值对容器（所有对象可视化通用） */
+        .yl_kvs { display: flex; flex-wrap: wrap; gap: 9px; align-items: center; }
+        .yl_kv {
+            display: flex; align-items: center; gap: 6px;
+            padding: 8px 12px; border-radius: 12px;
+            background: #f5f0ff; border: 1px solid rgba(175,82,222,.22);
+            font-family: var(--yl-mono); font-size: .88em;
+            transition: transform .45s var(--yl-ease), background .45s var(--yl-ease), color .45s var(--yl-ease);
+        }
+        .yl_kv .yl_k { color: #7a4fb5; font-weight: 600; }
+        .yl_kv .yl_colon { color: #b9a3d6; }
+        .yl_kv .yl_v { color: var(--yl-ink); word-break: break-all; }
+        .yl_kv.yl_lit {
+            background: linear-gradient(135deg, var(--yl-accent, var(--yl-purple)), var(--yl-accent2, #5ac8fa));
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(175,82,222,.35);
+        }
+        .yl_kv.yl_lit .yl_k, .yl_kv.yl_lit .yl_colon, .yl_kv.yl_lit .yl_v { color: #fff; }
+
+        .yl_wb-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+        .yl_wb-actions button {
+            font-family: var(--yl-mono); font-size: .82em;
+            padding: 7px 14px; border-radius: 10px; cursor: pointer;
+            background: #f5f7fa; color: var(--yl-ink);
+            border: 1px solid rgba(0,0,0,.08);
+            transition: all .3s var(--yl-ease);
+        }
+        .yl_wb-actions button:hover {
+            transform: translateY(-2px); background: #f6f0ff;
+            border-color: rgba(175,82,222,.4); color: var(--yl-purple);
+            box-shadow: 0 5px 12px rgba(175,82,222,.16);
+        }
+        .yl_wb-actions .yl_reset { background: #fff1f0; border-color: rgba(255,59,48,.25); color: var(--yl-red); }
+        .yl_wb-actions .yl_reset:hover { background: var(--yl-red); color: #fff; border-color: transparent; }
+        .yl_wb-ret {
+            margin-top: 16px; padding-top: 12px; border-top: 1px dashed rgba(0,0,0,.1);
+            font-size: .85em; color: var(--yl-sub);
+        }
+        .yl_wb-ret b { font-family: var(--yl-mono); color: var(--yl-green); word-break: break-all; }
+
+        /* ===== 方法卡片 ===== */
+        .yl_grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(430px, 1fr));
+            gap: 20px;
+        }
+        .yl_card {
+            background: #fff; border-radius: 18px; overflow: hidden;
+            border: 1px solid rgba(0,0,0,.05);
+            box-shadow: 0 4px 18px rgba(0,0,0,.06);
+            display: flex; flex-direction: column;
+            transition: transform .5s var(--yl-ease), box-shadow .5s var(--yl-ease);
+        }
+        .yl_card:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(0,0,0,.11); }
+        .yl_card-head {
+            display: flex; align-items: center; gap: 10px;
+            padding: 16px 20px 6px;
+        }
+        .yl_card-head h3 {
+            font-family: var(--yl-mono); font-size: 1.05em; color: var(--yl-accent, var(--yl-blue));
+        }
+        .yl_flag {
+            margin-left: auto; flex: none;
+            font-size: .72em; padding: 2px 9px; border-radius: 999px;
+            background: #f5f7fa; color: var(--yl-sub);
+            border: 1px solid rgba(0,0,0,.06);
+        }
+        .yl_desc { padding: 0 20px 12px; font-size: .87em; color: var(--yl-sub); }
+
+        /* 代码块 */
+        .yl_code {
+            margin: 0 20px; padding: 12px 14px;
+            background: #161822; color: #e6e8ef;
+            font-family: var(--yl-mono); font-size: .82em; line-height: 1.6;
+            border-radius: 12px; white-space: pre; overflow-x: auto;
+        }
+
+        /* 运行条 */
+        .yl_runbar {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 20px;
+        }
+        .yl_run {
+            border: none; cursor: pointer; border-radius: 9px;
+            padding: 6px 16px; font-size: .84em; color: #fff;
+            background: var(--yl-accent, var(--yl-blue));
+            transition: transform .3s var(--yl-ease), box-shadow .3s var(--yl-ease);
+        }
+        .yl_run:hover { transform: translateY(-2px); box-shadow: 0 6px 14px var(--yl-accent, var(--yl-blue)); }
+        .yl_hint { font-size: .78em; color: var(--yl-sub); }
+
+        /* 可视化区 */
+        .yl_visual {
+            margin-top: auto;
+            padding: 14px 20px 16px;
+            background: #fbfcfe;
+            border-top: 1px solid rgba(0,0,0,.04);
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .yl_vrow { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+        .yl_vlabel { flex: none; width: 44px; padding-top: 8px; font-size: .74em; color: var(--yl-sub); }
+        .yl_visual .yl_kvs { gap: 7px; flex: 1; min-width: 0; }
+        .yl_visual .yl_kv {
+            padding: 6px 10px; font-size: .8em;
+            background: #f2f3f5; border-color: rgba(0,0,0,.08);
+        }
+        .yl_visual .yl_kv .yl_k { color: #6e6e73; }
+        .yl_visual .yl_kv .yl_colon { color: #c7c7cc; }
+        .yl_visual .yl_kv.yl_lit {
+            background: linear-gradient(135deg, var(--yl-accent, var(--yl-blue)), var(--yl-accent2, #5ac8fa));
+        }
+        .yl_scalar {
+            display: inline-flex; align-items: center;
+            max-width: 100%; padding: 6px 12px; border-radius: 9px;
+            font-family: var(--yl-mono); font-size: .8em;
+            background: #fff; color: var(--yl-accent, var(--yl-blue));
+            border: 1px dashed var(--yl-accent, var(--yl-blue));
+            word-break: break-all;
+        }
+        .yl_vret { font-size: .78em; color: var(--yl-sub); }
+        .yl_vret b { font-family: var(--yl-mono); color: var(--yl-accent, var(--yl-blue)); word-break: break-all; }
+
+        /* ===== 速查表 ===== */
+        .yl_table-wrap {
+            margin-top: 22px; overflow-x: auto; background: #fff;
+            border-radius: 18px; border: 1px solid rgba(0,0,0,.04);
+            box-shadow: 0 4px 18px rgba(0,0,0,.06);
+        }
+        .yl_table { width: 100%; border-collapse: collapse; font-size: .88em; min-width: 620px; }
+        .yl_table th, .yl_table td { padding: 11px 16px; text-align: left; border-bottom: 1px solid rgba(0,0,0,.06); }
+        .yl_table th { background: #f5f7fa; font-weight: 600; }
+        .yl_table tbody tr:last-child td { border-bottom: none; }
+        .yl_table tbody tr { transition: background .3s var(--yl-ease); }
+        .yl_table tbody tr:hover { background: #faf7ff; }
+        .yl_table code {
+            font-family: var(--yl-mono); background: #f0eaf9; color: var(--yl-purple);
+            padding: 1px 6px; border-radius: 6px;
+        }
+        .yl_tag-mut { color: var(--yl-orange); font-weight: 600; }
+        .yl_tag-new { color: var(--yl-blue); font-weight: 600; }
+
+        /* ===== 页脚 ===== */
+        .yl_footer {
+            text-align: center; padding: 26px 20px 34px;
+            color: var(--yl-sub); font-size: .84em;
+            border-top: 1px solid rgba(0,0,0,.05);
+            background: rgba(255,255,255,.6);
+        }
+
+        /* ===== 小屏与动效降级 ===== */
+        @media (max-width: 520px) {
+            .yl_grid { grid-template-columns: 1fr; }
+            .yl_kv { font-size: .8em; padding: 6px 10px; }
+            .yl_vlabel { width: 38px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .yl_card, .yl_kv, .yl_run, .yl_wb-actions button { transition: none; }
+            .yl_card:hover { transform: none; }
+            .yl_dot { animation: none; }
+        }
+    </style>
+</head>
+<body>
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  建立时间：2026-10-29 13:55:07
+  使用的大模型：DeepSeek-V4.1-Flash
+  功能：JavaScript 对象主要操作可视化演示（实时实验台 + 17 张操作卡片 + 速查表）
+-->
+    <header class="yl_hero">
+        <h1>JavaScript 对象操作</h1>
+        <p>把对象想成一串「键 : 值」卡片 · 看每个操作怎么增、删、改、查</p>
+        <span class="yl_badge">宁瑞祥 · 计算机23005 · 2001010503</span>
+    </header>
+
+    <main class="yl_main">
+
+        <!-- ===================== 实时实验台 ===================== -->
+        <h2 class="yl_section-title" style="--yl-accent: var(--yl-purple);">实时实验台</h2>
+        <p class="yl_section-desc">下面这些卡片就是对象 obj 的全部属性。点按钮直接操作它，观察卡片增删、值的变化，以及操作的返回值。</p>
+
+        <div class="yl_stage">
+            <div class="yl_stage-head">
+                <span class="yl_dot"></span>
+                <span>当前对象 obj</span>
+                <span class="yl_count">属性数 <b id="yl_wb-len">3</b></span>
+            </div>
+            <div class="yl_kvs" id="yl_wb-kvs"></div>
+            <div class="yl_wb-actions" id="yl_wb-actions">
+                <button data-yl-act="read">obj.name</button>
+                <button data-yl-act="add">obj.email = …</button>
+                <button data-yl-act="edit">obj.age = 21</button>
+                <button data-yl-act="del">delete obj.city</button>
+                <button data-yl-act="freeze">Object.freeze(obj)</button>
+                <button data-yl-act="copy">{ ...obj }</button>
+                <button data-yl-act="keys">Object.keys()</button>
+                <button data-yl-act="values">Object.values()</button>
+                <button data-yl-act="entries">Object.entries()</button>
+                <button data-yl-act="reset" class="yl_reset">重置对象</button>
+            </div>
+            <div class="yl_wb-ret">返回值：<b id="yl_wb-ret">—</b></div>
+        </div>
+
+        <!-- ===================== 访问与修改 ===================== -->
+        <h2 class="yl_section-title" style="--yl-accent: var(--yl-orange);">一、访问与修改属性</h2>
+        <p class="yl_section-desc">用点或方括号拿值，用赋值加 / 改属性，用 delete 删属性。前三张只读，后三张会改原对象。</p>
+        <section class="yl_grid" id="yl_group-access"></section>
+
+        <!-- ===================== 查询与遍历 ===================== -->
+        <h2 class="yl_section-title" style="--yl-accent: var(--yl-purple);">二、查询与遍历</h2>
+        <p class="yl_section-desc">判断属性在不在、把键 / 值 / 键值对取成数组——对象本身不能直接 for 循环，要靠这三个方法把它变成数组。</p>
+        <section class="yl_grid" id="yl_group-query"></section>
+
+        <!-- ===================== 复制与合并 ===================== -->
+        <h2 class="yl_section-title" style="--yl-accent: var(--yl-blue);">三、复制与合并</h2>
+        <p class="yl_section-desc">把多个对象拼成一个，或者复制一份再改。注意：Object.assign 和展开运算符都是浅拷贝。</p>
+        <section class="yl_grid" id="yl_group-copy"></section>
+
+        <!-- ===================== 转换与解构 ===================== -->
+        <h2 class="yl_section-title" style="--yl-accent: var(--yl-green);">四、转换与解构</h2>
+        <p class="yl_section-desc">对象 ⇄ 数组 ⇄ 字符串的相互转换，以及把属性一次性"拆"成变量。</p>
+        <section class="yl_grid" id="yl_group-conv"></section>
+
+        <!-- ===================== 速查表 ===================== -->
+        <h2 class="yl_section-title">速查表</h2>
+        <p class="yl_section-desc">一句话记住每个操作：是否改原对象、返回什么。</p>
+        <div class="yl_table-wrap">
+            <table class="yl_table">
+                <thead>
+                    <tr><th>操作</th><th>是否改原对象</th><th>返回值</th><th>典型用途</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>obj.name</code></td><td class="yl_tag-new">不改</td><td>属性值</td><td>已知键名时取值</td></tr>
+                    <tr><td><code>obj["na" + "me"]</code></td><td class="yl_tag-new">不改</td><td>属性值</td><td>键名是变量 / 含特殊字符</td></tr>
+                    <tr><td><code>obj.newKey = v</code></td><td class="yl_tag-mut">会改</td><td>赋的值</td><td>新增属性</td></tr>
+                    <tr><td><code>obj.oldKey = v</code></td><td class="yl_tag-mut">会改</td><td>赋的值</td><td>修改属性</td></tr>
+                    <tr><td><code>delete obj.k</code></td><td class="yl_tag-mut">会改</td><td>true / false</td><td>删除属性</td></tr>
+                    <tr><td><code>"k" in obj</code></td><td class="yl_tag-new">不改</td><td>true / false</td><td>含原型链的判断</td></tr>
+                    <tr><td><code>obj.hasOwnProperty("k")</code></td><td class="yl_tag-new">不改</td><td>true / false</td><td>只判断自身属性</td></tr>
+                    <tr><td><code>Object.keys(obj)</code></td><td class="yl_tag-new">不改</td><td>键数组</td><td>拿所有键</td></tr>
+                    <tr><td><code>Object.values(obj)</code></td><td class="yl_tag-new">不改</td><td>值数组</td><td>拿所有值</td></tr>
+                    <tr><td><code>Object.entries(obj)</code></td><td class="yl_tag-new">不改</td><td>[键, 值] 数组</td><td>遍历键值对</td></tr>
+                    <tr><td><code>Object.fromEntries(arr)</code></td><td class="yl_tag-new">不改</td><td>新对象</td><td>数组转对象</td></tr>
+                    <tr><td><code>Object.assign({}, a, b)</code></td><td class="yl_tag-new">不改（目标为空对象时）</td><td>合并后的对象</td><td>合并 / 浅拷贝</td></tr>
+                    <tr><td><code>{ ...a, ...b }</code></td><td class="yl_tag-new">不改</td><td>新对象</td><td>展开合并（浅拷贝）</td></tr>
+                    <tr><td><code>Object.freeze(obj)</code></td><td class="yl_tag-mut">改为不可变</td><td>被冻结的原对象</td><td>锁定对象</td></tr>
+                    <tr><td><code>JSON.parse(JSON.stringify(obj))</code></td><td class="yl_tag-new">不改</td><td>深拷贝新对象</td><td>深拷贝（丢函数 / undefined）</td></tr>
+                    <tr><td><code>let {a, b} = obj</code></td><td class="yl_tag-new">不改</td><td>拆出的变量</td><td>快速取多个属性</td></tr>
+                    <tr><td><code>JSON.stringify(obj)</code></td><td class="yl_tag-new">不改</td><td>JSON 字符串</td><td>转字符串 / 存储传输</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <footer class="yl_footer">
+        © 2026 宁瑞祥 · 2001010503 · 计算机23005 ·《高级网页设计》课堂实践 · 纯原生 HTML / CSS / JS，未使用任何外部框架
+    </footer>
+
+    <script>
+    /* =========================================================
+       一、公共工具：值的格式化 + 对象渲染成键值卡片
+       ========================================================= */
+
+    /* 把任意值转成卡片里显示的短文本 */
+    function yl_fmt(yl_v) {
+        if (typeof yl_v === "string") return '"' + yl_v + '"';
+        if (yl_v === undefined) return "undefined";
+        if (yl_v === null) return "null";
+        if (typeof yl_v === "object") return JSON.stringify(yl_v);
+        return String(yl_v);
+    }
+
+    /* 判断是不是普通对象（排除数组 / null） */
+    function yl_isObj(yl_v) {
+        return yl_v !== null && typeof yl_v === "object" && !Array.isArray(yl_v);
+    }
+
+    /* 把对象渲染成一串「键 : 值」卡片；非对象值渲染成单个芯片 */
+    function yl_renderObj(yl_el, yl_val, yl_lit) {
+        yl_el.innerHTML = "";
+        if (!yl_isObj(yl_val)) {
+            var yl_chip = document.createElement("span");
+            yl_chip.className = "yl_scalar";
+            yl_chip.textContent = yl_fmt(yl_val);
+            yl_el.appendChild(yl_chip);
+            return;
+        }
+        var yl_keys = Object.keys(yl_val);
+        if (yl_keys.length === 0) {
+            var yl_empty = document.createElement("span");
+            yl_empty.className = "yl_scalar";
+            yl_empty.textContent = "{ }（空对象）";
+            yl_el.appendChild(yl_empty);
+            return;
+        }
+        yl_keys.forEach(function (yl_k, yl_i) {
+            var yl_item = document.createElement("div");
+            yl_item.className = "yl_kv" + (yl_lit ? " yl_lit" : "");
+            var yl_keyEl = document.createElement("span");
+            yl_keyEl.className = "yl_k";
+            yl_keyEl.textContent = yl_k;
+            var yl_colonEl = document.createElement("span");
+            yl_colonEl.className = "yl_colon";
+            yl_colonEl.textContent = ":";
+            var yl_valEl = document.createElement("span");
+            yl_valEl.className = "yl_v";
+            yl_valEl.textContent = yl_fmt(yl_val[yl_k]);
+            yl_item.appendChild(yl_keyEl);
+            yl_item.appendChild(yl_colonEl);
+            yl_item.appendChild(yl_valEl);
+            /* 逐个弹出，形成"新属性插入"的节奏感 */
+            yl_item.style.opacity = "0";
+            yl_item.style.transform = "scale(.8) translateY(6px)";
+            yl_item.style.transition = "opacity .4s var(--yl-ease), transform .4s var(--yl-ease)";
+            yl_el.appendChild(yl_item);
+            (function (yl_node, yl_delay) {
+                setTimeout(function () {
+                    yl_node.style.opacity = "1";
+                    yl_node.style.transform = "scale(1) translateY(0)";
+                }, yl_delay);
+            })(yl_item, yl_i * 60);
+        });
+    }
+
+    /* =========================================================
+       二、实时实验台
+       ========================================================= */
+
+    var yl_origin = { name: "宁瑞祥", age: 20, city: "重庆" };
+    var yl_cur = Object.assign({}, yl_origin);   /* 当前对象 */
+    var yl_frozen = false;                       /* 是否已冻结 */
+
+    var yl_wbKvs = document.getElementById("yl_wb-kvs");
+    var yl_wbLen = document.getElementById("yl_wb-len");
+    var yl_wbRet = document.getElementById("yl_wb-ret");
+
+    function yl_wbDraw() {
+        yl_renderObj(yl_wbKvs, yl_cur, true);
+        yl_wbLen.textContent = Object.keys(yl_cur).length + (yl_frozen ? "（已冻结）" : "");
+    }
+
+    /* 实验台动作：真正对对象做操作，并把返回值写到底部 */
+    function yl_wbAct(yl_act) {
+        var yl_ret;
+        if (yl_frozen && (yl_act === "add" || yl_act === "edit" || yl_act === "del")) {
+            yl_wbRet.textContent = "❌ 对象已冻结，修改无效（严格模式下会抛 TypeError）";
+            return;
+        }
+        switch (yl_act) {
+            case "read":   yl_ret = yl_cur.name; break;
+            case "add":
+                yl_cur.email = "nrx@example.com";
+                yl_ret = yl_cur.email;
+                break;
+            case "edit":
+                yl_cur.age = 21;
+                yl_ret = yl_cur.age;
+                break;
+            case "del":
+                yl_ret = delete yl_cur.city;
+                break;
+            case "freeze":
+                Object.freeze(yl_cur);
+                yl_frozen = true;
+                yl_ret = "已冻结（不能再增删改）";
+                break;
+            case "copy":   yl_ret = Object.assign({}, yl_cur); break;
+            case "keys":   yl_ret = Object.keys(yl_cur); break;
+            case "values": yl_ret = Object.values(yl_cur); break;
+            case "entries": yl_ret = Object.entries(yl_cur); break;
+            case "reset":
+                yl_cur = Object.assign({}, yl_origin);
+                yl_frozen = false;
+                yl_ret = "已重置";
+                break;
+        }
+        yl_wbRet.textContent = yl_fmt(yl_ret);
+        yl_wbDraw();
+    }
+
+    document.getElementById("yl_wb-actions").addEventListener("click", function (yl_e) {
+        var yl_btn = yl_e.target.closest("button[data-yl-act]");
+        if (yl_btn) yl_wbAct(yl_btn.getAttribute("data-yl-act"));
+    });
+
+    /* =========================================================
+       三、17 个操作的数据定义
+       demo() 返回 { b: 原对象, a: 结果, ret: 返回值 }
+       ========================================================= */
+
+    var yl_base = { name: "宁瑞祥", age: 20, city: "重庆" };
+
+    var yl_ops = [
+        /* ---------- 一、访问与修改 ---------- */
+        {
+            g: "access", n: "点语法取值", d: "最常用的取值方式：obj.属性名。键名必须符合标识符规则。",
+            c: "let n = obj.name;\n// → '宁瑞祥'，对象不变",
+            demo: function () {
+                var yl_v = yl_base.name;
+                return { b: yl_base, a: yl_v, ret: yl_v };
+            }
+        },
+        {
+            g: "access", n: "方括号取值", d: "键名是变量、含特殊字符或数字开头时，只能用方括号，里面可以是表达式。",
+            c: "let key = 'age';\nlet v = obj[key];   // → 20\nlet n = obj['na' + 'me'];  // → '宁瑞祥'",
+            demo: function () {
+                var yl_key = "age";
+                return { b: yl_base, a: yl_base[yl_key], ret: yl_base["na" + "me"] };
+            }
+        },
+        {
+            g: "access", n: "新增属性", d: "直接给一个不存在的键赋值，就等于新增。返回值是被赋的值。",
+            c: "obj.email = 'nrx@example.com';\n// 对象多出一张卡片",
+            demo: function () {
+                var a = Object.assign({}, yl_base);
+                var yl_v = a.email = "nrx@example.com";
+                return { b: yl_base, a: a, ret: yl_v };
+            }
+        },
+        {
+            g: "access", n: "修改属性", d: "给已存在的键赋值，就是在原属性上改值，属性数量不变。",
+            c: "obj.age = 21;\n// age 这张卡片的值被替换",
+            demo: function () {
+                var a = Object.assign({}, yl_base);
+                var yl_v = a.age = 21;
+                return { b: yl_base, a: a, ret: yl_v };
+            }
+        },
+        {
+            g: "access", n: "delete 删除", d: "删除整个属性键值对，返回布尔值（删除成功通常是 true）。",
+            c: "let ok = delete obj.city;\n// ok → true，city 卡片消失",
+            demo: function () {
+                var a = Object.assign({}, yl_base);
+                var yl_ok = delete a.city;
+                return { b: yl_base, a: a, ret: yl_ok };
+            }
+        },
+
+        /* ---------- 二、查询与遍历 ---------- */
+        {
+            g: "query", n: "in 运算符", d: "判断属性是否存在，会沿原型链查找——所以 'toString' in obj 也是 true。",
+            c: "'age' in obj;        // → true\n'toString' in obj;   // → true（继承来的）",
+            demo: function () {
+                return { b: yl_base, a: yl_base, ret: "age" in yl_base };
+            }
+        },
+        {
+            g: "query", n: "hasOwnProperty()", d: "只看对象自身的属性，不查原型链。这是它和 in 的关键区别。",
+            c: "obj.hasOwnProperty('age');       // → true\nobj.hasOwnProperty('toString');  // → false",
+            demo: function () {
+                return { b: yl_base, a: yl_base, ret: yl_base.hasOwnProperty("toString") };
+            }
+        },
+        {
+            g: "query", n: "Object.keys()", d: "把对象的所有自身可枚举键取成数组。",
+            c: "Object.keys(obj);\n// → ['name', 'age', 'city']",
+            demo: function () {
+                var yl_r = Object.keys(yl_base);
+                return { b: yl_base, a: yl_r, ret: yl_r };
+            }
+        },
+        {
+            g: "query", n: "Object.values()", d: "把对象的所有值取成数组，配合 for...of 就能遍历值。",
+            c: "Object.values(obj);\n// → ['宁瑞祥', 20, '重庆']",
+            demo: function () {
+                var yl_r = Object.values(yl_base);
+                return { b: yl_base, a: yl_r, ret: yl_r };
+            }
+        },
+        {
+            g: "query", n: "Object.entries()", d: "把对象转成 [[键, 值], …] 的二维数组，最适合 for...of 遍历。",
+            c: "for (let [k, v] of Object.entries(obj)) {\n  console.log(k, v);\n}",
+            demo: function () {
+                var yl_r = Object.entries(yl_base);
+                return { b: yl_base, a: yl_r, ret: yl_r };
+            }
+        },
+
+        /* ---------- 三、复制与合并 ---------- */
+        {
+            g: "copy", n: "Object.assign()", d: "把后面的对象逐个合并到第一个对象里。第一个参数传 { } 就不会改到原对象。",
+            c: "let merged = Object.assign({}, obj, { age: 21 });\n// 新对象，age 被覆盖为 21",
+            demo: function () {
+                var yl_r = Object.assign({}, yl_base, { age: 21 });
+                return { b: yl_base, a: yl_r, ret: yl_r };
+            }
+        },
+        {
+            g: "copy", n: "展开运算符", d: "{ ...obj } 得到浅拷贝；后面再写属性就能覆盖，写起来比 assign 更直观。",
+            c: "let next = { ...obj, age: 21, email: 'nrx@example.com' };\n// 新对象，属性更多",
+            demo: function () {
+                var yl_r = Object.assign({}, yl_base, { age: 21, email: "nrx@example.com" });
+                return { b: yl_base, a: yl_r, ret: yl_r };
+            }
+        },
+        {
+            g: "copy", n: "Object.freeze()", d: "冻结后不能再增、删、改属性（静默失败；严格模式下抛 TypeError）。返回被冻结的原对象。",
+            c: "Object.freeze(obj);\nobj.age = 21;   // 无效，age 仍是 20",
+            demo: function () {
+                var a = Object.assign({}, yl_base);
+                Object.freeze(a);
+                a.age = 21;                 /* 冻结后赋值无效 */
+                return { b: yl_base, a: a, ret: "冻结成功，age 仍为 " + a.age };
+            }
+        },
+        {
+            g: "copy", n: "JSON 深拷贝", d: "先序列化再解析，得到与原对象完全脱离的新对象。缺点：函数、undefined 会丢失，也不支持 Date 等特殊类型。",
+            c: "let deep = JSON.parse(JSON.stringify(obj));\n// 改 deep 不会影响 obj",
+            demo: function () {
+                var yl_r = JSON.parse(JSON.stringify(yl_base));
+                return { b: yl_base, a: yl_r, ret: yl_r };
+            }
+        },
+
+        /* ---------- 四、转换与解构 ---------- */
+        {
+            g: "conv", n: "解构赋值", d: "按属性名一次性把多个属性拆成变量，还能用 = 设默认值。",
+            c: "let { name, age } = obj;\n// name → '宁瑞祥'，age → 20",
+            demo: function () {
+                var yl_name = yl_base.name;
+                var yl_age = yl_base.age;
+                return { b: yl_base, a: { name: yl_name, age: yl_age }, ret: "name = " + yl_name + "，age = " + yl_age };
+            }
+        },
+        {
+            g: "conv", n: "Object.fromEntries()", d: "entries 的逆操作：把 [[键, 值], …] 数组还原成对象。",
+            c: "Object.fromEntries([['a', 1], ['b', 2]]);\n// → { a: 1, b: 2 }",
+            demo: function () {
+                var yl_arr = [["a", 1], ["b", 2], ["c", 3]];
+                return { b: yl_arr, a: Object.fromEntries(yl_arr), ret: Object.fromEntries(yl_arr) };
+            }
+        },
+        {
+            g: "conv", n: "JSON.stringify()", d: "把对象转成 JSON 字符串，用于存储或网络传输。不能序列化函数与循环引用。",
+            c: "JSON.stringify(obj);\n// → '{\"name\":\"宁瑞祥\",\"age\":20,…}'",
+            demo: function () {
+                var yl_r = JSON.stringify(yl_base);
+                return { b: yl_base, a: yl_r, ret: yl_r };
+            }
+        }
+    ];
+
+    /* =========================================================
+       四、把数据渲染成卡片
+       ========================================================= */
+
+    var yl_groupMeta = {
+        access: { flag: "属性读写", accent: "var(--yl-orange)", accent2: "#ffcc00" },
+        query:  { flag: "只读查询", accent: "var(--yl-purple)", accent2: "#c86bff" },
+        copy:   { flag: "复制合并", accent: "var(--yl-blue)", accent2: "#5ac8fa" },
+        conv:   { flag: "转换解构", accent: "var(--yl-green)", accent2: "#7ee787" }
+    };
+
+    function yl_makeCard(yl_m) {
+        var yl_meta = yl_groupMeta[yl_m.g];
+        var yl_card = document.createElement("article");
+        yl_card.className = "yl_card";
+        yl_card.setAttribute("data-yl-key", yl_m.n);
+        yl_card.style.setProperty("--yl-accent", yl_meta.accent);
+        yl_card.style.setProperty("--yl-accent2", yl_meta.accent2);
+
+        var yl_head = document.createElement("div");
+        yl_head.className = "yl_card-head";
+        yl_head.innerHTML = "<h3></h3><span class='yl_flag'></span>";
+        yl_head.querySelector("h3").textContent = yl_m.n;
+        yl_head.querySelector(".yl_flag").textContent = yl_meta.flag;
+
+        var yl_desc = document.createElement("p");
+        yl_desc.className = "yl_desc";
+        yl_desc.textContent = yl_m.d;
+
+        var yl_code = document.createElement("pre");
+        yl_code.className = "yl_code";
+        yl_code.textContent = yl_m.c;
+
+        var yl_bar = document.createElement("div");
+        yl_bar.className = "yl_runbar";
+        yl_bar.innerHTML = "<button class='yl_run'>▶ 演示</button><span class='yl_hint'>看卡片怎么变</span>";
+
+        var yl_visual = document.createElement("div");
+        yl_visual.className = "yl_visual";
+        yl_visual.innerHTML =
+            "<div class='yl_vrow'><span class='yl_vlabel'>原 →</span><div class='yl_kvs yl_vb'></div></div>" +
+            "<div class='yl_vrow'><span class='yl_vlabel'>结果 →</span><div class='yl_kvs yl_va'></div></div>" +
+            "<div class='yl_vret'>返回值：<b>—</b></div>";
+        yl_renderObj(yl_visual.querySelector(".yl_vb"), yl_base, false);
+        yl_visual.querySelector(".yl_vret b").textContent = "点击「演示」";
+
+        yl_card.appendChild(yl_head);
+        yl_card.appendChild(yl_desc);
+        yl_card.appendChild(yl_code);
+        yl_card.appendChild(yl_bar);
+        yl_card.appendChild(yl_visual);
+        return yl_card;
+    }
+
+    function yl_buildCards() {
+        yl_ops.forEach(function (yl_m) {
+            var yl_target = document.getElementById("yl_group-" + yl_m.g);
+            if (yl_target) yl_target.appendChild(yl_makeCard(yl_m));
+        });
+    }
+
+    function yl_runCard(yl_card) {
+        var yl_key = yl_card.getAttribute("data-yl-key");
+        var yl_m = yl_ops.find(function (x) { return x.n === yl_key; });
+        if (!yl_m) return;
+        var yl_data = yl_m.demo();
+        yl_renderObj(yl_card.querySelector(".yl_vb"), yl_data.b, false);
+        yl_renderObj(yl_card.querySelector(".yl_va"), yl_data.a, true);
+        yl_card.querySelector(".yl_vret b").textContent = yl_fmt(yl_data.ret);
+    }
+
+    document.body.addEventListener("click", function (yl_e) {
+        var yl_btn = yl_e.target.closest(".yl_run");
+        if (!yl_btn) return;
+        yl_runCard(yl_btn.closest(".yl_card"));
+    });
+
+    /* =========================================================
+       五、初始化
+       ========================================================= */
+    function yl_init() {
+        yl_buildCards();
+        yl_wbDraw();
+    }
+    document.addEventListener("DOMContentLoaded", yl_init);
+    </script>
+</body>
+</html>
