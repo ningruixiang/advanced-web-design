@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新车上市折叠表格 · 宁瑞祥 · 计算机23005</title>
+    <style>
+        /* ===== 全局 ===== */
+        :root {
+            --yl-blue: #007aff;
+            --yl-teal: #5ac8fa;
+            --yl-purple: #af52de;
+            --yl-green: #34c759;
+            --yl-orange: #ff9500;
+            --yl-red: #ff3b30;
+            --yl-ink: #1d1d1f;
+            --yl-sub: #6e6e73;
+            --yl-line: rgba(0,0,0,.07);
+            --yl-ease: cubic-bezier(.25,.46,.45,.94);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Roboto, sans-serif;
+            background: linear-gradient(180deg, #f5f7fa 0%, #ffffff 40%, #fafbff 100%);
+            color: var(--yl-ink);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* ===== Hero ===== */
+        .yl_hero {
+            position: relative; overflow: hidden;
+            padding: 54px 20px 44px; text-align: center;
+            background: linear-gradient(135deg, #007aff 0%, #5ac8fa 50%, #af52de 100%);
+            color: #fff;
+        }
+        .yl_hero::before {
+            content: ""; position: absolute; inset: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(255,255,255,.18) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, rgba(255,255,255,.12) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .yl_hero h1 { position: relative; font-size: clamp(1.8em, 4.6vw, 2.6em); font-weight: 700; letter-spacing: 2px; }
+        .yl_hero p { position: relative; margin-top: 8px; font-size: .95em; opacity: .95; }
+        .yl_hero .yl_badge {
+            position: relative; display: inline-block; margin-top: 16px;
+            padding: 6px 16px; border-radius: 999px; font-size: .86em;
+            background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.3);
+            backdrop-filter: blur(10px);
+        }
+
+        /* ===== 主体 ===== */
+        .yl_wrap { max-width: 1060px; margin: 0 auto; padding: 28px 18px 50px; }
+
+        /* ===== 卡片容器 ===== */
+        .yl_panel {
+            background: #fff; border-radius: 20px;
+            box-shadow: 0 8px 28px rgba(0,0,0,.06);
+            border: 1px solid var(--yl-line);
+            overflow: hidden;
+        }
+
+        /* ===== Tab ===== */
+        .yl_tabs {
+            position: relative;
+            display: flex; border-bottom: 1px solid var(--yl-line);
+            padding: 0 12px;
+        }
+        .yl_tab {
+            position: relative; padding: 14px 22px; cursor: pointer;
+            font-size: 1em; font-weight: 500; color: var(--yl-sub);
+            transition: color .25s var(--yl-ease);
+            background: transparent; border: none;
+        }
+        .yl_tab:hover { color: var(--yl-blue); }
+        .yl_tab.active { color: var(--yl-ink); }
+        .yl_tab.active::after {
+            content: ""; position: absolute; left: 50%; bottom: -1px;
+            transform: translateX(-50%);
+            width: 28px; height: 3px; border-radius: 2px;
+            background: linear-gradient(90deg, #007aff, #5ac8fa);
+            transition: width .3s var(--yl-ease);
+        }
+        .yl_tab .yl_count {
+            display: inline-block; margin-left: 6px;
+            font-size: .72em; padding: 2px 7px; border-radius: 999px;
+            background: #f5f7fa; color: var(--yl-sub);
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+        }
+        .yl_tab.active .yl_count { background: #e8f4ff; color: var(--yl-blue); }
+
+        /* ===== 表格 ===== */
+        .yl_table-head, .yl_row {
+            display: grid; grid-template-columns: 1.2fr 1.8fr 1.6fr 1.4fr;
+            gap: 12px; align-items: center;
+            padding: 14px 18px;
+        }
+        .yl_table-head {
+            background: #faf7ff; font-size: .85em; font-weight: 600;
+            color: var(--yl-sub); letter-spacing: .5px;
+            border-bottom: 1px solid var(--yl-line);
+            text-transform: uppercase;
+        }
+        .yl_rows { list-style: none; }
+        .yl_row {
+            cursor: pointer; border-bottom: 1px solid var(--yl-line);
+            transition: background .25s var(--yl-ease);
+            position: relative;
+        }
+        .yl_row:hover { background: #f5f9ff; }
+        .yl_row.open { background: #faf7ff; }
+        .yl_row:last-of-type { border-bottom: none; }
+        .yl_col-date {
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: .92em; color: var(--yl-sub);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .yl_col-date .yl_dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--yl-red), var(--yl-orange));
+        }
+        .yl_col-brand {
+            display: flex; align-items: center; gap: 12px; min-width: 0;
+        }
+        .yl_logo {
+            flex-shrink: 0; width: 36px; height: 36px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: .82em; font-weight: 700; color: #fff;
+            letter-spacing: 1px;
+        }
+        .yl_brand-info { min-width: 0; }
+        .yl_brand-info .yl-model {
+            font-weight: 600; font-size: .95em;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .yl_brand-info .yl-brand {
+            font-size: .78em; color: var(--yl-sub); margin-top: 2px;
+        }
+        .yl_col-price {
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: .96em; font-weight: 600; color: var(--yl-red);
+        }
+        .yl_col-price .yl_unit {
+            font-size: .74em; color: var(--yl-sub); font-weight: 400; margin-left: 2px;
+        }
+        .yl_col-action {
+            display: flex; align-items: center; justify-content: flex-end;
+            gap: 12px; font-size: .78em; color: var(--yl-sub);
+        }
+        .yl_col-action .yl_tag {
+            padding: 3px 10px; border-radius: 999px;
+            font-size: .72em; font-weight: 500;
+        }
+        .yl_tag.new { background: #fff1f0; color: var(--yl-red); }
+        .yl_tag.hot { background: #fff5ec; color: var(--yl-orange); }
+        .yl_tag.soon { background: #e8f4ff; color: var(--yl-blue); }
+        .yl_arrow {
+            width: 22px; height: 22px; border-radius: 50%;
+            background: #f5f7fa; color: var(--yl-sub);
+            display: flex; align-items: center; justify-content: center;
+            font-size: .7em; font-weight: 700;
+            transition: transform .35s var(--yl-ease), background .3s var(--yl-ease), color .3s var(--yl-ease);
+        }
+        .yl_row.open .yl_arrow {
+            transform: rotate(180deg);
+            background: linear-gradient(135deg, #007aff, #5ac8fa); color: #fff;
+        }
+
+        /* ===== 展开详情 ===== */
+        .yl_detail {
+            max-height: 0; overflow: hidden;
+            transition: max-height .45s var(--yl-ease), padding .3s var(--yl-ease);
+            padding: 0 18px;
+            background: linear-gradient(180deg, #fafbff 0%, #fff 100%);
+        }
+        .yl_row.open + .yl_detail {
+            max-height: 720px;
+            padding: 18px 18px 22px;
+            border-bottom: 1px solid var(--yl-line);
+        }
+        .yl_detail-inner {
+            display: grid; grid-template-columns: 1.2fr 1fr;
+            gap: 18px;
+        }
+        .yl_detail-gallery {
+            border-radius: 14px; overflow: hidden; background: #f5f7fa;
+            aspect-ratio: 16 / 10;
+        }
+        .yl_detail-gallery img {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+            transition: transform .4s var(--yl-ease);
+        }
+        .yl_row.open .yl_detail-gallery img { transform: scale(1.03); }
+        .yl_detail-info { display: flex; flex-direction: column; gap: 10px; }
+        .yl_detail-info h4 { font-size: 1.1em; color: var(--yl-ink); }
+        .yl_specs {
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            gap: 10px; margin-top: 4px;
+        }
+        .yl_spec {
+            background: #fff; border: 1px solid var(--yl-line); border-radius: 10px;
+            padding: 10px 12px;
+        }
+        .yl_spec .yl_k {
+            font-size: .76em; color: var(--yl-sub); text-transform: uppercase; letter-spacing: .5px;
+        }
+        .yl_spec .yl_v {
+            font-size: .95em; font-weight: 600; margin-top: 3px; color: var(--yl-ink);
+        }
+        .yl_actions {
+            display: flex; gap: 10px; margin-top: auto;
+        }
+        .yl_btn {
+            flex: 1; padding: 10px 14px; border-radius: 10px;
+            font-size: .88em; font-weight: 500; cursor: pointer;
+            transition: all .25s var(--yl-ease); text-align: center;
+        }
+        .yl_btn-primary {
+            background: linear-gradient(135deg, #007aff, #5ac8fa);
+            color: #fff; border: none;
+            box-shadow: 0 4px 12px rgba(0,122,255,.3);
+        }
+        .yl_btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,122,255,.38); }
+        .yl_btn-ghost {
+            background: #fff; color: var(--yl-blue); border: 1px solid var(--yl-line);
+        }
+        .yl_btn-ghost:hover { border-color: var(--yl-blue); background: #f5f9ff; }
+
+        /* ===== 分组标题 ===== */
+        .yl_section-title {
+            font-size: 1.4em; font-weight: 600;
+            padding-left: 14px; border-left: 4px solid var(--yl-blue);
+            margin: 32px 0 8px;
+        }
+        .yl_section-desc { color: var(--yl-sub); font-size: .92em; padding-left: 18px; margin-bottom: 16px; }
+        .yl_hint {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: .8em; color: var(--yl-sub); margin-left: 12px;
+            padding: 3px 10px; background: #f5f7fa; border-radius: 999px;
+        }
+
+        /* ===== 速查表 ===== */
+        .yl_table-wrap {
+            background: #fff; border-radius: 16px; overflow: hidden;
+            box-shadow: 0 4px 18px rgba(0,0,0,.05); border: 1px solid var(--yl-line);
+            margin-bottom: 36px; overflow-x: auto;
+        }
+        .yl_table { width: 100%; border-collapse: collapse; font-size: .88em; min-width: 560px; }
+        .yl_table th, .yl_table td { padding: 11px 16px; text-align: left; border-bottom: 1px solid var(--yl-line); }
+        .yl_table th { background: #faf7ff; font-weight: 600; }
+        .yl_table tr:last-child td { border-bottom: none; }
+        .yl_table tr:hover td { background: #fafbff; }
+        .yl_table code {
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            background: #f5f7fa; color: var(--yl-blue);
+            padding: 1px 6px; border-radius: 5px; font-size: .86em;
+        }
+
+        /* ===== 页脚 ===== */
+        .yl_footer {
+            text-align: center; padding: 30px 20px; color: var(--yl-sub);
+            font-size: .84em; border-top: 1px solid var(--yl-line);
+            background: rgba(255,255,255,.6);
+        }
+
+        /* ===== 响应 ===== */
+        @media (max-width: 780px) {
+            .yl_table-head { display: none; }
+            .yl_row {
+                grid-template-columns: 1fr 42px; gap: 8px;
+                padding: 12px 14px;
+            }
+            .yl_row > div:not(.yl_col-brand):not(.yl_col-action) { display: none; }
+            .yl_row .yl_col-brand { grid-column: 1; }
+            .yl_row .yl_col-action { grid-column: 2; justify-content: center; }
+            .yl_detail-inner { grid-template-columns: 1fr; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .yl_detail { transition: none; }
+            .yl_arrow { transition: none; }
+        }
+    </style>
+</head>
+<body>
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  建立时间：2026-10-29 14:33:56
+  使用的大模型：DeepSeek-V4.1-Flash
+  功能：新车上市折叠表格 —— Tab 切换最新/即将上市，点击行展开详细参数与按钮，纯原生实现 max-height 平滑折叠
+-->
+
+    <div class="yl_hero">
+        <h1>🚗 新车上市追踪</h1>
+        <p>两行 Tab · 三列表格 · 点击任一行即可展开详情面板（参数 + 图片 + 操作按钮）</p>
+        <span class="yl_badge">宁瑞祥 · 计算机23005 · 2001010503</span>
+    </div>
+
+    <div class="yl_wrap">
+        <div class="yl_hint">💡 提示：点任意一行试试展开效果；Tab 可以切「最新上市」和「即将上市」</div>
+
+        <!-- 主面板 -->
+        <div class="yl_panel" style="margin-top: 16px;">
+            <!-- Tabs -->
+            <div class="yl_tabs" id="yl_tabs">
+                <button class="yl_tab active" data-yl-tab="latest">最新上市 <span class="yl_count" id="yl_cnt-latest"></span></button>
+                <button class="yl_tab" data-yl-tab="soon">即将上市 <span class="yl_count" id="yl_cnt-soon"></span></button>
+            </div>
+
+            <!-- 表头 -->
+            <div class="yl_table-head">
+                <div>上市时间</div>
+                <div>品牌 / 车型</div>
+                <div>售价（万元）</div>
+                <div style="justify-self: end;">操作</div>
+            </div>
+
+            <!-- 列表（由 JS 动态渲染，每行后紧跟详情 div） -->
+            <ul class="yl_rows" id="yl_rows"></ul>
+        </div>
+
+        <!-- 速查表 -->
+        <div class="yl_section-title">折叠展开原理速查表</div>
+        <div class="yl_section-desc">本页实现点击展开的核心 CSS / JS 技巧汇总</div>
+        <div class="yl_table-wrap">
+            <table class="yl_table">
+                <thead>
+                    <tr><th>技巧</th><th>CSS / JS 代码</th><th>作用</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>max-height 过渡</td><td><code>max-height: 0 → 720px</code></td><td>让未知高度内容平滑展开（比 height:auto 更通用）</td></tr>
+                    <tr><td>相邻兄弟选择器</td><td><code>.yl_row.open + .yl_detail</code></td><td>点行后紧跟的详情面板自动展开</td></tr>
+                    <tr><td>CSS 类驱动</td><td><code>row.classList.toggle("open")</code></td><td>JS 只负责开关类，样式全交给 CSS</td></tr>
+                    <tr><td>transform 旋转箭头</td><td><code>transform: rotate(180deg)</code></td><td>用纯 CSS 做展开/收起的视觉反馈</td></tr>
+                    <tr><td>prefers-reduced-motion</td><td><code>@media (prefers-reduced-motion: reduce)</code></td><td>系统偏好关闭动画时自动降级</td></tr>
+                    <tr><td>Grid 响应隐藏表头</td><td><code>@media (max-width: 780px)</code></td><td>窄屏隐藏表头 + 压缩列，改用品牌一列展示</td></tr>
+                    <tr><td>Tab 切换数据源</td><td><code>data-yl-tab="latest"</code></td><td>按钮带 data 属性，JS 反向查表渲染不同列表</td></tr>
+                    <tr><td>多开控制</td><td><code>rows.forEach(r => r.classList.remove("open"))</code></td><td>可选：点开新行前先关掉旧行（手风琴效果）</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="yl_footer">宁瑞祥 · 计算机23005 · 2001010503 · 16-4 折叠展开表格</div>
+    </div>
+
+    <script>
+    /* ===== 数据源 ===== */
+    var yl_data = {
+        latest: [
+            {
+                date: "12月13日", brand: "沃尔沃", model: "S60L T8 智逸豪华版",
+                price: { lo: 26.99, hi: 38.49 }, logo: "沃", logoBg: "linear-gradient(135deg,#007aff,#5ac8fa)",
+                tag: "new", tagTxt: "新车",
+                spec: { "发动机": "2.0T 涡轮增压", "马力": "310 PS", "变速箱": "8AT", "轴距": "2872 mm", "车身": "4778×1850×1420", "百公里加速": "4.9 秒" },
+                img: "OIP-C.png"
+            },
+            {
+                date: "12月12日", brand: "Jeep", model: "牧马人龙腾典藏版",
+                price: { lo: 47.99, hi: 59.99 }, logo: "J", logoBg: "linear-gradient(135deg,#af52de,#ff9500)",
+                tag: "hot", tagTxt: "热门",
+                spec: { "发动机": "2.0T", "马力": "266 PS", "变速箱": "8AT", "轴距": "3008 mm", "四驱": "全时四驱", "离地间隙": "251 mm" },
+                img: "OIP-C (2).png"
+            },
+            {
+                date: "12月10日", brand: "一汽-大众", model: "高尔夫 40 周年纪念版",
+                price: { lo: 11.89, hi: 18.29 }, logo: "VW", logoBg: "linear-gradient(135deg,#1d1d1f,#6e6e73)",
+                tag: "new", tagTxt: "限量",
+                spec: { "发动机": "1.5T EA211", "马力": "160 PS", "变速箱": "7DCT", "轴距": "2631 mm", "车身": "4296×1788×1471", "0-100": "8.6 秒" },
+                img: "img/1.png"
+            },
+            {
+                date: "12月08日", brand: "吉利银河", model: "E9 星舰 1988",
+                price: { lo: 419.0, hi: 666.0 }, logo: "吉", logoBg: "linear-gradient(135deg,#007aff,#34c759)",
+                tag: "hot", tagTxt: "话题",
+                spec: { "动力": "纯电 / 增程", "续航": "710 km", "百公里加速": "2.4 秒", "芯片": "骁龙 8295", "车机": "银河 OS", "价格": "万元起" },
+                img: "img/2.png"
+            },
+            {
+                date: "12月05日", brand: "起亚", model: "新款 K5",
+                price: { lo: 15.98, hi: 28.18 }, logo: "起", logoBg: "linear-gradient(135deg,#ff3b30,#ff9500)",
+                tag: "", tagTxt: "",
+                spec: { "发动机": "2.0L + 电机", "马力": "246 PS", "变速箱": "6AT", "轴距": "2900 mm", "车身": "4915×1860×1455", "油耗": "4.8 L/100km" },
+                img: "img/3.png"
+            },
+            {
+                date: "12月05日", brand: "一汽-大众", model: "全新速腾",
+                price: { lo: 22.98, hi: 28.68 }, logo: "VW", logoBg: "linear-gradient(135deg,#5ac8fa,#af52de)",
+                tag: "new", tagTxt: "改款",
+                spec: { "发动机": "1.5T EVO", "马力": "160 PS", "变速箱": "7DCT", "轴距": "2731 mm", "车身": "4791×1801×1465", "0-100": "8.8 秒" },
+                img: "img/4.png"
+            }
+        ],
+        soon: [
+            {
+                date: "12月20日", brand: "蔚来", model: "全新 ES6",
+                price: { lo: 39.8, hi: 55.8 }, logo: "蔚", logoBg: "linear-gradient(135deg,#34c759,#007aff)",
+                tag: "soon", tagTxt: "预售",
+                spec: { "动力": "双电机四驱", "马力": "585 PS", "续航": "625 km", "百公里加速": "3.9 秒", "轴距": "2960 mm", "车机": "NIO OS 4.0" },
+                img: "img/5.png"
+            },
+            {
+                date: "12月25日", brand: "小米汽车", model: "SU7 Ultra",
+                price: { lo: 52.9, hi: 79.9 }, logo: "米", logoBg: "linear-gradient(135deg,#ff9500,#ff3b30)",
+                tag: "soon", tagTxt: "预约",
+                spec: { "动力": "三电机", "马力": "1548 PS", "百公里加速": "1.98 秒", "续航": "720 km", "芯片": "Orin X", "车机": "澎湃 OS" },
+                img: "img/6.png"
+            },
+            {
+                date: "12月28日", brand: "极氪", model: "001 FR 新款",
+                price: { lo: 76.9, hi: 108.0 }, logo: "极", logoBg: "linear-gradient(135deg,#af52de,#007aff)",
+                tag: "soon", tagTxt: "限量",
+                spec: { "动力": "四电机", "马力": "1265 PS", "百公里加速": "2.07 秒", "续航": "580 km", "电池": "100 kWh", "车身": "5001×1999×1560" },
+                img: "img/7.png"
+            },
+            {
+                date: "01月05日", brand: "方程豹", model: "豹 5 四驱旗舰版",
+                price: { lo: 28.98, hi: 39.98 }, logo: "豹", logoBg: "linear-gradient(135deg,#1d1d1f,#6e6e73)",
+                tag: "soon", tagTxt: "预售",
+                spec: { "动力": "插混 DM-i", "马力": "580 PS", "四驱": "智能四驱", "电池": "31.8 kWh", "纯电续航": "125 km", "油箱": "60 L" },
+                img: "img/8.png"
+            },
+            {
+                date: "01月10日", brand: "仰望", model: "U9 新款",
+                price: { lo: 168.0, hi: 208.0 }, logo: "仰", logoBg: "linear-gradient(135deg,#ff3b30,#af52de)",
+                tag: "soon", tagTxt: "预约",
+                spec: { "动力": "四电机", "马力": "1306 PS", "百公里加速": "2.36 秒", "续航": "465 km", "车身": "4966×2029×1400", "芯片": "Orin X" },
+                img: "img/9.png"
+            }
+        ]
+    };
+
+    /* ===== 渲染 ===== */
+    function yl_render(yl_key) {
+        var yl_list = yl_data[yl_key];
+        document.getElementById("yl_cnt-latest").textContent = yl_data.latest.length;
+        document.getElementById("yl_cnt-soon").textContent = yl_data.soon.length;
+
+        var yl_html = "";
+        for (var i = 0; i < yl_list.length; i++) {
+            var yl_c = yl_list[i];
+            var yl_specs = "";
+            for (var k in yl_c.spec) {
+                yl_specs += '<div class="yl_spec"><div class="yl_k">' + k + '</div><div class="yl_v">' + yl_c.spec[k] + '</div></div>';
+            }
+            var yl_loStr = (yl_c.price.lo % 1 === 0) ? yl_c.price.lo.toFixed(0) : yl_c.price.lo.toFixed(2);
+            var yl_hiStr = (yl_c.price.hi % 1 === 0) ? yl_c.price.hi.toFixed(0) : yl_c.price.hi.toFixed(2);
+            var yl_tagHtml = yl_c.tag ? '<span class="yl_tag ' + yl_c.tag + '">' + yl_c.tagTxt + '</span>' : '';
+
+            yl_html += '<li class="yl_row" data-yl-row="' + yl_key + '-' + i + '">'
+                    +   '<div class="yl_col-date"><span class="yl_dot"></span>' + yl_c.date + '</div>'
+                    +   '<div class="yl_col-brand">'
+                    +     '<div class="yl_logo" style="background:' + yl_c.logoBg + '">' + yl_c.logo + '</div>'
+                    +     '<div class="yl_brand-info"><div class="yl-model">' + yl_c.model + '</div><div class="yl-brand">' + yl_c.brand + '</div></div>'
+                    +   '</div>'
+                    +   '<div class="yl_col-price">' + yl_loStr + ' – ' + yl_hiStr + '<span class="yl_unit"> 万元</span></div>'
+                    +   '<div class="yl_col-action">' + yl_tagHtml + '<span class="yl_arrow">▼</span></div>'
+                    + '</li>'
+                    + '<div class="yl_detail" data-yl-for="' + yl_key + '-' + i + '">'
+                    +   '<div class="yl_detail-inner">'
+                    +     '<div class="yl_detail-gallery"><img src="' + yl_c.img + '" alt="' + yl_c.model + '"></div>'
+                    +     '<div class="yl_detail-info">'
+                    +       '<h4>' + yl_c.brand + ' · ' + yl_c.model + '</h4>'
+                    +       '<div class="yl_specs">' + yl_specs + '</div>'
+                    +       '<div class="yl_actions">'
+                    +         '<button class="yl_btn yl_btn-primary">查看配置</button>'
+                    +         '<button class="yl_btn yl_btn-ghost">预约试驾</button>'
+                    +       '</div>'
+                    +     '</div>'
+                    +   '</div>'
+                    + '</div>';
+        }
+        document.getElementById("yl_rows").innerHTML = yl_html;
+    }
+
+    /* ===== Tab 切换 ===== */
+    document.getElementById("yl_tabs").addEventListener("click", function (e) {
+        var yl_btn = e.target.closest(".yl_tab");
+        if (!yl_btn) return;
+        document.querySelectorAll(".yl_tab").forEach(function (t) { t.classList.remove("active"); });
+        yl_btn.classList.add("active");
+        yl_render(yl_btn.getAttribute("data-yl-tab"));
+    });
+
+    /* ===== 点击行展开 / 收起 ===== */
+    document.body.addEventListener("click", function (e) {
+        var yl_row = e.target.closest(".yl_row");
+        if (!yl_row) return;
+        var yl_key = yl_row.getAttribute("data-yl-row");
+        var yl_detail = document.querySelector('.yl_detail[data-yl-for="' + yl_key + '"]');
+        if (!yl_detail) return;
+        // 手风琴效果：点新的前先关掉其他
+        document.querySelectorAll(".yl_row.open").forEach(function (r) {
+            if (r !== yl_row) r.classList.remove("open");
+        });
+        yl_row.classList.toggle("open");
+        // 滚动到展开行（移动端体验）
+        if (yl_row.classList.contains("open")) {
+            setTimeout(function () {
+                yl_row.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            }, 150);
+        }
+    });
+
+    /* ===== 首次渲染 ===== */
+    yl_render("latest");
+    // 默认打开第一条做演示
+    setTimeout(function () {
+        document.querySelector("#yl_rows .yl_row").classList.add("open");
+    }, 120);
+    </script>
+</body>
+</html>

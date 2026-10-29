@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>热搜榜聚合 UI · 图标应用 · 宁瑞祥 · 计算机23005</title>
+    <!-- Font Awesome 本地字体库 -->
+    <link rel="stylesheet" href="cdn/fontawesome/css/all.min.css">
+    <!-- iconfont 自定义字体库（购物/首页/搜索/更多） -->
+    <link rel="stylesheet" href="front/download/font_5244710_w8iuz7sxwo/iconfont.css">
+    <style>
+        /* ===== 全局 ===== */
+        :root {
+            --yl-red: #ff3b30;
+            --yl-orange: #ff9500;
+            --yl-green: #34c759;
+            --yl-blue: #007aff;
+            --yl-purple: #af52de;
+            --yl-ink: #1d1d1f;
+            --yl-sub: #6e6e73;
+            --yl-line: rgba(0,0,0,.06);
+            --yl-mono: "SF Mono", Menlo, Consolas, monospace;
+            --yl-ease: cubic-bezier(.25,.46,.45,.94);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(180deg, #fff5f0 0%, #ffffff 60%, #fef6ff 100%);
+            color: var(--yl-ink);
+            min-height: 100vh;
+            line-height: 1.55;
+        }
+        button { font-family: inherit; border: none; cursor: pointer; }
+        a { color: inherit; text-decoration: none; }
+
+        /* ===== 顶部 Hero ===== */
+        .yl_hero {
+            position: relative;
+            padding: 46px 24px 38px;
+            text-align: center;
+            background: linear-gradient(135deg, #ff6a5c 0%, #ff9500 48%, #af52de 100%);
+            color: #fff;
+            overflow: hidden;
+        }
+        .yl_hero::before {
+            content: ""; position: absolute; inset: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(255,255,255,.22) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, rgba(255,255,255,.12) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .yl_hero h1 { position: relative; font-size: clamp(1.7em, 4.4vw, 2.4em); font-weight: 700; letter-spacing: 2px; }
+        .yl_hero p { position: relative; margin-top: 8px; font-size: .95em; opacity: .95; }
+        .yl_hero .yl_badge {
+            position: relative; display: inline-block; margin-top: 16px;
+            padding: 6px 16px; border-radius: 999px; font-size: .86em;
+            background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.3);
+            backdrop-filter: blur(10px);
+        }
+        .yl_hero .yl_badge i { margin-right: 6px; }
+
+        /* ===== 主体容器 ===== */
+        .yl_wrap { max-width: 1240px; margin: 0 auto; padding: 28px 20px 50px; }
+
+        /* ===== 三栏网格 ===== */
+        .yl_grid {
+            display: grid;
+            grid-template-columns: 1.15fr 1fr 1fr;
+            gap: 18px;
+            margin-bottom: 36px;
+        }
+
+        /* ===== 榜单卡片通用 ===== */
+        .yl_card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 6px 24px rgba(0,0,0,.06);
+            border: 1px solid var(--yl-line);
+            overflow: hidden;
+            display: flex; flex-direction: column;
+        }
+        .yl_card-head {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 18px; border-bottom: 1px solid var(--yl-line);
+        }
+        .yl_card-title {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 1.08em; font-weight: 600;
+        }
+        .yl_card-title i, .yl_card-title .iconfont {
+            width: 28px; height: 28px; line-height: 28px; text-align: center;
+            border-radius: 8px; color: #fff; font-size: .92em;
+        }
+        .yl_tbl-icon { background: linear-gradient(135deg, #ff6a5c, #ff3b30); }
+        .yl_vid-icon { background: linear-gradient(135deg, #007aff, #5ac8fa); }
+        .yl_sur-icon { background: linear-gradient(135deg, #af52de, #ff9500); }
+
+        .yl_refresh {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: .82em; color: var(--yl-sub); background: transparent;
+            padding: 4px 10px; border-radius: 999px; transition: all .3s var(--yl-ease);
+        }
+        .yl_refresh:hover { color: var(--yl-orange); background: #fff5ec; }
+        .yl_refresh.spinning i { animation: yl_spin .7s linear infinite; }
+        @keyframes yl_spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+
+        /* ===== 热搜榜 ===== */
+        .yl_hot-hero {
+            position: relative; overflow: hidden; height: 180px; margin: 14px 14px 8px;
+            border-radius: 14px;
+        }
+        .yl_hot-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .yl_hot-hero::after {
+            content: ""; position: absolute; inset: 0;
+            background: linear-gradient(180deg, transparent 35%, rgba(0,0,0,.72) 100%);
+        }
+        .yl_hot-hero .yl_tag {
+            position: absolute; top: 10px; left: 10px; z-index: 2;
+            background: var(--yl-red); color: #fff; font-size: .72em; font-weight: 600;
+            padding: 3px 10px; border-radius: 4px; letter-spacing: 1px;
+            box-shadow: 0 2px 8px rgba(255,59,48,.4);
+        }
+        .yl_hot-hero h3 {
+            position: absolute; left: 14px; right: 14px; bottom: 12px; z-index: 2;
+            color: #fff; font-size: .98em; font-weight: 600; line-height: 1.4;
+            text-shadow: 0 1px 4px rgba(0,0,0,.3);
+        }
+        .yl_hot-hero .yl_nav {
+            position: absolute; right: 8px; top: 50%; transform: translateY(-50%); z-index: 2;
+            width: 26px; height: 26px; border-radius: 50%;
+            background: rgba(255,255,255,.28); color: #fff; font-size: .8em;
+            display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(6px); cursor: pointer;
+        }
+
+        .yl_list { list-style: none; flex: 1; }
+        .yl_list li {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 10px 16px; border-bottom: 1px solid var(--yl-line);
+            font-size: .9em; cursor: pointer; transition: background .25s var(--yl-ease);
+        }
+        .yl_list li:last-child { border-bottom: none; }
+        .yl_list li:hover { background: #fffaf6; }
+        .yl_list li.active { background: #fff5ec; }
+        .yl_list .yl_num {
+            flex-shrink: 0; width: 20px; text-align: center;
+            font-weight: 700; font-size: 1em; color: var(--yl-sub);
+            font-family: var(--yl-mono); line-height: 1.6;
+        }
+        .yl_list li:nth-child(1) .yl_num { color: var(--yl-red); font-size: 1.2em; }
+        .yl_list li:nth-child(2) .yl_num { color: var(--yl-orange); font-size: 1.15em; }
+        .yl_list li:nth-child(3) .yl_num { color: var(--yl-orange); font-size: 1.1em; }
+        .yl_list li .yl_title { flex: 1; line-height: 1.55; }
+        .yl_list li .yl_extra {
+            flex-shrink: 0; font-size: .78em; color: var(--yl-sub); margin-top: 2px;
+        }
+        .yl_list li .yl_dot {
+            display: inline-block; width: 14px; height: 14px; line-height: 14px; text-align: center;
+            font-size: .7em; border-radius: 3px; margin-left: 4px;
+        }
+        .yl_dot.new { background: #fff1f0; color: var(--yl-red); }
+        .yl_dot.hot { background: #fff3e0; color: var(--yl-orange); }
+
+        /* ===== 视频榜 ===== */
+        .yl_vid-list { padding: 10px; }
+        .yl_vid {
+            display: flex; gap: 12px; padding: 8px; border-radius: 10px;
+            cursor: pointer; transition: background .25s var(--yl-ease);
+        }
+        .yl_vid:hover { background: #f5f9ff; }
+        .yl_vid-thumb {
+            position: relative; flex-shrink: 0; width: 110px; height: 74px; border-radius: 8px; overflow: hidden;
+            background: #eee;
+        }
+        .yl_vid-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .yl_vid-thumb .yl_play {
+            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,.25); color: #fff; font-size: 1.8em;
+            opacity: 0; transition: opacity .3s var(--yl-ease);
+        }
+        .yl_vid:hover .yl_vid-thumb .yl_play { opacity: 1; }
+        .yl_vid-thumb .yl_len {
+            position: absolute; right: 4px; bottom: 4px;
+            font-size: .7em; color: #fff; background: rgba(0,0,0,.7);
+            padding: 1px 6px; border-radius: 3px;
+        }
+        .yl_vid-info { flex: 1; min-width: 0; }
+        .yl_vid-info h4 {
+            font-size: .92em; font-weight: 500; line-height: 1.4; margin-bottom: 6px;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .yl_vid-info .yl_vid-meta {
+            font-size: .76em; color: var(--yl-sub); display: flex; align-items: center; gap: 6px;
+        }
+        .yl_vid-info .yl_vid-meta i { font-size: .88em; }
+        .yl_vid-num {
+            flex-shrink: 0; align-self: center;
+            font-weight: 700; font-family: var(--yl-mono);
+            font-size: 1.1em; line-height: 1; padding-right: 4px;
+        }
+        .yl_vid:nth-child(1) .yl_vid-num { color: var(--yl-red); font-size: 1.4em; }
+        .yl_vid:nth-child(2) .yl_vid-num { color: var(--yl-orange); font-size: 1.3em; }
+        .yl_vid:nth-child(3) .yl_vid-num { color: var(--yl-orange); font-size: 1.2em; }
+
+        /* ===== 飙升榜 ===== */
+        .yl_sur li { align-items: center; }
+        .yl_sur .yl_delta {
+            flex-shrink: 0; font-size: .78em; font-weight: 600;
+            padding: 2px 8px; border-radius: 999px;
+        }
+        .yl_delta.up { background: #fff1f0; color: var(--yl-red); }
+        .yl_delta.up i { margin-right: 3px; }
+        .yl_delta.down { background: #f0fbf2; color: var(--yl-green); }
+        .yl_delta.down i { margin-right: 3px; }
+
+        /* ===== 切换 tab（移动端 & 交互） ===== */
+        .yl_tabs {
+            display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+        }
+        .yl_tabs button {
+            padding: 8px 18px; border-radius: 999px;
+            background: #fff; border: 1px solid var(--yl-line); color: var(--yl-sub);
+            font-size: .9em; font-weight: 500;
+            transition: all .25s var(--yl-ease);
+        }
+        .yl_tabs button i { margin-right: 5px; }
+        .yl_tabs button.active {
+            background: linear-gradient(135deg, #ff6a5c, #ff9500);
+            color: #fff; border-color: transparent;
+            box-shadow: 0 4px 14px rgba(255,106,92,.3);
+        }
+
+        /* ===== iconfont 混用演示条 ===== */
+        .yl_mixed-bar {
+            background: #fff; border-radius: 16px; padding: 18px 22px;
+            margin-bottom: 32px; box-shadow: 0 4px 18px rgba(0,0,0,.05);
+            border: 1px solid var(--yl-line);
+        }
+        .yl_mixed-bar h3 { font-size: 1em; margin-bottom: 12px; color: var(--yl-sub); font-weight: 500; }
+        .yl_mixed-bar .yl_icons-row {
+            display: flex; flex-wrap: wrap; gap: 22px;
+        }
+        .yl_mixed-bar .yl_ic {
+            display: flex; flex-direction: column; align-items: center; gap: 5px;
+            font-size: .78em; color: var(--yl-sub);
+        }
+        .yl_mixed-bar .yl_ic i, .yl_mixed-bar .yl_ic .iconfont {
+            width: 42px; height: 42px; line-height: 42px; text-align: center;
+            border-radius: 12px; font-size: 1.4em;
+            background: linear-gradient(135deg, #f0eaf9, #fff5ec);
+            color: var(--yl-purple);
+        }
+        .yl_mixed-bar .yl_ic.fav i, .yl_mixed-bar .yl_ic.fav .iconfont {
+            background: linear-gradient(135deg, #fff1f0, #fff5ec); color: var(--yl-red);
+        }
+        .yl_mixed-bar .yl_ic.home i, .yl_mixed-bar .yl_ic.home .iconfont {
+            background: linear-gradient(135deg, #e8f4ff, #f5f9ff); color: var(--yl-blue);
+        }
+
+        /* ===== 速查表 ===== */
+        .yl_section-title {
+            font-size: 1.4em; font-weight: 600; color: var(--yl-ink);
+            padding-left: 14px; border-left: 4px solid var(--yl-orange);
+            margin: 34px 0 8px;
+        }
+        .yl_section-desc { color: var(--yl-sub); font-size: .92em; padding-left: 18px; margin-bottom: 18px; }
+        .yl_table-wrap {
+            background: #fff; border-radius: 16px; overflow: hidden;
+            box-shadow: 0 4px 18px rgba(0,0,0,.05); border: 1px solid var(--yl-line);
+            margin-bottom: 40px; overflow-x: auto;
+        }
+        .yl_table { width: 100%; border-collapse: collapse; font-size: .88em; min-width: 560px; }
+        .yl_table th, .yl_table td {
+            padding: 11px 16px; text-align: left; border-bottom: 1px solid var(--yl-line);
+        }
+        .yl_table th { background: #faf7ff; font-weight: 600; }
+        .yl_table tr:last-child td { border-bottom: none; }
+        .yl_table tr:hover td { background: #fffaf6; }
+        .yl_table td i, .yl_table td .iconfont {
+            width: 28px; height: 28px; line-height: 28px; text-align: center;
+            border-radius: 6px; font-size: 1em; margin-right: 8px;
+            background: linear-gradient(135deg, #f5f0ff, #fff5ec); color: var(--yl-purple);
+            display: inline-block;
+        }
+        .yl_table code {
+            font-family: var(--yl-mono); background: #f5f7fa; color: var(--yl-blue);
+            padding: 1px 6px; border-radius: 5px; font-size: .86em;
+        }
+        .yl_table tr[data-yl-source="iconfont"] td i, .yl_table tr[data-yl-source="iconfont"] td .iconfont {
+            background: linear-gradient(135deg, #fff5ec, #fff1f0); color: var(--yl-orange);
+        }
+
+        /* ===== 页脚 ===== */
+        .yl_footer {
+            text-align: center; padding: 30px 20px; color: var(--yl-sub);
+            font-size: .84em; border-top: 1px solid var(--yl-line);
+            background: rgba(255,255,255,.6);
+        }
+
+        /* ===== 小屏响应 ===== */
+        @media (max-width: 900px) {
+            .yl_grid { grid-template-columns: 1fr 1fr; }
+            .yl_grid > .yl_card:first-child { grid-column: 1 / -1; }
+        }
+        @media (max-width: 560px) {
+            .yl_grid { grid-template-columns: 1fr; }
+            .yl_vid-thumb { width: 90px; height: 60px; }
+            .yl_vid-info h4 { font-size: .86em; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .yl_refresh.spinning i { animation: none; }
+            * { transition: none !important; animation: none !important; }
+        }
+    </style>
+</head>
+<body>
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  建立时间：2026-10-29 14:23:26
+  使用的大模型：DeepSeek-V4.1-Flash
+  功能：热搜榜聚合 UI —— 三栏榜单（热搜榜/视频榜/飙升榜）+ 本地图标混用演示（Font Awesome + iconfont 自定义字体），附速查表
+-->
+
+    <!-- Hero -->
+    <div class="yl_hero">
+        <h1><i class="fa-solid fa-fire"></i> 热搜榜聚合 UI</h1>
+        <p>三栏热榜 · 换一换交互 · 两种本地字体图标源混用（Font Awesome + iconfont 自定义）</p>
+        <span class="yl_badge"><i class="fa-solid fa-rocket"></i> 宁瑞祥 · 计算机23005 · 2001010503</span>
+    </div>
+
+    <div class="yl_wrap">
+
+        <!-- Tab 切换（桌面端也能切换聚焦） -->
+        <div class="yl_tabs">
+            <button class="active" data-yl-tab="all"><i class="fa-solid fa-table-columns"></i> 三栏同览</button>
+            <button data-yl-tab="hot"><i class="fa-solid fa-fire"></i> 热搜榜</button>
+            <button data-yl-tab="video"><i class="fa-solid fa-play-circle"></i> 视频榜</button>
+            <button data-yl-tab="surge"><i class="fa-solid fa-rocket"></i> 飙升榜</button>
+        </div>
+
+        <!-- 三栏网格 -->
+        <div class="yl_grid" id="yl_grid">
+
+            <!-- ========== 左：热搜榜 ========== -->
+            <div class="yl_card yl_col-hot" data-yl-col="hot">
+                <div class="yl_card-head">
+                    <div class="yl_card-title">
+                        <i class="fa-solid fa-fire yl_tbl-icon"></i>
+                        <span>热搜榜</span>
+                    </div>
+                    <button class="yl_refresh" data-yl-refresh="hot"><i class="fa-solid fa-arrows-rotate"></i> 换一换</button>
+                </div>
+                <!-- 头条大图 -->
+                <div class="yl_hot-hero">
+                    <img src="OIP-C (1).png" alt="头条封面">
+                    <span class="yl_tag">热搜</span>
+                    <h3>SpaceX 星舰第六次试飞成功，可重复使用里程碑达成</h3>
+                    <span class="yl_nav"><i class="fa-solid fa-chevron-right"></i></span>
+                </div>
+                <!-- 列表 -->
+                <ul class="yl_list" id="yl_hot-list">
+                    <!-- 由 JS 渲染 -->
+                </ul>
+            </div>
+
+            <!-- ========== 中：视频榜 ========== -->
+            <div class="yl_card yl_col-video" data-yl-col="video">
+                <div class="yl_card-head">
+                    <div class="yl_card-title">
+                        <i class="fa-solid fa-play yl_vid-icon"></i>
+                        <span>视频榜</span>
+                    </div>
+                    <button class="yl_refresh" data-yl-refresh="video"><i class="fa-solid fa-arrows-rotate"></i> 换一换</button>
+                </div>
+                <div class="yl_vid-list" id="yl_video-list">
+                    <!-- 由 JS 渲染 -->
+                </div>
+            </div>
+
+            <!-- ========== 右：飙升榜 ========== -->
+            <div class="yl_card yl_col-surge" data-yl-col="surge">
+                <div class="yl_card-head">
+                    <div class="yl_card-title">
+                        <i class="fa-solid fa-rocket yl_sur-icon"></i>
+                        <span>飙升榜</span>
+                    </div>
+                    <button class="yl_refresh" data-yl-refresh="surge"><i class="fa-solid fa-arrows-rotate"></i> 换一换</button>
+                </div>
+                <ul class="yl_list yl_sur" id="yl_surge-list">
+                    <!-- 由 JS 渲染 -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- iconfont 混用演示 -->
+        <div class="yl_mixed-bar">
+            <h3><i class="fa-solid fa-layer-group"></i> 图标混用演示：本地 Font Awesome + 自定义 iconfont 字体</h3>
+            <div class="yl_icons-row">
+                <div class="yl_ic fav"><i class="fa-solid fa-fire"></i><span>热搜 (FA)</span></div>
+                <div class="yl_ic"><i class="fa-solid fa-rocket"></i><span>飙升 (FA)</span></div>
+                <div class="yl_ic home"><i class="fa-solid fa-play-circle"></i><span>视频 (FA)</span></div>
+                <div class="yl_ic fav"><i class="fa-solid fa-arrows-rotate"></i><span>换一换 (FA)</span></div>
+                <div class="yl_ic home"><i class="iconfont icon-shouye"></i><span>首页 (iconfont)</span></div>
+                <div class="yl_ic"><i class="iconfont icon-search"></i><span>搜索 (iconfont)</span></div>
+                <div class="yl_ic fav"><i class="iconfont icon-gouwu"></i><span>购物 (iconfont)</span></div>
+                <div class="yl_ic"><i class="iconfont icon-gengduo"></i><span>更多 (iconfont)</span></div>
+            </div>
+        </div>
+
+        <!-- 速查表 -->
+        <div class="yl_section-title">速查表</div>
+        <div class="yl_section-desc">本页实际用到的全部图标及其来源、CSS 类名、示例代码。</div>
+        <div class="yl_table-wrap">
+            <table class="yl_table">
+                <thead>
+                    <tr><th>效果</th><th>类名</th><th>图标语义</th><th>示例代码</th><th>来源</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><i class="fa-solid fa-fire"></i></td><td><code>fa-solid fa-fire</code></td><td>🔥 火焰 / 热搜</td><td><code>&lt;i class="fa-solid fa-fire"&gt;&lt;/i&gt;</code></td><td>Font Awesome</td></tr>
+                    <tr><td><i class="fa-solid fa-play"></i></td><td><code>fa-solid fa-play</code></td><td>▶ 播放按钮</td><td><code>&lt;i class="fa-solid fa-play"&gt;&lt;/i&gt;</code></td><td>Font Awesome</td></tr>
+                    <tr><td><i class="fa-solid fa-play-circle"></i></td><td><code>fa-solid fa-play-circle</code></td><td>🎬 视频榜</td><td><code>&lt;i class="fa-solid fa-play-circle"&gt;&lt;/i&gt;</code></td><td>Font Awesome</td></tr>
+                    <tr><td><i class="fa-solid fa-rocket"></i></td><td><code>fa-solid fa-rocket</code></td><td>🚀 火箭 / 飙升</td><td><code>&lt;i class="fa-solid fa-rocket"&gt;&lt;/i&gt;</code></td><td>Font Awesome</td></tr>
+                    <tr><td><i class="fa-solid fa-arrows-rotate"></i></td><td><code>fa-solid fa-arrows-rotate</code></td><td>🔄 换一换 / 刷新</td><td><code>&lt;i class="fa-solid fa-arrows-rotate"&gt;&lt;/i&gt;</code></td><td>Font Awesome</td></tr>
+                    <tr><td><i class="fa-solid fa-arrow-trend-up"></i></td><td><code>fa-solid fa-arrow-trend-up</code></td><td>📈 涨 / 上升</td><td><code>&lt;i class="fa-solid fa-arrow-trend-up"&gt;&lt;/i&gt;</code></td><td>Font Awesome</td></tr>
+                    <tr><td><i class="fa-solid fa-arrow-trend-down"></i></td><td><code>fa-solid fa-arrow-trend-down</code></td><td>📉 跌 / 下降</td><td><code>&lt;i class="fa-solid fa-arrow-trend-down"&gt;&lt;/i&gt;</code></td><td>Font Awesome</td></tr>
+                    <tr><td><i class="fa-solid fa-table-columns"></i></td><td><code>fa-solid fa-table-columns</code></td><td>三栏同览</td><td><code>&lt;i class="fa-solid fa-table-columns"&gt;&lt;/i&gt;</code></td><td>Font Awesome</td></tr>
+                    <tr><td><i class="fa-solid fa-chevron-right"></i></td><td><code>fa-solid fa-chevron-right</code></td><td>右箭头</td><td><code>&lt;i class="fa-solid fa-chevron-right"&gt;&lt;/i&gt;</code></td><td>Font Awesome</td></tr>
+                    <tr><td><i class="iconfont icon-shouye"></i></td><td><code>iconfont icon-shouye</code></td><td>🏠 首页</td><td><code>&lt;i class="iconfont icon-shouye"&gt;&lt;/i&gt;</code></td><td>iconfont</td></tr>
+                    <tr><td><i class="iconfont icon-search"></i></td><td><code>iconfont icon-search</code></td><td>🔍 搜索</td><td><code>&lt;i class="iconfont icon-search"&gt;&lt;/i&gt;</code></td><td>iconfont</td></tr>
+                    <tr><td><i class="iconfont icon-gouwu"></i></td><td><code>iconfont icon-gouwu</code></td><td>🛒 购物</td><td><code>&lt;i class="iconfont icon-gouwu"&gt;&lt;/i&gt;</code></td><td>iconfont</td></tr>
+                    <tr><td><i class="iconfont icon-gengduo"></i></td><td><code>iconfont icon-gengduo</code></td><td>⋯ 更多</td><td><code>&lt;i class="iconfont icon-gengduo"&gt;&lt;/i&gt;</code></td><td>iconfont</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 页脚 -->
+        <div class="yl_footer">
+            宁瑞祥 · 计算机23005 · 2001010503 · 16-3 热搜榜聚合 UI
+        </div>
+    </div>
+
+    <script>
+    /* ===== 数据源 ===== */
+    var yl_hotData = [
+        "SpaceX 星舰第六次试飞成功",
+        "国产大飞机 C919 完成首次跨洋飞行",
+        "95 后天文数字彩礼引热议",
+        "GDP 十强城市最新出炉",
+        "知名导演新片登顶全球票房",
+        "宜家餐厅消费座无虚席",
+        "职场裁员引争议",
+        "超市摔成骨折索赔 4 万",
+        "男子网购鸡翅吃进 ICU",
+        "多所高校出现这种「小房子」",
+        "人体真的需要定期排毒吗",
+        "乌克兰粮食协议续签"
+    ];
+    var yl_videoData = [
+        { t: "男子网购鸡翅吃进 ICU", l: "04:32", v: "123万" },
+        { t: "山下有松回应被造谣日本品牌", l: "02:18", v: "89万" },
+        { t: "重庆一网格员获通报表扬", l: "01:45", v: "56万" },
+        { t: "58 斤青鱼把钓鱼者拽下水", l: "03:52", v: "201万" },
+        { t: "摊主用杀虫剂喷水果", l: "02:09", v: "78万" },
+        { t: "当事人回应 150 万开酒吧倒闭", l: "05:17", v: "44万" },
+        { t: "吃剩饭菜可能中毒医生科普", l: "04:22", v: "112万" },
+        { t: "深圳水贝黄金市场人气火爆", l: "03:05", v: "67万" }
+    ];
+    var yl_surgeData = [
+        { t: "多所高校出现这种「小房子」", d: 1280 },
+        { t: "妈妈称男孩 1 米 75 没法见人", d: 980 },
+        { t: "陌生电话接通量跌 70%", d: -720 },
+        { t: "拆外卖盒被割伤左手缝 6 针", d: 640 },
+        { t: "39 岁中国籍老板在泰遇害", d: 512 },
+        { t: "医生查豆包不必谈之色变", d: -320 },
+        { t: "男子隔空吐口水触高压线身亡", d: 488 },
+        { t: "中国造爆单订单排到明年", d: 360 },
+        { t: "误食洗衣凝珠嘴巴直冒泡", d: -210 },
+        { t: "用米饭炒菜给丈夫做生日蛋糕", d: 198 },
+        { t: "全国进入中度老龄化阶段", d: 22 }
+    ];
+
+    /* ===== 工具函数 ===== */
+    function yl_shuffle(arr) {
+        var a = arr.slice();
+        for (var i = a.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var t = a[i]; a[i] = a[j]; a[j] = t;
+        }
+        return a;
+    }
+    function yl_pickShuffled(src, n) {
+        return yl_shuffle(src).slice(0, n);
+    }
+
+    /* ===== 渲染热搜榜 ===== */
+    function yl_renderHot() {
+        var el = document.getElementById("yl_hot-list");
+        var picked = yl_pickShuffled(yl_hotData, 12);
+        var html = "";
+        for (var i = 0; i < picked.length; i++) {
+            var tag = "";
+            if (i < 3) tag = '<span class="yl_dot hot">热</span>';
+            else if (Math.random() < 0.35) tag = '<span class="yl_dot new">新</span>';
+            html += '<li data-yl-idx="' + i + '">'
+                  + '<span class="yl_num">' + (i + 1) + '</span>'
+                  + '<span class="yl_title">' + picked[i] + tag + '</span>'
+                  + '<span class="yl_extra"><i class="fa-solid fa-angle-right"></i></span>'
+                  + '</li>';
+        }
+        el.innerHTML = html;
+    }
+
+    /* ===== 渲染视频榜 ===== */
+    function yl_renderVideo() {
+        var el = document.getElementById("yl_video-list");
+        var imgs = ["img/1.png","img/2.png","img/3.png","img/4.png","img/5.png","img/6.png","img/7.png","img/8.png"];
+        var picked = yl_pickShuffled(yl_videoData, 8);
+        var html = "";
+        for (var i = 0; i < picked.length; i++) {
+            var d = picked[i];
+            var thumb = imgs[i % imgs.length];
+            html += '<div class="yl_vid">'
+                  + '<span class="yl_vid-num">' + (i + 1) + '</span>'
+                  + '<div class="yl_vid-thumb">'
+                  +   '<img src="' + thumb + '" alt="">'
+                  +   '<span class="yl_play"><i class="fa-solid fa-play"></i></span>'
+                  +   '<span class="yl_len">' + d.l + '</span>'
+                  + '</div>'
+                  + '<div class="yl_vid-info">'
+                  +   '<h4>' + d.t + '</h4>'
+                  +   '<div class="yl_vid-meta"><i class="fa-solid fa-eye"></i>' + d.v + ' 播放</div>'
+                  + '</div>'
+                  + '</div>';
+        }
+        el.innerHTML = html;
+    }
+
+    /* ===== 渲染飙升榜 ===== */
+    function yl_renderSurge() {
+        var el = document.getElementById("yl_surge-list");
+        var picked = yl_pickShuffled(yl_surgeData, 11);
+        var html = "";
+        for (var i = 0; i < picked.length; i++) {
+            var d = picked[i];
+            var up = d.d >= 0;
+            html += '<li data-yl-idx="' + i + '">'
+                  + '<span class="yl_num">' + (i + 1) + '</span>'
+                  + '<span class="yl_title">' + d.t + '</span>'
+                  + '<span class="yl_delta ' + (up ? "up" : "down") + '">'
+                  +   '<i class="fa-solid fa-' + (up ? "arrow-trend-up" : "arrow-trend-down") + '"></i>'
+                  +   Math.abs(d.d)
+                  + '</span>'
+                  + '</li>';
+        }
+        el.innerHTML = html;
+    }
+
+    /* ===== 换一换按钮：spin 动画 + 重渲染 ===== */
+    document.body.addEventListener("click", function (e) {
+        var btn = e.target.closest(".yl_refresh");
+        if (!btn) return;
+        btn.classList.add("spinning");
+        setTimeout(function () { btn.classList.remove("spinning"); }, 700);
+        var which = btn.getAttribute("data-yl-refresh");
+        if (which === "hot") yl_renderHot();
+        else if (which === "video") yl_renderVideo();
+        else if (which === "surge") yl_renderSurge();
+        else { yl_renderHot(); yl_renderVideo(); yl_renderSurge(); }
+    });
+
+    /* ===== Tab 切换 ===== */
+    document.body.addEventListener("click", function (e) {
+        var tab = e.target.closest(".yl_tabs button");
+        if (!tab) return;
+        document.querySelectorAll(".yl_tabs button").forEach(function (b) { b.classList.remove("active"); });
+        tab.classList.add("active");
+        var k = tab.getAttribute("data-yl-tab");
+        var cols = document.querySelectorAll(".yl_grid .yl_card");
+        cols.forEach(function (c) {
+            var cur = c.getAttribute("data-yl-col");
+            if (k === "all") { c.style.display = ""; }
+            else { c.style.display = (cur === k) ? "" : "none"; }
+        });
+        var grid = document.getElementById("yl_grid");
+        if (k === "all") { grid.style.gridTemplateColumns = ""; }
+        else { grid.style.gridTemplateColumns = "1fr"; }
+    });
+
+    /* ===== 列表项点击高亮 ===== */
+    document.body.addEventListener("click", function (e) {
+        var li = e.target.closest("#yl_hot-list li, #yl_surge-list li");
+        if (!li) return;
+        var ul = li.parentElement;
+        ul.querySelectorAll("li").forEach(function (x) { x.classList.remove("active"); });
+        li.classList.add("active");
+    });
+
+    /* ===== 初始化 ===== */
+    yl_renderHot();
+    yl_renderVideo();
+    yl_renderSurge();
+    </script>
+</body>
+</html>
