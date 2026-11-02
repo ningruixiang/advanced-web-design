@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promise · async/await 包饺子流程 · 宁瑞祥 · 计算机23005</title>
+    <style>
+        :root {
+            --yl-blue: #007aff;
+            --yl-teal: #5ac8fa;
+            --yl-purple: #af52de;
+            --yl-green: #34c759;
+            --yl-orange: #ff9500;
+            --yl-red: #ff3b30;
+            --yl-ink: #1d1d1f;
+            --yl-sub: #6e6e73;
+            --yl-line: rgba(0,0,0,.06);
+            --yl-mono: "SF Mono", Menlo, Consolas, monospace;
+            --yl-ease: cubic-bezier(.25,.46,.45,.94);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(180deg, #fff5f0 0%, #ffffff 40%, #fafbff 100%);
+            color: var(--yl-ink); min-height: 100vh; line-height: 1.6;
+        }
+
+        .yl_hero {
+            position: relative; padding: 40px 20px 30px; text-align: center;
+            background: linear-gradient(135deg, #ff9500 0%, #ff3b30 50%, #af52de 100%);
+            color: #fff; overflow: hidden;
+        }
+        .yl_hero::before {
+            content: ""; position: absolute; inset: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(255,255,255,.18) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, rgba(255,255,255,.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .yl_hero h1 { position: relative; font-size: clamp(1.6em, 4vw, 2.2em); font-weight: 700; }
+        .yl_hero p { position: relative; margin-top: 6px; font-size: .9em; opacity: .92; }
+
+        .yl_wrap { max-width: 1100px; margin: 0 auto; padding: 20px 16px 50px; }
+
+        /* 流水线图 */
+        .yl_pipeline {
+            background: #fff; border-radius: 16px; overflow: hidden;
+            box-shadow: 0 4px 18px rgba(0,0,0,.06); border: 1px solid var(--yl-line);
+            margin-bottom: 16px;
+        }
+        .yl_steps {
+            display: grid; grid-template-columns: repeat(5, 1fr);
+            gap: 0; position: relative; padding: 20px 10px 10px;
+        }
+        @media (max-width: 860px) { .yl_steps { grid-template-columns: repeat(2, 1fr); } }
+
+        .yl_step {
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+            position: relative; padding: 10px 8px;
+            opacity: .4;
+            transition: opacity .3s, transform .3s;
+        }
+        .yl_step.active { opacity: 1; transform: translateY(-2px); }
+        .yl_step.done { opacity: 1; }
+        .yl_step.done .yl_step-num { background: linear-gradient(135deg, var(--yl-green), var(--yl-blue)); }
+        .yl_step-num {
+            width: 44px; height: 44px; border-radius: 50%;
+            background: linear-gradient(135deg, #d1d1d6, #e5e5ea);
+            color: #fff; font-weight: 700; font-size: 1.1em;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,.12);
+            transition: background .3s, box-shadow .3s, transform .3s;
+        }
+        .yl_step.active .yl_step-num {
+            background: linear-gradient(135deg, var(--yl-orange), var(--yl-red));
+            animation: yl_pulse 1.2s ease-in-out infinite;
+        }
+        @keyframes yl_pulse {
+            0%, 100% { box-shadow: 0 3px 10px rgba(255,59,48,.4); }
+            50% { box-shadow: 0 3px 24px rgba(255,59,48,.7); }
+        }
+        .yl_step-title { font-size: .9em; font-weight: 500; color: var(--yl-ink); text-align: center; }
+        .yl_step.active .yl_step-title { font-weight: 700; }
+        .yl_step-time { font-size: .76em; color: var(--yl-sub); font-family: var(--yl-mono); }
+
+        /* 并行分支 */
+        .yl_parallel {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+            padding: 12px 14px; background: #faf7ff; border-top: 1px solid var(--yl-line);
+        }
+        .yl_parallel .yl_p-step {
+            background: #fff; border-radius: 10px; padding: 12px;
+            border: 1px solid var(--yl-line);
+            display: flex; flex-direction: column; gap: 6px;
+            transition: all .3s var(--yl-ease);
+        }
+        .yl_parallel .yl_p-step.active {
+            border-color: var(--yl-orange); box-shadow: 0 4px 14px rgba(255,149,0,.18);
+        }
+        .yl_parallel .yl_p-step.done {
+            border-color: var(--yl-green); background: #f0fbf2; box-shadow: 0 4px 14px rgba(52,199,89,.15);
+        }
+        .yl_parallel .yl_p-head {
+            display: flex; align-items: center; gap: 8px; font-size: .86em; font-weight: 600;
+        }
+        .yl_parallel .yl_p-bar { height: 4px; border-radius: 2px; background: #e5e5ea; overflow: hidden; }
+        .yl_parallel .yl_p-bar > div { height: 100%; width: 0%; transition: width .2s linear; }
+        .yl_parallel .yl_p-step.active .yl_p-bar > div { background: linear-gradient(90deg, var(--yl-orange), var(--yl-red)); }
+        .yl_parallel .yl_p-step.done .yl_p-bar > div { background: linear-gradient(90deg, var(--yl-green), var(--yl-blue)); width: 100% !important; }
+        .yl_parallel .yl_p-time { font-size: .74em; color: var(--yl-sub); font-family: var(--yl-mono); }
+        .yl_parallel .yl_p-tag { font-size: .64em; padding: 2px 6px; border-radius: 4px; background: #eaf3ff; color: var(--yl-blue); }
+
+        /* 时间线箭头（在 CSS 里画一条横线） */
+        .yl_steps::before {
+            content: ""; position: absolute;
+            left: calc(10% + 22px); right: calc(10% + 22px); top: 42px;
+            height: 3px; background: linear-gradient(90deg, #d1d1d6, #e5e5ea);
+            border-radius: 2px; z-index: 0;
+        }
+        .yl_step { z-index: 1; }
+
+        /* 控制区 */
+        .yl_controls {
+            display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; align-items: center;
+        }
+        .yl_controls button {
+            padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer;
+            font-size: .86em; font-weight: 600; color: #fff;
+            transition: all .25s var(--yl-ease);
+            background: linear-gradient(135deg, #007aff, #5ac8fa);
+            box-shadow: 0 3px 10px rgba(0,122,255,.3);
+        }
+        .yl_controls button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 5px 14px rgba(0,122,255,.4); }
+        .yl_controls button.danger {
+            background: linear-gradient(135deg, #ff3b30, #ff9500); box-shadow: 0 3px 10px rgba(255,59,48,.3);
+        }
+        .yl_controls button:disabled { opacity: .5; cursor: not-allowed; }
+        .yl_controls label {
+            font-size: .8em; color: var(--yl-sub); font-family: var(--yl-mono); margin-left: 10px;
+        }
+        .yl_controls input[type="number"] {
+            width: 60px; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--yl-line);
+            font-family: var(--yl-mono); font-size: .82em; outline: none;
+        }
+        .yl_controls input[type="number"]:focus { border-color: var(--yl-blue); }
+
+        /* 控制台 */
+        .yl_console {
+            background: #1d1d1f; color: #d1d1d6;
+            font-family: var(--yl-mono); font-size: .78em; line-height: 1.75;
+            padding: 14px; height: 280px; overflow: auto; border-radius: 12px;
+            border: 1px solid var(--yl-line); margin-top: 14px;
+        }
+        .yl_console .yl_line { padding: 2px 0; }
+        .yl_console .yl_line .yl-t { color: var(--yl-teal); margin-right: 8px; }
+        .yl_console .yl_line.info { color: var(--yl-teal); }
+        .yl_console .yl_line.start { color: var(--yl-orange); font-weight: 600; }
+        .yl_console .yl_line.ok { color: var(--yl-green); font-weight: 600; }
+        .yl_console .yl_line.par { color: var(--yl-purple); }
+        .yl_console::-webkit-scrollbar { width: 6px; }
+        .yl_console::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 3px; }
+
+        /* 代码示例 */
+        .yl_section-title {
+            font-size: 1.3em; font-weight: 600; padding-left: 14px; border-left: 4px solid var(--yl-purple);
+            margin: 24px 0 6px;
+        }
+        .yl_section-desc { color: var(--yl-sub); font-size: .9em; padding-left: 18px; margin-bottom: 12px; }
+        pre.yl_code {
+            font-family: var(--yl-mono); font-size: .78em; line-height: 1.75;
+            background: #1d1d1f; color: #f5f5f7; padding: 14px 16px; border-radius: 12px;
+            overflow-x: auto;
+        }
+        pre.yl_code .c { color: #8e8e93; font-style: italic; }
+        pre.yl_code .k { color: #5ac8fa; }
+        pre.yl_code .fn { color: #bf5af2; }
+        pre.yl_code .s { color: #ffd60a; }
+        pre.yl_code .n { color: #ff9f0a; }
+
+        /* 速查表 */
+        table.yl_tbl {
+            width: 100%; border-collapse: collapse; font-size: .84em; background: #fff;
+            border-radius: 14px; overflow: hidden; border: 1px solid var(--yl-line);
+            margin-top: 10px;
+        }
+        table.yl_tbl th, table.yl_tbl td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--yl-line); }
+        table.yl_tbl th { background: #faf7ff; font-weight: 600; }
+        table.yl_tbl tr:hover td { background: #fafbff; }
+        table.yl_tbl code { font-family: var(--yl-mono); background: #f5f7fa; color: var(--yl-blue); padding: 1px 6px; border-radius: 4px; font-size: .82em; }
+
+        .yl_footer {
+            text-align: center; padding: 28px 20px; color: var(--yl-sub);
+            font-size: .84em; border-top: 1px solid var(--yl-line);
+            background: rgba(255,255,255,.6); margin-top: 24px;
+        }
+    </style>
+</head>
+<body>
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  建立时间：2026-11-02 14:32:28
+  使用的大模型：DeepSeek-V4.1-Flash
+  功能：Promise + async/await 包饺子流程可视化 —— 串行买/取原料 → Promise.all 并行和面/和馅 → 包饺子 → 吃饺子，附 Promise 三种状态 / 链式调用 / race / allSettled 速查
+-->
+
+    <div class="yl_hero">
+        <h1>🥟 Promise & async/await 包饺子</h1>
+        <p>串行依赖 + Promise.all 并行依赖 —— 一个动画看懂异步流程</p>
+    </div>
+
+    <div class="yl_wrap">
+
+        <!-- 流水线 -->
+        <div class="yl_pipeline">
+            <div class="yl_steps">
+                <div class="yl_step" data-yl-step="1">
+                    <div class="yl_step-num">1</div>
+                    <div class="yl_step-title">🛒 买原料</div>
+                    <div class="yl_step-time" data-yl-time="1">—</div>
+                </div>
+                <div class="yl_step" data-yl-step="2">
+                    <div class="yl_step-num">2</div>
+                    <div class="yl_step-title">🏠 取原料</div>
+                    <div class="yl_step-time" data-yl-time="2">—</div>
+                </div>
+                <div class="yl_step" data-yl-step="3">
+                    <div class="yl_step-num">3</div>
+                    <div class="yl_step-title">🍚 和面 + 和馅</div>
+                    <div class="yl_step-time" data-yl-time="3">并行</div>
+                </div>
+                <div class="yl_step" data-yl-step="4">
+                    <div class="yl_step-num">4</div>
+                    <div class="yl_step-title">🥟 包饺子</div>
+                    <div class="yl_step-time" data-yl-time="4">—</div>
+                </div>
+                <div class="yl_step" data-yl-step="5">
+                    <div class="yl_step-num">5</div>
+                    <div class="yl_step-title">🍜 吃饺子</div>
+                    <div class="yl_step-time" data-yl-time="5">—</div>
+                </div>
+            </div>
+
+            <!-- 并行分支 -->
+            <div class="yl_parallel">
+                <div class="yl_p-step" data-yl-par="he">
+                    <div class="yl_p-head">🥣 和面 <span class="yl_p-tag">Promise.all 之一</span></div>
+                    <div class="yl_p-bar"><div id="yl-he-bar"></div></div>
+                    <div class="yl_p-time" id="yl-he-time">0 ms</div>
+                </div>
+                <div class="yl_p-step" data-yl-par="xi">
+                    <div class="yl_p-head">🥩 和馅 <span class="yl_p-tag">Promise.all 之一</span></div>
+                    <div class="yl_p-bar"><div id="yl-xi-bar"></div></div>
+                    <div class="yl_p-time" id="yl-xi-time">0 ms</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 控制区 -->
+        <div class="yl_controls">
+            <button id="yl_start">▶ 开始包饺子流程</button>
+            <button class="danger" id="yl_reset">🔄 重置</button>
+            <label>速度倍率</label>
+            <input type="number" id="yl_speed" value="1" min="0.2" max="5" step="0.2">
+            <label>x</label>
+        </div>
+
+        <!-- 控制台 -->
+        <div class="yl_console" id="yl_console"></div>
+
+        <!-- async/await 核心代码 -->
+        <div class="yl_section-title">async / await 核心代码（和动画一一对应）</div>
+        <div class="yl_section-desc">下面就是驱动上面动画的真实代码，Promise 工厂 + async 主流程 + Promise.all 并行，没有任何魔法。</div>
+
+<pre class="yl_code"><span class="yl_c">// ① 通用：把 setTimeout 包装成 Promise（生产中的标准套路）</span>
+<span class="yl_k">function</span> <span class="yl_fn">delay</span>(ms, label) {
+  <span class="yl_k">return new</span> <span class="yl_fn">Promise</span>(resolve => {
+    <span class="yl_fn">setTimeout</span>(() => <span class="yl_fn">resolve</span>(label + <span class="yl_s">" ✔"</span>), ms);
+  });
+}
+
+<span class="yl_c">// ② 串行步骤：前一个 resolve 才会执行后一个</span>
+<span class="yl_k">async function</span> <span class="yl_fn">makeDumplings</span>() {
+  <span class="yl_k">let</span> start = performance.now();
+  <span class="yl_k">const</span> speed = document.<span class="yl_fn">getElementById</span>(<span class="yl_s">"#yl_speed"</span>).value;
+
+  <span class="yl_k">const</span> bought  = <span class="yl_k">await</span> <span class="yl_fn">delay</span>(<span class="yl_n">1500</span> * speed, <span class="yl_s">"买原料"</span>);     <span class="yl_c">// 步骤 1</span>
+  <span class="yl_k">const</span> got     = <span class="yl_k">await</span> <span class="yl_fn">delay</span>(<span class="yl_n">800</span>  * speed, <span class="yl_s">"取原料"</span>);      <span class="yl_c">// 步骤 2</span>
+
+  <span class="yl_c">// ③ 并行：和面和馅同时开始，全部完成才往下走</span>
+  <span class="yl_k">const</span> [ dough, filling ] = <span class="yl_k">await</span> Promise.<span class="yl_fn">all</span>([
+    <span class="yl_fn">delay</span>(<span class="yl_n">2000</span> * speed, <span class="yl_s">"和面"</span>),
+    <span class="yl_fn">delay</span>(<span class="yl_n">1600</span> * speed, <span class="yl_s">"和馅"</span>),
+  ]);
+
+  <span class="yl_k">const</span> wrapped = <span class="yl_k">await</span> <span class="yl_fn">delay</span>(<span class="yl_n">1800</span> * speed, <span class="yl_s">"包饺子"</span>);  <span class="yl_c">// 步骤 4</span>
+  <span class="yl_k">const</span> eaten   = <span class="yl_k">await</span> <span class="yl_fn">delay</span>(<span class="yl_n">1200</span> * speed, <span class="yl_s">"吃饺子"</span>);  <span class="yl_c">// 步骤 5</span>
+
+  <span class="yl_k">const</span> total = performance.now() - start;
+  console.<span class="yl_fn">log</span>(<span class="yl_s">"🥟 完成！总耗时:"</span>, total.toFixed(<span class="yl_n">0</span>) + <span class="yl_s">"ms"</span>);
+}
+
+<span class="yl_fn">makeDumplings</span>();</pre>
+
+        <!-- Promise 速查表 -->
+        <div class="yl_section-title">Promise 速查表</div>
+        <div class="yl_section-desc">6 种组合 / 静态方法 / 状态切换，一句话记住。</div>
+        <table class="yl_tbl">
+            <thead><tr><th>API</th><th>作用</th><th>何时 resolve / reject</th></tr></thead>
+            <tbody>
+                <tr><td><code>new Promise(fn)</code></td><td>创建异步对象，fn 同步执行</td><td><code>resolve(val)</code> / <code>reject(err)</code></td></tr>
+                <tr><td><code>.then(onFulfilled, onRejected)</code></td><td>接结果 / 接错误</td><td>前一个 Promise 结束后触发</td></tr>
+                <tr><td><code>.catch(onRejected)</code></td><td>接错误的语法糖</td><td>等价于 <code>.then(null, fn)</code></td></tr>
+                <tr><td><code>.finally(fn)</code></td><td>无论成败都执行</td><td>不改变 Promise 状态，常用于清理 loading</td></tr>
+                <tr><td><code>Promise.all([p1, p2])</code></td><td>并行，等全部成功才 resolve</td><td>一个失败立刻 reject（快速失败）</td></tr>
+                <tr><td><code>Promise.allSettled([...])</code></td><td>并行，不管成败都走完</td><td>返回 [{status, value/reason}, ...]</td></tr>
+                <tr><td><code>Promise.race([...])</code></td><td>并行，谁先结束就跟随谁</td><td>首个 settle 的 Promise 决定状态</td></tr>
+                <tr><td><code>Promise.any([...])</code></td><td>并行，首个成功就 resolve</td><td>全部失败才 reject（AggregateError）</td></tr>
+                <tr><td><code>async function fn()</code></td><td>async 声明，函数自动返回 Promise</td><td>函数体 throw → reject；return → resolve</td></tr>
+                <tr><td><code>await expr</code></td><td>把 Promise 拆成同步代码</td><td>只在 async 函数内可用</td></tr>
+            </tbody>
+        </table>
+
+        <div class="yl_footer">宁瑞祥 · 计算机23005 · 2001010503 · 17-6 Promise + async/await</div>
+    </div>
+
+    <script>
+    /* ===== 日志 ===== */
+    function yl_ts() {
+        var d = new Date();
+        return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2) + ":" + ("0" + d.getSeconds()).slice(-2) + "." + ("00" + d.getMilliseconds()).slice(-3);
+    }
+    function yl_log(kind, text) {
+        var box = document.getElementById("yl_console");
+        var line = '<div class="yl_line ' + kind + '"><span class="yl-t">[' + yl_ts() + ']</span>' + yl_escape(text) + '</div>';
+        box.innerHTML += line;
+        box.scrollTop = box.scrollHeight;
+        console.log("[" + yl_ts() + "]", text);
+    }
+    function yl_escape(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+    /* ===== 步骤动画控制 ===== */
+    function yl_setStep(num, state, time) {
+        var el = document.querySelector('.yl_step[data-yl-step="' + num + '"]');
+        if (!el) return;
+        el.classList.remove("active", "done");
+        if (state === "active") el.classList.add("active");
+        else if (state === "done") el.classList.add("done");
+        if (time !== undefined) {
+            var tEl = el.querySelector('[data-yl-time="' + num + '"]');
+            if (tEl) tEl.textContent = time;
+        }
+    }
+    function yl_setPar(which, state, pct, t) {
+        var step = document.querySelector('.yl_p-step[data-yl-par="' + which + '"]');
+        if (!step) return;
+        step.classList.remove("active", "done");
+        if (state === "active") step.classList.add("active");
+        else if (state === "done") step.classList.add("done");
+        step.querySelector("div").style.width = (pct != null ? pct + "%" : "");
+        if (t) {
+            var timeEl = document.getElementById("yl-" + which + "-time");
+            if (timeEl) timeEl.textContent = t;
+        }
+    }
+
+    /* ===== 通用：delay Promise ===== */
+    function ylDelay(ms, label, opts) {
+        opts = opts || {};
+        var start = performance.now();
+        var ui = opts.ui; // { el: fn to set state, barEl, timeEl, which, num }
+        return new Promise(function (resolve) {
+            var timer;
+            var tick = function () {
+                var elapsed = performance.now() - start;
+                var pct = Math.min(100, (elapsed / ms) * 100);
+                if (opts.which) {
+                    yl_setPar(opts.which, "active", pct, elapsed.toFixed(0) + " ms");
+                }
+                if (opts.num) {
+                    // 步骤条的 active 保持
+                }
+                if (elapsed >= ms) {
+                    clearInterval(timer);
+                    if (opts.which) yl_setPar(opts.which, "done", 100, elapsed.toFixed(0) + " ms ✔");
+                    if (opts.num) yl_setStep(opts.num, "done", elapsed.toFixed(0) + " ms");
+                    resolve({ label: label, ms: elapsed });
+                }
+            };
+            tick();
+            timer = setInterval(tick, 30);
+        });
+    }
+
+    /* ===== 主流程（async/await） ===== */
+    var yl_running = false;
+    async function yl_run() {
+        if (yl_running) return;
+        yl_running = true;
+        document.getElementById("yl_start").disabled = true;
+        document.getElementById("yl_reset").disabled = true;
+        document.getElementById("yl_console").innerHTML = "";
+
+        var speed = parseFloat(document.getElementById("yl_speed").value) || 1;
+
+        yl_log("info", "🚀 包饺子流程启动，速度倍率 = " + speed + "x");
+        yl_log("info", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+        try {
+            // 1. 买原料
+            yl_setStep(1, "active");
+            yl_log("start", "① 买原料开始（1500ms × " + speed + "）");
+            var bought = await ylDelay(1500 * speed, "买原料", { num: 1 });
+            yl_log("ok", "✔ 买原料完成，耗时 " + bought.ms.toFixed(0) + " ms");
+
+            // 2. 取原料
+            yl_setStep(2, "active");
+            yl_log("start", "② 取原料开始（800ms × " + speed + "）");
+            var got = await ylDelay(800 * speed, "取原料", { num: 2 });
+            yl_log("ok", "✔ 取原料完成，耗时 " + got.ms.toFixed(0) + " ms");
+
+            // 3. 并行：和面 + 和馅
+            yl_setStep(3, "active");
+            yl_log("par", "③ Promise.all 并行启动：和面 + 和馅");
+            var t0 = performance.now();
+            var results = await Promise.all([
+                ylDelay(2000 * speed, "和面", { which: "he" }),
+                ylDelay(1600 * speed, "和馅", { which: "xi" })
+            ]);
+            var parMs = performance.now() - t0;
+            yl_setStep(3, "done", parMs.toFixed(0) + " ms（并行）");
+            yl_log("ok", "✔ 和面 + 和馅 都完成，实际耗时 " + parMs.toFixed(0) + " ms（串行理论 " + (2000 + 1600).toFixed(0) + " ms × " + speed + "）");
+
+            // 4. 包饺子
+            yl_setStep(4, "active");
+            yl_log("start", "④ 包饺子开始（1800ms × " + speed + "）");
+            var wrapped = await ylDelay(1800 * speed, "包饺子", { num: 4 });
+            yl_log("ok", "✔ 包饺子完成，耗时 " + wrapped.ms.toFixed(0) + " ms");
+
+            // 5. 吃饺子
+            yl_setStep(5, "active");
+            yl_log("start", "⑤ 吃饺子开始（1200ms × " + speed + "）");
+            var eaten = await ylDelay(1200 * speed, "吃饺子", { num: 5 });
+            yl_log("ok", "✔ 吃饺子完成，耗时 " + eaten.ms.toFixed(0) + " ms");
+
+            var total = (bought.ms + got.ms + parMs + wrapped.ms + eaten.ms).toFixed(0);
+            yl_log("info", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            yl_log("ok", "🎉 全部完成！理论串行耗时 " + total + " ms");
+            yl_log("par", "💡 对比：如果和面和馅串行走，总耗时是 " + (bought.ms + got.ms + (2000 + 1600) * speed + wrapped.ms + eaten.ms).toFixed(0) + " ms —— Promise.all 帮我们省了 " + ((2000 + 1600) * speed - parMs).toFixed(0) + " ms");
+        } catch (e) {
+            yl_log("err", "✘ 流程被中断：" + e.message);
+        } finally {
+            yl_running = false;
+            document.getElementById("yl_start").disabled = false;
+            document.getElementById("yl_reset").disabled = false;
+        }
+    }
+
+    /* ===== 重置 ===== */
+    function yl_reset() {
+        // 步骤条
+        for (var i = 1; i <= 5; i++) yl_setStep(i, "", "—");
+        yl_setStep(3, "active", "并行");
+        // 并行
+        yl_setPar("he", "", 0, "0 ms");
+        yl_setPar("xi", "", 0, "0 ms");
+        // 控制台
+        document.getElementById("yl_console").innerHTML = "";
+        yl_log("info", "🔄 已重置，点「▶ 开始」重新跑流程");
+    }
+
+    document.getElementById("yl_start").addEventListener("click", yl_run);
+    document.getElementById("yl_reset").addEventListener("click", yl_reset);
+    yl_reset();
+    </script>
+</body>
+</html>

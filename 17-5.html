@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>两种定时器 · 宁瑞祥 · 计算机23005</title>
+    <style>
+        :root {
+            --yl-blue: #007aff;
+            --yl-teal: #5ac8fa;
+            --yl-purple: #af52de;
+            --yl-green: #34c759;
+            --yl-orange: #ff9500;
+            --yl-red: #ff3b30;
+            --yl-ink: #1d1d1f;
+            --yl-sub: #6e6e73;
+            --yl-line: rgba(0,0,0,.06);
+            --yl-mono: "SF Mono", Menlo, Consolas, monospace;
+            --yl-ease: cubic-bezier(.25,.46,.45,.94);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 40%, #fafbff 100%);
+            color: var(--yl-ink); min-height: 100vh; line-height: 1.6;
+        }
+
+        .yl_hero {
+            position: relative; padding: 40px 20px 30px; text-align: center;
+            background: linear-gradient(135deg, #34c759 0%, #007aff 50%, #af52de 100%);
+            color: #fff; overflow: hidden;
+        }
+        .yl_hero::before {
+            content: ""; position: absolute; inset: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(255,255,255,.18) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, rgba(255,255,255,.12) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .yl_hero h1 { position: relative; font-size: clamp(1.6em, 4vw, 2.2em); font-weight: 700; }
+        .yl_hero p { position: relative; margin-top: 6px; font-size: .9em; opacity: .92; }
+
+        .yl_wrap { max-width: 1100px; margin: 0 auto; padding: 20px 16px 50px; }
+
+        /* 两种定时器对比 */
+        .yl_compare {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;
+        }
+        @media (max-width: 780px) { .yl_compare { grid-template-columns: 1fr; } }
+        .yl_card {
+            background: #fff; border-radius: 16px; overflow: hidden;
+            box-shadow: 0 4px 18px rgba(0,0,0,.06); border: 1px solid var(--yl-line);
+            display: flex; flex-direction: column;
+        }
+        .yl_card .yl_card-head {
+            padding: 14px 18px; background: #faf7ff; border-bottom: 1px solid var(--yl-line);
+            display: flex; align-items: center; gap: 12px;
+        }
+        .yl_card .yl_card-head .yl_tag {
+            padding: 3px 10px; border-radius: 6px; font-size: .74em; font-weight: 600;
+            color: #fff;
+        }
+        .yl_card .yl_card-head.set .yl_tag { background: linear-gradient(135deg, var(--yl-green), var(--yl-blue)); }
+        .yl_card .yl_card-head.int .yl_tag { background: linear-gradient(135deg, var(--yl-orange), var(--yl-red)); }
+        .yl_card .yl_card-head h3 { font-size: 1em; font-weight: 600; }
+        .yl_card .yl_card-head code {
+            font-family: var(--yl-mono); font-size: .82em; color: var(--yl-blue);
+            margin-left: auto;
+        }
+
+        .yl_card .yl_desc {
+            padding: 12px 18px; font-size: .86em; color: var(--yl-sub);
+            background: #fafbff; border-bottom: 1px solid var(--yl-line);
+            line-height: 1.7;
+        }
+
+        /* 控制台 / 输出 */
+        .yl_console {
+            background: #1d1d1f; color: #d1d1d6;
+            font-family: var(--yl-mono); font-size: .78em; line-height: 1.7;
+            padding: 12px 14px; height: 220px; overflow: auto;
+        }
+        .yl_console .yl_line { padding: 1px 0; }
+        .yl_console .yl_line .yl-t { color: var(--yl-teal); margin-right: 8px; }
+        .yl_console .yl_line .yl-kind { font-weight: 600; margin-right: 6px; }
+        .yl_console .yl_line.info { color: var(--yl-teal); }
+        .yl_console .yl_line.ok { color: var(--yl-green); }
+        .yl_console .yl_line.warn { color: var(--yl-orange); }
+        .yl_console .yl_line.err { color: var(--yl-red); }
+        .yl_console .yl_line.kw { color: var(--yl-purple); }
+        .yl_console::-webkit-scrollbar { width: 6px; }
+        .yl_console::-webkit-scrollbar-track { background: transparent; }
+        .yl_console::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 3px; }
+
+        /* 控制按钮 */
+        .yl_ctrls {
+            display: flex; gap: 6px; padding: 12px 14px;
+            border-top: 1px solid var(--yl-line); background: #fff;
+            flex-wrap: wrap;
+        }
+        .yl_ctrls button {
+            padding: 7px 14px; border-radius: 8px; border: 1px solid var(--yl-line);
+            background: #fff; cursor: pointer; font-size: .82em;
+            color: var(--yl-sub); transition: all .2s var(--yl-ease);
+            font-family: var(--yl-mono);
+        }
+        .yl_ctrls button:hover { border-color: var(--yl-blue); color: var(--yl-blue); }
+        .yl_ctrls button.primary {
+            background: linear-gradient(135deg, #007aff, #5ac8fa); color: #fff; border: none;
+            box-shadow: 0 2px 10px rgba(0,122,255,.3);
+        }
+        .yl_ctrls button.danger {
+            background: #fff1f0; color: var(--yl-red); border-color: #ffc9c6;
+        }
+        .yl_ctrls button:disabled { opacity: .5; cursor: not-allowed; }
+        .yl_interval-controls {
+            display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+        }
+        .yl_interval-controls label {
+            font-size: .8em; color: var(--yl-sub); font-family: var(--yl-mono);
+        }
+        .yl_interval-controls input[type="number"] {
+            width: 60px; padding: 5px 8px; border: 1px solid var(--yl-line); border-radius: 6px;
+            font-family: var(--yl-mono); font-size: .8em; outline: none;
+        }
+        .yl_interval-controls input[type="number"]:focus { border-color: var(--yl-blue); }
+
+        /* 进度 / 可视化 */
+        .yl_viz {
+            display: flex; align-items: center; gap: 10px; padding: 14px 18px;
+            border-bottom: 1px solid var(--yl-line); background: #fafbff;
+        }
+        .yl_viz .yl_label {
+            font-size: .78em; color: var(--yl-sub); font-family: var(--yl-mono); min-width: 80px;
+        }
+        .yl_viz .yl_bar {
+            flex: 1; height: 8px; border-radius: 4px; background: #e5e5ea; overflow: hidden;
+        }
+        .yl_viz .yl_bar > div {
+            height: 100%; border-radius: 4px; transition: width .1s linear;
+        }
+        .yl_viz.set .yl_bar > div { background: linear-gradient(90deg, var(--yl-green), var(--yl-blue)); }
+        .yl_viz.int .yl_bar > div { background: linear-gradient(90deg, var(--yl-orange), var(--yl-red)); }
+        .yl_viz .yl_val { font-size: .78em; font-family: var(--yl-mono); color: var(--yl-ink); min-width: 40px; text-align: right; }
+
+        /* 数字展示 */
+        .yl_big-num {
+            text-align: center; padding: 16px; font-size: 2.6em; font-weight: 700;
+            font-family: var(--yl-mono); color: var(--yl-blue);
+        }
+        .yl_big-num.int { color: var(--yl-orange); }
+        .yl_big-num.set { color: var(--yl-green); }
+
+        /* 速查表 */
+        .yl_section-title {
+            font-size: 1.3em; font-weight: 600; padding-left: 14px; border-left: 4px solid var(--yl-blue);
+            margin: 20px 0 6px;
+        }
+        .yl_section-desc { color: var(--yl-sub); font-size: .9em; padding-left: 18px; margin-bottom: 14px; }
+        table.yl_tbl { width: 100%; border-collapse: collapse; font-size: .84em; background: #fff; border-radius: 14px; overflow: hidden; border: 1px solid var(--yl-line); }
+        table.yl_tbl th, table.yl_tbl td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--yl-line); }
+        table.yl_tbl th { background: #faf7ff; font-weight: 600; }
+        table.yl_tbl tr:hover td { background: #fafbff; }
+        table.yl_tbl code { font-family: var(--yl-mono); background: #f5f7fa; color: var(--yl-blue); padding: 1px 6px; border-radius: 4px; font-size: .82em; }
+
+        pre.yl_code {
+            font-family: var(--yl-mono); font-size: .78em; line-height: 1.75;
+            background: #1d1d1f; color: #f5f5f7; padding: 12px 14px; border-radius: 10px;
+            overflow-x: auto; margin-bottom: 12px;
+        }
+        pre.yl_code .c { color: #8e8e93; font-style: italic; }
+        pre.yl_code .k { color: #5ac8fa; }
+        pre.yl_code .s { color: #ffd60a; }
+        pre.yl_code .fn { color: #bf5af2; }
+        pre.yl_code .n { color: #ff9f0a; }
+
+        .yl_footer {
+            text-align: center; padding: 28px 20px; color: var(--yl-sub);
+            font-size: .84em; border-top: 1px solid var(--yl-line);
+            background: rgba(255,255,255,.6); margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  建立时间：2026-11-02 14:32:28
+  使用的大模型：DeepSeek-V4.1-Flash
+  功能：setTimeout / setInterval 两种定时器可视化对比 —— 倒计时 + 递增计数 + 控制台日志 + 进度条 + 常见坑提示
+-->
+
+    <div class="yl_hero">
+        <h1>⏱️ 两种定时器</h1>
+        <p><code>setTimeout</code> 一次性执行 · <code>setInterval</code> 周期性重复</p>
+    </div>
+
+    <div class="yl_wrap">
+
+        <div class="yl_compare">
+
+            <!-- ============ setTimeout ============ -->
+            <div class="yl_card set" data-yl-kind="set">
+                <div class="yl_card-head set">
+                    <span class="yl_tag">单次</span>
+                    <h3>setTimeout</h3>
+                    <code>setTimeout(fn, delay)</code>
+                </div>
+                <div class="yl_desc">
+                    过一段固定时间之后，<b>只执行一次</b>。常用于延迟加载、节流、动画延时启动。
+                    <br>类比：闹钟响一次就停。
+                </div>
+                <!-- 可视化区 -->
+                <div class="yl_viz set">
+                    <span class="yl_label">倒计时</span>
+                    <div class="yl_bar"><div id="yl-set-bar" style="width:0%"></div></div>
+                    <span class="yl_val" id="yl-set-val">5.0s</span>
+                </div>
+                <div class="yl_big-num set" id="yl-set-counter">—</div>
+                <!-- 控制台 -->
+                <div class="yl_console" id="yl-set-log"></div>
+                <!-- 控制 -->
+                <div class="yl_ctrls">
+                    <button class="primary" id="yl-set-start">▶ 开始 (5s)</button>
+                    <button id="yl-set-start-1">▶ 1s 后说 Hi</button>
+                    <button id="yl-set-cancel" disabled>✕ 提前取消</button>
+                    <button class="danger" id="yl-set-clear">🧹 清日志</button>
+                </div>
+            </div>
+
+            <!-- ============ setInterval ============ -->
+            <div class="yl_card int" data-yl-kind="int">
+                <div class="yl_card-head int">
+                    <span class="yl_tag">循环</span>
+                    <h3>setInterval</h3>
+                    <code>setInterval(fn, period)</code>
+                </div>
+                <div class="yl_desc">
+                    每隔一个固定时间间隔，<b>持续重复执行</b>。常用于轮询、数字跳动、进度动画。
+                    <br>类比：每秒滴答的钟表。
+                </div>
+                <!-- 可视化区 -->
+                <div class="yl_viz int">
+                    <span class="yl_label">周期进度</span>
+                    <div class="yl_bar"><div id="yl-int-bar" style="width:0%"></div></div>
+                    <span class="yl_val" id="yl-int-val">0 / 10</span>
+                </div>
+                <div class="yl_big-num int" id="yl-int-counter">0</div>
+                <!-- 控制台 -->
+                <div class="yl_console" id="yl-int-log"></div>
+                <!-- 控制 -->
+                <div class="yl_ctrls">
+                    <button class="primary" id="yl-int-start">▶ 开始</button>
+                    <button id="yl-int-stop" disabled>⏸ 停止</button>
+                    <button class="danger" id="yl-int-clear">🧹 清日志</button>
+                    <div class="yl_interval-controls">
+                        <label>间隔</label>
+                        <input type="number" id="yl-int-interval" value="500" min="50" max="5000" step="50">
+                        <label>ms</label>
+                        <label>目标</label>
+                        <input type="number" id="yl-int-target" value="10" min="1" max="999" step="1">
+                        <label>次</label>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 速查表 -->
+        <div class="yl_section-title">常见坑 & 速查表</div>
+        <div class="yl_section-desc">定时器最容易踩的 4 个坑，以及对应的 <code>clearTimeout</code> / <code>clearInterval</code> 清理方式。</div>
+
+        <pre class="yl_code"><span class="yl_c">// ❌ 坑 1：setInterval 叠加 —— 点两次 start 会开两个！
+<span class="yl_k">let</span> timer = <span class="yl_fn">setInterval</span>(fn, <span class="yl_n">1000</span>);
+<span class="yl_c">// ✅ 解决：每次新开之前先 clear 掉旧的
+<span class="yl_fn">clearInterval</span>(timer); timer = <span class="yl_fn">setInterval</span>(fn, <span class="yl_n">1000</span>);
+
+<span class="yl_c">// ❌ 坑 2：interval 不随页面 / 组件销毁自动停
+<span class="yl_k">window</span>.onbeforeunload = () => <span class="yl_fn">clearInterval</span>(timer);  <span class="yl_c">// 主动清理
+
+<span class="yl_c">// ❌ 坑 3：interval 不关心上一个回调有没有执行完（长任务叠加）
+<span class="yl_k">function</span> <span class="yl_fn">longJob</span>() { <span class="yl_k">return</span> <span class="yl_k">new</span> <span class="yl_fn">Promise</span>(r => <span class="yl_fn">setTimeout</span>(r, <span class="yl_n">2000</span>)); }
+<span class="yl_c">// ✅ 解决：递归 setTimeout 实现"串行"间隔
+<span class="yl_k">let</span> running = <span class="yl_k">false</span>;
+<span class="yl_k">function</span> <span class="yl_fn">loop</span>() {
+  <span class="yl_k">if</span> (running) <span class="yl_k">return</span>;
+  running = <span class="yl_k">true</span>;
+  <span class="yl_fn">longJob</span>().finally(() => { running = <span class="yl_k">false</span>; <span class="yl_fn">setTimeout</span>(loop, <span class="yl_n">1000</span>); });
+}
+
+<span class="yl_c">// ❌ 坑 4：this 绑定 / 闭包 —— 箭头函数救了半条命
+<span class="yl_fn">setTimeout</span>(() => <span class="yl_k">this</span>.update(), <span class="yl_n">1000</span>);  <span class="yl_c">// ✅ 箭头函数继承外层 this</span>
+<span class="yl_fn">setTimeout</span>(<span class="yl_k">this</span>.update.<span class="yl_k">bind</span>(<span class="yl_k">this</span>), <span class="yl_n">1000</span>);     <span class="yl_c">// ✅ 显式 bind</span></pre>
+
+        <table class="yl_tbl">
+            <thead><tr><th>API</th><th>作用</th><th>返回值</th><th>清理方式</th></tr></thead>
+            <tbody>
+                <tr><td><code>setTimeout(fn, ms)</code></td><td>ms 毫秒后只执行一次</td><td>timer id（数字）</td><td><code>clearTimeout(id)</code></td></tr>
+                <tr><td><code>setTimeout(fn, ms, a, b)</code></td><td>带参数的一次性执行</td><td>timer id</td><td><code>clearTimeout(id)</code></td></tr>
+                <tr><td><code>setInterval(fn, ms)</code></td><td>每隔 ms 毫秒重复执行</td><td>timer id</td><td><code>clearInterval(id)</code></td></tr>
+                <tr><td><code>setInterval(fn, ms, a, b)</code></td><td>带参数的周期性执行</td><td>timer id</td><td><code>clearInterval(id)</code></td></tr>
+                <tr><td><code>requestAnimationFrame(fn)</code></td><td>下一帧（~16ms）执行一次，浏览器自动调度</td><td>raf id</td><td><code>cancelAnimationFrame(id)</code></td></tr>
+                <tr><td><code>setTimeout(loop, 1000)</code> 递归</td><td>可控节奏的间隔（推荐代替 interval）</td><td>timer id</td><td>设标志位 / clearTimeout</td></tr>
+            </tbody>
+        </table>
+
+        <div class="yl_footer">宁瑞祥 · 计算机23005 · 2001010503 · 17-5 两种定时器</div>
+    </div>
+
+    <script>
+    /* ===== 通用 ===== */
+    function yl_ts() {
+        var d = new Date();
+        return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2) + ":" + ("0" + d.getSeconds()).slice(-2) + "." + ("00" + d.getMilliseconds()).slice(-3);
+    }
+    function yl_log(id, kind, text) {
+        var box = document.getElementById(id);
+        var line = '<div class="yl_line ' + kind + '"><span class="yl-t">[' + yl_ts() + ']</span><span class="yl-kind yl_' + kind + '">' + kind.toUpperCase() + '</span>' + yl_escape(text) + '</div>';
+        box.innerHTML += line;
+        box.scrollTop = box.scrollHeight;
+        // 控制台也同步（教学效果）
+        console["log" + (kind === "err" ? "Error" : "")]("[" + yl_ts() + "]", text);
+    }
+    function yl_escape(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+    /* ===== setTimeout ===== */
+    var yl_setTimer = null;
+    var yl_setStartTime = 0;
+    var yl_setRemain = 5000;  // 剩余 ms
+    var yl_setAnim = null;    // requestAnimationFrame 用来平滑进度条
+    var yl_setActive = false;
+
+    function yl_setStart(totalMs, label) {
+        // 先取消旧的
+        yl_setCancel("重新开始前取消旧定时器");
+        yl_setStartTime = performance.now();
+        yl_setRemain = totalMs;
+        yl_setActive = true;
+
+        var bar = document.getElementById("yl-set-bar");
+        var valEl = document.getElementById("yl-set-val");
+        var counterEl = document.getElementById("yl-set-counter");
+
+        counterEl.textContent = "倒计时中...";
+        yl_log("yl-set-log", "info", "▶ 开始 " + label + "，总时长 " + (totalMs / 1000) + "s");
+
+        // 用 rAF 更新进度条（平滑）
+        function anim() {
+            if (!yl_setActive) return;
+            var elapsed = performance.now() - yl_setStartTime;
+            var remain = Math.max(0, totalMs - elapsed);
+            var pct = (1 - remain / totalMs) * 100;
+            bar.style.width = pct.toFixed(1) + "%";
+            valEl.textContent = (remain / 1000).toFixed(2) + "s";
+            yl_setAnim = requestAnimationFrame(anim);
+        }
+        anim();
+
+        // 真正的 setTimeout
+        yl_setTimer = setTimeout(function () {
+            yl_setActive = false;
+            if (yl_setAnim) cancelAnimationFrame(yl_setAnim);
+            bar.style.width = "100%";
+            valEl.textContent = "0.00s";
+            counterEl.textContent = "🎉 时间到！";
+            yl_log("yl-set-log", "ok", "✔ setTimeout 触发：" + label);
+            yl_setTimer = null;
+            // 自动归零
+            setTimeout(function () { counterEl.textContent = "—"; bar.style.width = "0%"; }, 1200);
+        }, totalMs);
+
+        document.getElementById("yl-set-cancel").disabled = false;
+    }
+
+    function yl_setCancel(label) {
+        if (yl_setTimer) {
+            clearTimeout(yl_setTimer);
+            yl_setTimer = null;
+            yl_setActive = false;
+            if (yl_setAnim) cancelAnimationFrame(yl_setAnim);
+            var bar = document.getElementById("yl-set-bar");
+            var counterEl = document.getElementById("yl-set-counter");
+            document.getElementById("yl-set-val").textContent = "已取消";
+            counterEl.textContent = "✘ 已取消";
+            bar.style.width = "0%";
+            yl_log("yl-set-log", "warn", "✕ 定时器被取消：" + label);
+            setTimeout(function () { counterEl.textContent = "—"; }, 1000);
+            document.getElementById("yl-set-cancel").disabled = true;
+        }
+    }
+
+    document.getElementById("yl-set-start").addEventListener("click", function () {
+        yl_setStart(5000, "5 秒倒计时 —— " + yl_ts());
+    });
+    document.getElementById("yl-set-start-1").addEventListener("click", function () {
+        yl_setStart(1000, "1 秒后说 Hi");
+    });
+    document.getElementById("yl-set-cancel").addEventListener("click", function () {
+        yl_setCancel("用户点击取消");
+    });
+    document.getElementById("yl-set-clear").addEventListener("click", function () {
+        document.getElementById("yl-set-log").innerHTML = "";
+    });
+
+    /* ===== setInterval ===== */
+    var yl_intTimer = null;
+    var yl_intCount = 0;
+    var yl_intTarget = 10;
+    var yl_intInterval = 500;
+    var yl_intActive = false;
+    var yl_intRaf = null;
+    var yl_intLastTick = 0;
+
+    function yl_intStart() {
+        // 先停旧的（坑 1：叠加）
+        yl_intStop("重新开始前清旧");
+
+        yl_intTarget = parseInt(document.getElementById("yl-int-target").value, 10) || 10;
+        yl_intInterval = parseInt(document.getElementById("yl-int-interval").value, 10) || 500;
+        yl_intCount = 0;
+        yl_intActive = true;
+        yl_intLastTick = performance.now();
+
+        var bar = document.getElementById("yl-int-bar");
+        var valEl = document.getElementById("yl-int-val");
+        var counterEl = document.getElementById("yl-int-counter");
+        counterEl.textContent = "0";
+        bar.style.width = "0%";
+        valEl.textContent = "0 / " + yl_intTarget;
+
+        yl_log("yl-int-log", "info", "▶ setInterval 启动：每 " + yl_intInterval + "ms 加 1，到 " + yl_intTarget + " 停止");
+
+        // rAF 平滑显示 0-100% 周期进度（视觉反馈，不影响真实 tick）
+        function anim() {
+            if (!yl_intActive) return;
+            var sinceTick = performance.now() - yl_intLastTick;
+            var phase = (sinceTick % yl_intInterval) / yl_intInterval;
+            bar.style.width = (phase * 100).toFixed(1) + "%";
+            yl_intRaf = requestAnimationFrame(anim);
+        }
+        anim();
+
+        yl_intTimer = setInterval(function () {
+            yl_intCount++;
+            yl_intLastTick = performance.now();
+            var pct = (yl_intCount / yl_intTarget) * 100;
+            bar.style.width = Math.min(pct, 100).toFixed(1) + "%";
+            var counterEl = document.getElementById("yl-int-counter");
+            counterEl.textContent = yl_intCount;
+            document.getElementById("yl-int-val").textContent = yl_intCount + " / " + yl_intTarget;
+            yl_log("yl-int-log", "ok", "✔ tick #" + yl_intCount + " —— setInterval 触发");
+            if (yl_intCount >= yl_intTarget) {
+                yl_intStop("达到目标 " + yl_intTarget);
+                yl_log("yl-int-log", "ok", "🎉 全部完成，自动 clearInterval");
+                counterEl.textContent = "🎉 " + yl_intTarget;
+            }
+        }, yl_intInterval);
+
+        document.getElementById("yl-int-stop").disabled = false;
+    }
+
+    function yl_intStop(reason) {
+        if (yl_intTimer) {
+            clearInterval(yl_intTimer);
+            yl_intTimer = null;
+            yl_intActive = false;
+            if (yl_intRaf) cancelAnimationFrame(yl_intRaf);
+            yl_log("yl-int-log", "warn", "⏸ clearInterval：" + reason);
+            document.getElementById("yl-int-stop").disabled = true;
+        }
+    }
+
+    document.getElementById("yl-int-start").addEventListener("click", yl_intStart);
+    document.getElementById("yl-int-stop").addEventListener("click", function () { yl_intStop("用户点击停止"); });
+    document.getElementById("yl-int-clear").addEventListener("click", function () {
+        document.getElementById("yl-int-log").innerHTML = "";
+    });
+
+    /* ===== 初始化日志 ===== */
+    yl_log("yl-set-log", "info", "setTimeout 示例已就绪 —— 点「开始 (5s)」");
+    yl_log("yl-int-log", "info", "setInterval 示例已就绪 —— 点「开始」");
+
+    /* ===== 页面卸载时清理 ===== */
+    window.addEventListener("beforeunload", function () {
+        if (yl_setTimer) clearTimeout(yl_setTimer);
+        if (yl_intTimer) clearInterval(yl_intTimer);
+    });
+    </script>
+</body>
+</html>

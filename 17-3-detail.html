@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品详情 · 宁瑞祥 · 计算机23005</title>
+    <style>
+        :root {
+            --yl-blue: #007aff;
+            --yl-teal: #5ac8fa;
+            --yl-purple: #af52de;
+            --yl-green: #34c759;
+            --yl-orange: #ff9500;
+            --yl-red: #ff3b30;
+            --yl-ink: #1d1d1f;
+            --yl-sub: #6e6e73;
+            --yl-line: rgba(0,0,0,.06);
+            --yl-mono: "SF Mono", Menlo, Consolas, monospace;
+            --yl-ease: cubic-bezier(.25,.46,.45,.94);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(180deg, #f5f7fa 0%, #ffffff 100%);
+            color: var(--yl-ink); min-height: 100vh; line-height: 1.6;
+        }
+
+        .yl_topbar {
+            position: sticky; top: 0; z-index: 10;
+            background: rgba(255,255,255,.9); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--yl-line);
+            padding: 10px 20px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .yl_topbar a {
+            font-size: .86em; color: var(--yl-blue); text-decoration: none;
+            padding: 4px 12px; border-radius: 999px;
+            background: #eaf3ff;
+        }
+        .yl_topbar a:hover { background: var(--yl-blue); color: #fff; }
+        .yl_topbar .yl_status { margin-left: auto; font-size: .76em; color: var(--yl-sub); font-family: var(--yl-mono); }
+
+        .yl_wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px 50px; }
+
+        /* 两栏详情 */
+        .yl_detail {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+        }
+        @media (max-width: 780px) { .yl_detail { grid-template-columns: 1fr; } }
+
+        /* 左：图片区 */
+        .yl_imgs {
+            position: sticky; top: 70px;
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        .yl_main-img {
+            aspect-ratio: 1 / 1; background: #fff; border-radius: 20px;
+            border: 1px solid var(--yl-line); overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 6px 22px rgba(0,0,0,.06);
+        }
+        .yl_main-img img {
+            width: 100%; height: 100%; object-fit: contain; padding: 20px;
+        }
+        .yl_thumbs {
+            display: flex; gap: 10px; overflow-x: auto; padding: 4px 0;
+        }
+        .yl_thumb {
+            flex-shrink: 0; width: 68px; height: 68px; border-radius: 10px;
+            background: #fff; border: 2px solid var(--yl-line); overflow: hidden;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: border-color .2s;
+        }
+        .yl_thumb.active, .yl_thumb:hover { border-color: var(--yl-blue); }
+        .yl_thumb img { width: 100%; height: 100%; object-fit: contain; padding: 6px; }
+
+        /* 右：信息区 */
+        .yl_info h1 { font-size: 1.5em; font-weight: 700; margin-bottom: 6px; }
+        .yl_info .yl_breadcrumb {
+            font-size: .78em; color: var(--yl-sub); margin-bottom: 10px;
+        }
+        .yl_info .yl_breadcrumb span { color: var(--yl-blue); cursor: pointer; }
+        .yl_rating-row {
+            display: flex; align-items: center; gap: 10px; margin: 10px 0 14px;
+        }
+        .yl_rating-row .yl_stars { color: var(--yl-orange); letter-spacing: 1px; font-size: 1.1em; }
+        .yl_rating-row .yl_stars-empty { color: #e5e5ea; }
+        .yl_rating-row span { font-size: .82em; color: var(--yl-sub); }
+
+        .yl_desc {
+            font-size: .9em; color: var(--yl-sub); line-height: 1.75;
+            background: #fafbff; padding: 14px 16px; border-radius: 12px;
+            border-left: 3px solid var(--yl-blue); margin-bottom: 16px;
+        }
+
+        .yl_price-box {
+            padding: 18px; border-radius: 16px; margin-bottom: 16px;
+            background: linear-gradient(135deg, #fff1f0, #fff5ec);
+            border: 1px solid #ffd3c9;
+        }
+        .yl_price-box .yl_now {
+            font-size: 2em; font-weight: 700; color: var(--yl-red);
+            font-family: var(--yl-mono);
+        }
+        .yl_price-box .yl_now span { font-size: .5em; font-weight: 400; margin-right: 4px; }
+        .yl_price-box .yl_orig {
+            margin-left: 10px; color: var(--yl-sub); text-decoration: line-through; font-size: .9em;
+        }
+        .yl_price-box .yl_discount {
+            display: inline-block; margin-left: 10px;
+            padding: 3px 10px; border-radius: 4px; background: var(--yl-red); color: #fff;
+            font-size: .76em; font-weight: 600;
+        }
+        .yl_price-box .yl_meta-row {
+            display: flex; gap: 16px; margin-top: 12px; font-size: .82em; color: var(--yl-sub);
+        }
+        .yl_price-box .yl_meta-row b { color: var(--yl-ink); font-weight: 600; }
+
+        /* 规格表 */
+        .yl_specs {
+            background: #fff; border-radius: 12px; overflow: hidden;
+            border: 1px solid var(--yl-line); margin-bottom: 16px;
+        }
+        .yl_specs h3 {
+            padding: 12px 16px; font-size: .92em; background: #faf7ff;
+            border-bottom: 1px solid var(--yl-line); font-weight: 600;
+        }
+        .yl_spec-row {
+            display: grid; grid-template-columns: 100px 1fr;
+            padding: 10px 16px; font-size: .86em;
+            border-bottom: 1px solid var(--yl-line);
+        }
+        .yl_spec-row:last-child { border-bottom: none; }
+        .yl_spec-row .yl_k { color: var(--yl-sub); }
+        .yl_spec-row .yl_v { color: var(--yl-ink); }
+
+        /* 标签 */
+        .yl_tags-row {
+            display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px;
+        }
+        .yl_chip {
+            font-size: .76em; padding: 4px 10px; border-radius: 999px;
+            background: #f5f7fa; color: var(--yl-sub); border: 1px solid var(--yl-line);
+        }
+        .yl_chip.yes { background: #eaf7ee; color: var(--yl-green); border-color: #c3e6cb; }
+        .yl_chip.no { background: #fff1f0; color: var(--yl-red); border-color: #ffc9c6; }
+
+        /* 操作按钮 */
+        .yl_actions { display: flex; gap: 10px; margin-bottom: 20px; }
+        .yl_btn {
+            flex: 1; padding: 13px 18px; border-radius: 12px; border: none; cursor: pointer;
+            font-size: .92em; font-weight: 500; transition: all .25s var(--yl-ease);
+        }
+        .yl_btn-primary {
+            background: linear-gradient(135deg, #007aff, #5ac8fa); color: #fff;
+            box-shadow: 0 4px 14px rgba(0,122,255,.28);
+        }
+        .yl_btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,122,255,.38); }
+        .yl_btn-ghost {
+            background: #fff; color: var(--yl-blue); border: 1px solid var(--yl-blue);
+        }
+        .yl_btn-ghost:hover { background: #f5f9ff; }
+
+        /* 切换上一个/下一个 */
+        .yl_nav {
+            display: flex; justify-content: space-between; gap: 10px;
+            padding-top: 18px; border-top: 1px solid var(--yl-line); margin-top: 20px;
+        }
+        .yl_nav a {
+            font-size: .84em; color: var(--yl-blue); text-decoration: none;
+            padding: 8px 16px; border-radius: 8px; background: #eaf3ff;
+            transition: all .2s;
+        }
+        .yl_nav a:hover { background: var(--yl-blue); color: #fff; }
+        .yl_nav a.disabled { color: var(--yl-sub); background: #f5f7fa; cursor: not-allowed; pointer-events: none; }
+
+        /* 骨架 */
+        .yl_skel {
+            background: #fff; border-radius: 20px; border: 1px solid var(--yl-line); padding: 18px;
+        }
+        .yl_skel .skel-img { aspect-ratio: 1/1; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: yl_shimmer 1.4s infinite; border-radius: 16px; margin-bottom: 16px; }
+        .yl_skel .skel-line { height: 14px; border-radius: 4px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: yl_shimmer 1.4s infinite; margin-bottom: 10px; }
+        .yl_skel .skel-line.long { width: 80%; height: 28px; }
+        .yl_skel .skel-line.short { width: 40%; }
+        @keyframes yl_shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* 错误 */
+        .yl_err-box {
+            text-align: center; padding: 60px 20px; color: var(--yl-red); background: #fff9f9; border-radius: 16px;
+            border: 1px dashed #ffc9c6;
+        }
+
+        .yl_footer {
+            text-align: center; padding: 28px 20px; color: var(--yl-sub);
+            font-size: .84em; border-top: 1px solid var(--yl-line); background: rgba(255,255,255,.6);
+        }
+    </style>
+</head>
+<body>
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  建立时间：2026-11-02 13:57:42
+  使用的大模型：DeepSeek-V4.1-Flash
+  功能：商品详情页 —— fetch https://dummyjson.com/products/{id}，支持 ?id= 参数切换，上一个/下一个翻页，多图缩略图切换
+-->
+
+    <div class="yl_topbar">
+        <a href="17-3.html">← 返回列表</a>
+        <a href="index.html">首页</a>
+        <div style="margin-left:auto;font-size:.9em;font-weight:600;">商品详情 / 17-3-detail</div>
+        <div class="yl_status" id="yl_status">⏳ 加载中...</div>
+    </div>
+
+    <div class="yl_wrap" id="yl_container">
+        <!-- 骨架占位 -->
+        <div class="yl_detail">
+            <div class="yl_imgs"><div class="yl_skel"><div class="skel-img"></div></div></div>
+            <div class="yl_info yl_skel">
+                <div class="skel-line long"></div>
+                <div class="skel-line short"></div>
+                <div style="height:14px;width:100%;margin:16px 0;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:yl_shimmer 1.4s infinite;border-radius:6px;"></div>
+                <div style="height:80px;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:yl_shimmer 1.4s infinite;border-radius:10px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="yl_footer">宁瑞祥 · 计算机23005 · 2001010503 · 17-3 商品详情</div>
+
+    <script>
+    /* 从 URL 拿 id */
+    function yl_getId() {
+        var m = location.search.match(/[?&]id=(\d+)/);
+        return m ? parseInt(m[1], 10) : 1;
+    }
+    var yl_currentId = yl_getId();
+    var yl_MIN_ID = 1;
+    var yl_MAX_ID = 30; // dummyjson 有 30 个示例商品
+
+    var yl_status = document.getElementById("yl_status");
+    var yl_container = document.getElementById("yl_container");
+
+    function yl_load() {
+        yl_status.textContent = "⏳ 请求 id=" + yl_currentId + "...";
+        var t0 = performance.now();
+        fetch("https://dummyjson.com/products/" + yl_currentId)
+            .then(function (res) { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
+            .then(function (p) {
+                yl_status.textContent = "✔ 加载完成 · " + (performance.now() - t0).toFixed(0) + "ms";
+                yl_render(p);
+            })
+            .catch(function (err) {
+                yl_status.textContent = "✘ 失败：" + err.message;
+                yl_container.innerHTML = '<div class="yl_err-box"><div style="font-size:3em;margin-bottom:10px;">😵</div><div style="font-weight:600;margin-bottom:6px;">加载失败</div><div style="font-size:.86em;">商品 id=' + yl_currentId + '</div><div style="font-size:.82em;margin-top:10px;color:#999;">' + err.message + '</div><div style="margin-top:16px;"><a href="17-3.html" style="color:var(--yl-blue);font-size:.88em;">← 返回列表</a></div></div>';
+            });
+    }
+
+    function yl_render(p) {
+        // 主图 + 缩略图
+        var mainImg = p.images && p.images[0] ? p.images[0] : p.thumbnail;
+        var thumbsHtml = (p.images || []).map(function (im, i) {
+            return '<div class="yl_thumb' + (i === 0 ? ' active' : '') + '" data-yl-img="' + yl_escape(im) + '"><img src="' + yl_escape(im) + '" alt=""></div>';
+        }).join("");
+
+        // 规格
+        var specs = [
+            { k: "商品 ID", v: p.id },
+            { k: "标题", v: p.title },
+            { k: "品牌", v: p.brand || "—" },
+            { k: "分类", v: p.category },
+            { k: "SKU", v: p.sku || "—" },
+            { k: "重量", v: p.weight ? p.weight + " kg" : "—" },
+            { k: "库存", v: p.stock },
+            { k: "最低起订", v: p.minimumOrderQuantity ?? "—" },
+            { k: "优惠价", v: "$" + p.price.toFixed(2) + (p.discountPercentage > 0 ? "（折扣 " + p.discountPercentage.toFixed(1) + "%）" : "") },
+            { k: "原价", v: "$" + Math.round(p.price / (1 - p.discountPercentage / 100) * 100) / 100 }
+        ];
+        // dimensions
+        if (p.dimensions) {
+            specs.push({ k: "尺寸", v: p.dimensions.width + " × " + p.dimensions.height + " × " + p.dimensions.depth + " cm" });
+        }
+        // 保修
+        if (p.warrantyInformation) specs.push({ k: "保修", v: p.warrantyInformation });
+        // 运输
+        if (p.shippingInformation) specs.push({ k: "运输", v: p.shippingInformation });
+        // 可用性状态
+        if (p.availabilityStatus) specs.push({ k: "状态", v: p.availabilityStatus });
+
+        var specsHtml = specs.map(function (s) {
+            return '<div class="yl_spec-row"><div class="yl_k">' + yl_escape(String(s.k)) + '</div><div class="yl_v">' + yl_escape(String(s.v)) + '</div></div>';
+        }).join("");
+
+        // 星级
+        var stars = Math.round(p.rating);
+        var starStr = "★★★★★".slice(0, stars) + '<span class="yl_stars-empty">' + "★★★★★".slice(stars) + '</span>';
+
+        // 库存
+        var stockTag;
+        if (p.stock > 50) stockTag = '<span class="yl_chip yes">库存充足 (' + p.stock + ')</span>';
+        else if (p.stock > 10) stockTag = '<span class="yl_chip">库存紧张 (' + p.stock + ')</span>';
+        else stockTag = '<span class="yl_chip no">库存告急 (' + p.stock + ')</span>';
+
+        // 原价 / 折扣
+        var origPrice = Math.round(p.price / (1 - p.discountPercentage / 100) * 100) / 100;
+        var discountHtml = p.discountPercentage >= 5 ? '<span class="yl_orig">$' + origPrice.toFixed(2) + '</span><span class="yl_discount">-' + p.discountPercentage.toFixed(0) + '%</span>' : '';
+
+        // 导航
+        var prevLink = yl_currentId > yl_MIN_ID ? '17-3-detail.html?id=' + (yl_currentId - 1) : '';
+        var nextLink = yl_currentId < yl_MAX_ID ? '17-3-detail.html?id=' + (yl_currentId + 1) : '';
+
+        var html =
+        '<div class="yl_detail">'
+            + '<div class="yl_imgs">'
+                + '<div class="yl_main-img" id="yl_main-img"><img src="' + yl_escape(mainImg) + '" alt=""></div>'
+                + (thumbsHtml ? '<div class="yl_thumbs">' + thumbsHtml + '</div>' : '')
+            + '</div>'
+            + '<div class="yl_info">'
+                + '<div class="yl_breadcrumb">商品 / <span>' + yl_escape(p.category) + '</span> / ' + yl_escape(p.title) + '</div>'
+                + '<h1>' + yl_escape(p.title) + '</h1>'
+                + '<div class="yl_rating-row">'
+                    + '<span class="yl_stars">' + starStr + '</span>'
+                    + '<span>' + p.rating.toFixed(1) + ' · Reviews ' + (p.reviews ? p.reviews.length : 0) + '</span>'
+                + '</div>'
+                + '<div class="yl_desc">' + yl_escape(p.description) + '</div>'
+
+                + '<div class="yl_price-box">'
+                    + '<span class="yl_now"><span>$</span>' + p.price.toFixed(2) + '</span>'
+                    + discountHtml
+                    + '<div class="yl_meta-row">'
+                        + '<span>🔖 <b>' + yl_escape(p.brand || "—") + '</b></span>'
+                        + '<span>📂 <b>' + yl_escape(p.category) + '</b></span>'
+                        + '<span>🆔 <b>#' + p.id + '</b></span>'
+                    + '</div>'
+                + '</div>'
+
+                + '<div class="yl_tags-row">'
+                    + stockTag
+                    + (p.returnPolicy ? '<span class="yl_chip">' + yl_escape(p.returnPolicy) + '</span>' : '')
+                    + (p.warrantyInformation ? '<span class="yl_chip">' + yl_escape(p.warrantyInformation) + '</span>' : '')
+                + '</div>'
+
+                + '<div class="yl_specs"><h3>📋 商品规格</h3>' + specsHtml + '</div>'
+
+                + '<div class="yl_actions">'
+                    + '<button class="yl_btn yl_btn-primary" onclick="alert(\'✨ 已加入购物车：' + yl_escape(p.title) + '\')">🛒 加入购物车</button>'
+                    + '<button class="yl_btn yl_btn-ghost" onclick="alert(\'❤️ 已收藏：' + yl_escape(p.title) + '\')">❤ 收藏</button>'
+                + '</div>'
+
+                + '<div class="yl_nav">'
+                    + (prevLink ? '<a href="' + prevLink + '">← 上一个 (id=' + (yl_currentId - 1) + ')</a>' : '<a class="disabled">已到第一个</a>')
+                    + (nextLink ? '<a href="' + nextLink + '">下一个 (id=' + (yl_currentId + 1) + ') →</a>' : '<a class="disabled">已到最后一个</a>')
+                + '</div>'
+            + '</div>'
+        + '</div>';
+        yl_container.innerHTML = html;
+
+        // 缩略图切换
+        var mainImgEl = document.getElementById("yl_main-img");
+        document.querySelectorAll(".yl_thumb").forEach(function (t) {
+            t.addEventListener("click", function () {
+                document.querySelectorAll(".yl_thumb").forEach(function (x) { x.classList.remove("active"); });
+                t.classList.add("active");
+                mainImgEl.innerHTML = '<img src="' + t.getAttribute("data-yl-img") + '" alt="">';
+            });
+        });
+    }
+
+    function yl_escape(s) { return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+    yl_load();
+    </script>
+</body>
+</html>

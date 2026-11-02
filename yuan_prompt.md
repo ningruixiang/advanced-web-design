@@ -147,6 +147,32 @@
 - 提示词：
   > 上传github并发布
 
+## 2026-11-02 13:57:42
+- 模型：DeepSeek-V4.1-Flash
+- 提示词：
+  > 1、完成17-1.html，展示json。
+  > 2、完成17-2.html 获取一个接口的数据并展示。接口可以跨域访问。使用fetch和原生代码实现。
+  > 3、完成17-3.html 和17-3-detail.html，显示列表和列表详情，数据来源于接口，使用fetch
+  > 列表：`https://dummyjson.com/products?limit=8`，默认商品列表。
+  > 详情：`https://dummyjson.com/products/1`，根据ID获取单个商品。
+
+## 2026-11-02 14:23:21
+- 模型：DeepSeek-V4.1-Flash
+- 提示词：
+  > 4、完成17-4.html，对远程数据接口进行测试，支持get、post等，显示返回的数据和错误提示信息
+  > 示例post接口：`https://jsonplaceholder.typicode.com/posts`
+
+## 2026-11-02 14:32:28
+- 模型：DeepSeek-V4.1-Flash
+- 提示词：
+  > 5、完成17-5.html，展示javascript的两种定时器。
+  > 6、完成17-6.html, 使用promise和async完成异步操作的演示包饺子的流程。先买原料，取原料，买完原料之后同时和面、和馅，两个活动都完成之后包饺子，包完饺子吃饺子
+
+## 2026-11-02 14:39:13
+- 模型：Trae 自研模型
+- 提示词：
+  > （会话续接）继续完成 17-5.html / 17-6.html 剩余工作：index.html 追加 28-29 号卡片、浏览器验证、git commit
+
 
 
 

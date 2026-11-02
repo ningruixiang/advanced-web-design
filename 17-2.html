@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fetch 网络请求 · 宁瑞祥 · 计算机23005</title>
+    <style>
+        :root {
+            --yl-blue: #007aff;
+            --yl-teal: #5ac8fa;
+            --yl-purple: #af52de;
+            --yl-green: #34c759;
+            --yl-orange: #ff9500;
+            --yl-red: #ff3b30;
+            --yl-ink: #1d1d1f;
+            --yl-sub: #6e6e73;
+            --yl-line: rgba(0,0,0,.06);
+            --yl-mono: "SF Mono", Menlo, Consolas, monospace;
+            --yl-ease: cubic-bezier(.25,.46,.45,.94);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 40%, #f5f7fa 100%);
+            color: var(--yl-ink); min-height: 100vh; line-height: 1.6;
+        }
+        .yl_hero {
+            position: relative; padding: 50px 20px 42px; text-align: center;
+            background: linear-gradient(135deg, #007aff 0%, #34c759 50%, #af52de 100%);
+            color: #fff; overflow: hidden;
+        }
+        .yl_hero::before {
+            content: ""; position: absolute; inset: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(255,255,255,.18) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, rgba(255,255,255,.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .yl_hero h1 { position: relative; font-size: clamp(1.8em, 4.4vw, 2.6em); font-weight: 700; letter-spacing: 2px; }
+        .yl_hero p { position: relative; margin-top: 8px; font-size: .95em; opacity: .95; }
+        .yl_hero .yl_badge {
+            position: relative; display: inline-block; margin-top: 16px;
+            padding: 6px 16px; border-radius: 999px; font-size: .86em;
+            background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.3);
+            backdrop-filter: blur(10px);
+        }
+        .yl_wrap { max-width: 1060px; margin: 0 auto; padding: 28px 18px 50px; }
+
+        .yl_section-title {
+            font-size: 1.35em; font-weight: 600; color: var(--yl-ink);
+            padding-left: 14px; border-left: 4px solid var(--yl-blue);
+            margin: 30px 0 6px;
+        }
+        .yl_section-desc { color: var(--yl-sub); font-size: .92em; padding-left: 18px; margin-bottom: 14px; }
+
+        /* 接口选择器 */
+        .yl_apis {
+            display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px;
+        }
+        .yl_api-btn {
+            flex: 1 1 auto; min-width: 200px;
+            padding: 10px 14px; border-radius: 12px;
+            border: 2px solid var(--yl-line); background: #fff;
+            font-size: .84em; text-align: left; cursor: pointer;
+            transition: all .25s var(--yl-ease);
+            font-family: var(--yl-mono); color: var(--yl-ink);
+        }
+        .yl_api-btn:hover { border-color: var(--yl-blue); background: #f5f9ff; }
+        .yl_api-btn.active {
+            border-color: var(--yl-blue); background: #eaf3ff; color: var(--yl-blue);
+            box-shadow: 0 2px 8px rgba(0,122,255,.12);
+        }
+        .yl_api-btn .yl_name { font-weight: 600; font-size: 1.1em; color: var(--yl-ink); font-family: inherit; }
+        .yl_api-btn.active .yl_name { color: var(--yl-blue); }
+        .yl_api-btn .yl_url { color: var(--yl-sub); word-break: break-all; margin-top: 4px; font-size: .9em; }
+
+        /* 主面板 */
+        .yl_main-panel {
+            background: #fff; border-radius: 16px; overflow: hidden;
+            box-shadow: 0 6px 22px rgba(0,0,0,.06);
+            border: 1px solid var(--yl-line);
+        }
+        .yl_url-bar {
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 14px; background: #f5f7fa; border-bottom: 1px solid var(--yl-line);
+            font-family: var(--yl-mono); font-size: .82em;
+        }
+        .yl_url-bar span { color: var(--yl-sub); flex-shrink: 0; }
+        .yl_url-bar code {
+            flex: 1; color: var(--yl-blue); word-break: break-all;
+            background: transparent;
+        }
+        .yl_send {
+            padding: 7px 20px; border-radius: 8px; border: none; cursor: pointer;
+            font-size: .86em; font-weight: 500; color: #fff;
+            background: linear-gradient(135deg, #007aff, #5ac8fa);
+            box-shadow: 0 3px 10px rgba(0,122,255,.28);
+            transition: all .25s var(--yl-ease);
+        }
+        .yl_send:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 5px 14px rgba(0,122,255,.38); }
+        .yl_send:disabled { opacity: .6; cursor: not-allowed; }
+
+        .yl_timeline {
+            display: flex; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--yl-line);
+            font-size: .78em; font-family: var(--yl-mono); color: var(--yl-sub); flex-wrap: wrap;
+        }
+        .yl_timeline span {
+            padding: 3px 10px; border-radius: 6px; background: #f5f7fa;
+            border: 1px solid var(--yl-line);
+        }
+        .yl_timeline span.ok { background: #eaf7ee; color: #1e7e34; border-color: #c3e6cb; }
+        .yl_timeline span.err { background: #fff1f0; color: var(--yl-red); border-color: #ffc9c6; }
+        .yl_timeline span.loading { background: #fff5ec; color: var(--yl-orange); border-color: #ffe0b2; }
+
+        /* Loading 动画 */
+        .yl_spinner {
+            display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor;
+            border-top-color: transparent; border-radius: 50%;
+            animation: yl_rot .8s linear infinite; margin-right: 4px; vertical-align: middle;
+        }
+        @keyframes yl_rot { to { transform: rotate(360deg); } }
+
+        /* 内容区 */
+        .yl_content {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--yl-line);
+        }
+        @media (max-width: 760px) { .yl_content { grid-template-columns: 1fr; } }
+        .yl_content-pane {
+            background: #fff; padding: 14px; min-height: 280px;
+            display: flex; flex-direction: column;
+        }
+        .yl_pane-title {
+            font-size: .84em; font-weight: 600; color: var(--yl-sub);
+            margin-bottom: 8px; letter-spacing: .5px;
+        }
+        pre.yl_preview, pre.yl_raw {
+            font-family: var(--yl-mono); font-size: .82em; line-height: 1.7;
+            background: #fafbff; border-radius: 8px; padding: 12px;
+            overflow: auto; flex: 1; white-space: pre-wrap; word-break: break-all;
+        }
+        .yl_raw { background: #1d1d1f; color: #f5f5f7; }
+
+        /* 占位 */
+        .yl_placeholder {
+            text-align: center; color: var(--yl-sub);
+            padding: 60px 20px; font-size: .88em;
+        }
+        .yl_placeholder .yl_icon { font-size: 2.4em; margin-bottom: 10px; }
+
+        /* 速度条 */
+        .yl_speed-bar {
+            margin-top: 8px; height: 4px; border-radius: 2px; background: #f5f7fa; overflow: hidden;
+        }
+        .yl_speed-bar > div {
+            height: 100%; background: linear-gradient(90deg, #007aff, #34c759);
+            transition: width .4s var(--yl-ease);
+        }
+
+        /* fetch 代码示例 */
+        pre.yl_code {
+            font-family: var(--yl-mono); font-size: .82em; line-height: 1.75;
+            background: #1d1d1f; color: #f5f5f7; padding: 14px 16px; border-radius: 10px;
+            overflow-x: auto; margin-top: 12px;
+        }
+        pre.yl_code .c { color: #8e8e93; font-style: italic; }
+        pre.yl_code .k { color: #5ac8fa; }
+        pre.yl_code .s { color: #ffd60a; }
+        pre.yl_code .fn { color: #bf5af2; }
+
+        /* 速查表 */
+        table.yl_tbl { width: 100%; border-collapse: collapse; font-size: .84em; }
+        table.yl_tbl th, table.yl_tbl td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--yl-line); }
+        table.yl_tbl th { background: #faf7ff; font-weight: 600; }
+        table.yl_tbl tr:hover td { background: #fafbff; }
+        table.yl_tbl code {
+            font-family: var(--yl-mono); background: #f5f7fa; color: var(--yl-blue);
+            padding: 1px 6px; border-radius: 4px; font-size: .84em;
+        }
+
+        .yl_footer {
+            text-align: center; padding: 30px 20px; color: var(--yl-sub);
+            font-size: .84em; border-top: 1px solid var(--yl-line);
+            background: rgba(255,255,255,.6); margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  建立时间：2026-11-02 13:57:42
+  使用的大模型：DeepSeek-V4.1-Flash
+  功能：fetch 网络请求演示 —— 选 4 个可跨域公开接口，实时请求 + loading → success/error 时间线 + JSON 预览 + 原始文本
+-->
+
+    <div class="yl_hero">
+        <h1>🌐 Fetch 网络请求</h1>
+        <p>选接口 · 点发送 · 看完整请求过程（发起 → 收到响应 → 解析 JSON → 渲染）</p>
+        <span class="yl_badge">宁瑞祥 · 计算机23005 · 2001010503</span>
+    </div>
+
+    <div class="yl_wrap">
+
+        <!-- 接口选择 -->
+        <div class="yl_section-title">选一个接口试试</div>
+        <div class="yl_section-desc">以下 4 个都是 CORS 放开的公开 API，浏览器里直接 fetch 就能拿到数据。</div>
+        <div class="yl_apis" id="yl_apis">
+            <button class="yl_api-btn active" data-yl-url="https://api.github.com/zen">
+                <div class="yl_name">GitHub Zen 💬</div>
+                <div class="yl_url">GET https://api.github.com/zen</div>
+            </button>
+            <button class="yl_api-btn" data-yl-url="https://jsonplaceholder.typicode.com/posts/1">
+                <div class="yl_name">JSONPlaceholder 假帖子 📝</div>
+                <div class="yl_url">GET https://jsonplaceholder.typicode.com/posts/1</div>
+            </button>
+            <button class="yl_api-btn" data-yl-url="https://dummyjson.com/user/random">
+                <div class="yl_name">DummyJSON 随机用户 👤</div>
+                <div class="yl_url">GET https://dummyjson.com/user/random</div>
+            </button>
+            <button class="yl_api-btn" data-yl-url="https://api.github.com/repos/torvalds/linux">
+                <div class="yl_name">Linux 仓库元数据 🐧</div>
+                <div class="yl_url">GET https://api.github.com/repos/torvalds/linux</div>
+            </button>
+        </div>
+
+        <!-- 主面板 -->
+        <div class="yl_main-panel">
+            <div class="yl_url-bar">
+                <span>GET</span>
+                <code id="yl_url-display">https://api.github.com/zen</code>
+                <button class="yl_send" id="yl_send">▶ 发送请求</button>
+            </div>
+            <!-- 时间线 -->
+            <div class="yl_timeline" id="yl_timeline">
+                <span>状态：待发送</span>
+            </div>
+            <!-- 双栏 -->
+            <div class="yl_content">
+                <div class="yl_content-pane">
+                    <div class="yl_pane-title">🎨 渲染预览</div>
+                    <div class="yl_speed-bar"><div id="yl-progress" style="width:0%"></div></div>
+                    <div id="yl_preview" class="yl_placeholder">
+                        <div class="yl_icon">🚀</div>
+                        点上面的「发送请求」看看<br>（fetch 默认 GET）
+                    </div>
+                </div>
+                <div class="yl_content-pane">
+                    <div class="yl_pane-title">📄 原始 JSON 文本</div>
+                    <pre id="yl_raw" class="yl_raw">// 等待请求...</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- fetch 代码示例 -->
+        <div class="yl_section-title">fetch 标准写法</div>
+        <div class="yl_section-desc">下面就是这次实际跑的代码模板。fetch 返回 Promise，用 .then() 或 async/await 都行。</div>
+        <pre class="yl_code"><span class="yl_fn">fetch</span>(<span class="yl_s">"https://api.github.com/zen"</span>)        <span class="yl_c">// ① 发起请求，返回 Promise</span>
+  .<span class="yl_fn">then</span>(res =&gt; {
+    <span class="yl_k">if</span> (!res.ok) <span class="yl_k">throw new</span> <span class="yl_fn">Error</span>(<span class="yl_s">"HTTP "</span> + res.status);  <span class="yl_c">// ② 检查状态码</span>
+    <span class="yl_k">return</span> res.<span class="yl_fn">json</span>();                 <span class="yl_c">// ③ 把响应体解析成 JSON</span>
+  })
+  .<span class="yl_fn">then</span>(data =&gt; {
+    console.<span class="yl_fn">log</span>(data);                       <span class="yl_c">// ④ 拿到真正的数据对象</span>
+  })
+  .<span class="yl_fn">catch</span>(err =&gt; {
+    console.<span class="yl_fn">error</span>(err);                      <span class="yl_c">// ⑤ 网络错误 / 解析失败</span>
+  });</pre>
+
+        <!-- 速查表 -->
+        <div class="yl_section-title">速查表</div>
+        <div class="yl_section-desc">fetch 的核心 API 和常见坑。</div>
+        <table class="yl_tbl">
+            <thead><tr><th>步骤</th><th>代码</th><th>说明</th></tr></thead>
+            <tbody>
+                <tr><td>发起 GET</td><td><code>fetch(url)</code></td><td>默认 GET，返回 Promise</td></tr>
+                <tr><td>发起 POST</td><td><code>fetch(url, { method: "POST", body: JSON.stringify(data) })</code></td><td>method + headers + body</td></tr>
+                <tr><td>检查状态</td><td><code>if (!res.ok) throw new Error(res.status)</code></td><td>fetch 404/500 不会 reject，必须手动检查 res.ok</td></tr>
+                <tr><td>读 JSON</td><td><code>await res.json()</code></td><td>自动解析 JSON 文本为对象</td></tr>
+                <tr><td>读文本</td><td><code>await res.text()</code></td><td>接口返回纯文本时用</td></tr>
+                <tr><td>超时控制</td><td><code>Promise.race([fetch(url), new Promise((_,r)=>setTimeout(r,5000))])</code></td><td>原生 fetch 没有 timeout，要自己用 Promise.race</td></tr>
+                <tr><td>跨域 (CORS)</td><td>后端返回 <code>Access-Control-Allow-Origin: *</code></td><td>本页选的接口全部已放开 CORS</td></tr>
+                <tr><td>取消请求</td><td><code>AbortController</code></td><td>可中断正在进行的 fetch</td></tr>
+            </tbody>
+        </table>
+
+        <div class="yl_footer">宁瑞祥 · 计算机23005 · 2001010503 · 17-2 fetch 网络请求</div>
+    </div>
+
+    <script>
+    var yl_curUrl = "https://api.github.com/zen";
+
+    /* 接口选择 */
+    document.getElementById("yl_apis").addEventListener("click", function (e) {
+        var btn = e.target.closest(".yl_api-btn");
+        if (!btn) return;
+        document.querySelectorAll(".yl_api-btn").forEach(function (b) { b.classList.remove("active"); });
+        btn.classList.add("active");
+        yl_curUrl = btn.getAttribute("data-yl-url");
+        document.getElementById("yl_url-display").textContent = yl_curUrl;
+    });
+
+    /* 发送 */
+    document.getElementById("yl_send").addEventListener("click", yl_doFetch);
+    document.getElementById("yl_url-display").textContent = yl_curUrl;
+
+    function yl_doFetch() {
+        var sendBtn = document.getElementById("yl_send");
+        var tl = document.getElementById("yl_timeline");
+        var preview = document.getElementById("yl_preview");
+        var raw = document.getElementById("yl_raw");
+        var progress = document.getElementById("yl-progress");
+
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<span class="yl_spinner"></span>请求中...';
+        tl.innerHTML = '<span class="loading"><span class="yl_spinner"></span>请求已发出</span><span>URL: ' + yl_curUrl + '</span>';
+        progress.style.width = "20%";
+        preview.innerHTML = '<div class="yl_icon">⏳</div>正在请求...';
+        raw.textContent = "// 等待响应体...";
+
+        var t0 = performance.now();
+
+        fetch(yl_curUrl)
+            .then(function (res) {
+                var t1 = performance.now();
+                progress.style.width = "60%";
+                tl.innerHTML =
+                    '<span class="ok">✔ 收到响应</span>' +
+                    '<span>状态码: <b>' + res.status + ' ' + res.statusText + '</b></span>' +
+                    '<span>耗时 ' + (t1 - t0).toFixed(0) + 'ms</span>' +
+                    '<span>Content-Type: ' + (res.headers.get("content-type") || "—") + '</span>';
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                return res.text().then(function (text) {
+                    // 有的接口返回纯文本（GitHub Zen 就是一句字符串），有的返回 JSON
+                    var isJson = /application\/json/.test(res.headers.get("content-type") || "") || text.trim().startsWith("{") || text.trim().startsWith("[");
+                    if (isJson) {
+                        var data = JSON.parse(text);
+                        progress.style.width = "100%";
+                        tl.innerHTML += '<span class="ok">✔ 已解析为 JSON</span>';
+                        renderPreview(data);
+                        raw.textContent = JSON.stringify(data, null, 2);
+                    } else {
+                        progress.style.width = "100%";
+                        tl.innerHTML += '<span class="ok">✔ 纯文本</span>';
+                        preview.innerHTML = '<div style="font-size:1.4em;font-weight:500;line-height:1.6;padding:12px;color:var(--yl-blue);">"' + yl_escape(text.trim()) + '"</div>';
+                        raw.textContent = text;
+                    }
+                });
+            })
+            .catch(function (err) {
+                var t1 = performance.now();
+                progress.style.width = "100%";
+                tl.innerHTML =
+                    '<span class="err">✘ 请求失败</span>' +
+                    '<span>' + err.name + ': ' + err.message + '</span>' +
+                    '<span>耗时 ' + (t1 - t0).toFixed(0) + 'ms</span>';
+                preview.innerHTML =
+                    '<div class="yl_icon">😵</div>' +
+                    '<div style="color:var(--yl-red);font-weight:600;margin-bottom:8px;">' + yl_escape(err.message) + '</div>' +
+                    '<div style="color:var(--yl-sub);font-size:.82em;">可能原因：网络断开 / CORS 未放开 / 接口不存在</div>';
+                raw.textContent = "// 错误:\n" + err.stack;
+            })
+            .finally(function () {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = "▶ 再请求一次";
+            });
+    }
+
+    /* 智能渲染预览：不同接口结构不同，分别美化 */
+    function renderPreview(data) {
+        var preview = document.getElementById("yl_preview");
+        if (typeof data === "string") {
+            preview.innerHTML = '<div style="font-size:1.4em;font-weight:500;color:var(--yl-blue);padding:12px;">"' + yl_escape(data) + '"</div>';
+            return;
+        }
+        if (Array.isArray(data)) {
+            var items = data.slice(0, 10).map(function (it, i) {
+                return '<div style="padding:6px 0;border-bottom:1px dashed var(--yl-line);font-size:.84em;"><b>[' + i + ']</b> ' + yl_escape(typeof it === "object" ? (it.title || it.name || JSON.stringify(it).slice(0, 60)) : String(it)) + '</div>';
+            }).join("");
+            preview.innerHTML = '<div style="font-weight:600;margin-bottom:6px;color:var(--yl-sub);">' + data.length + ' 条</div>' + items;
+            return;
+        }
+        /* 对象：挑出关键字段做展示 */
+        var html = "";
+        var hi = data.message || data.text || data.quote || data.bio || data.login || data.name || data.title || "";
+        if (hi) html += '<div style="font-size:1.2em;font-weight:500;color:var(--yl-blue);margin-bottom:12px;">' + yl_escape(String(hi)) + '</div>';
+        var keys = Object.keys(data).slice(0, 12);
+        html += '<div style="font-size:.82em;">';
+        keys.forEach(function (k) {
+            var v = data[k];
+            var vstr;
+            if (v === null) vstr = '<span style="color:var(--yl-sub);font-style:italic;">null</span>';
+            else if (typeof v === "object") vstr = JSON.stringify(v).slice(0, 80);
+            else vstr = String(v);
+            html += '<div style="padding:4px 0;border-bottom:1px dashed var(--yl-line);display:flex;gap:8px;"><code style="color:var(--yl-blue);min-width:110px;">' + yl_escape(k) + '</code><span>' + yl_escape(vstr) + '</span></div>';
+        });
+        html += '</div>';
+        preview.innerHTML = html;
+    }
+
+    function yl_escape(s) {
+        return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    /* 自动点一下，让页面加载就看到效果 */
+    window.addEventListener("load", function () {
+        setTimeout(yl_doFetch, 300);
+    });
+    </script>
+</body>
+</html>

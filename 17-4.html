@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>接口测试工具 · 宁瑞祥 · 计算机23005</title>
+    <style>
+        :root {
+            --yl-blue: #007aff;
+            --yl-teal: #5ac8fa;
+            --yl-purple: #af52de;
+            --yl-green: #34c759;
+            --yl-orange: #ff9500;
+            --yl-red: #ff3b30;
+            --yl-ink: #1d1d1f;
+            --yl-sub: #6e6e73;
+            --yl-line: rgba(0,0,0,.06);
+            --yl-mono: "SF Mono", Menlo, Consolas, monospace;
+            --yl-ease: cubic-bezier(.25,.46,.45,.94);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 40%, #f5f7fa 100%);
+            color: var(--yl-ink); min-height: 100vh; line-height: 1.6;
+        }
+
+        .yl_hero {
+            position: relative; padding: 40px 20px 30px; text-align: center;
+            background: linear-gradient(135deg, #ff9500 0%, #007aff 50%, #34c759 100%);
+            color: #fff; overflow: hidden;
+        }
+        .yl_hero::before {
+            content: ""; position: absolute; inset: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(255,255,255,.2) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, rgba(255,255,255,.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .yl_hero h1 { position: relative; font-size: clamp(1.6em, 4vw, 2.2em); font-weight: 700; }
+        .yl_hero p { position: relative; margin-top: 6px; font-size: .9em; opacity: .92; }
+
+        .yl_wrap { max-width: 1200px; margin: 0 auto; padding: 20px 16px 50px; }
+
+        /* 预设接口 */
+        .yl_presets {
+            margin-bottom: 14px;
+        }
+        .yl_presets-title {
+            font-size: .8em; color: var(--yl-sub); margin-bottom: 6px;
+            letter-spacing: .5px;
+        }
+        .yl_presets-row {
+            display: flex; flex-wrap: wrap; gap: 6px;
+        }
+        .yl_preset {
+            padding: 5px 12px; border-radius: 999px;
+            font-size: .76em; font-family: var(--yl-mono);
+            background: #fff; border: 1px solid var(--yl-line); color: var(--yl-sub);
+            cursor: pointer; transition: all .2s var(--yl-ease);
+            max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .yl_preset:hover { border-color: var(--yl-blue); color: var(--yl-blue); background: #f5f9ff; }
+        .yl_preset .yl_m {
+            display: inline-block; width: 44px; font-weight: 700; margin-right: 6px;
+        }
+        .yl_preset .yl_m.get { color: var(--yl-green); }
+        .yl_preset .yl_m.post { color: var(--yl-blue); }
+        .yl_preset .yl_m.put { color: var(--yl-orange); }
+        .yl_preset .yl_m.del { color: var(--yl-red); }
+
+        /* 请求栏 */
+        .yl_req-bar {
+            display: flex; align-items: stretch; gap: 8px;
+            background: #fff; border-radius: 14px; padding: 10px;
+            box-shadow: 0 4px 18px rgba(0,0,0,.06);
+            border: 1px solid var(--yl-line);
+        }
+        .yl_method {
+            padding: 0 6px; border: 1px solid var(--yl-line); border-radius: 8px;
+            background: #fafbff; font-family: var(--yl-mono); font-weight: 700;
+            font-size: .82em; color: var(--yl-ink); cursor: pointer;
+            outline: none; min-width: 80px;
+        }
+        .yl_method.get { color: var(--yl-green); }
+        .yl_method.post { color: var(--yl-blue); }
+        .yl_method.put { color: var(--yl-orange); }
+        .yl_method.delete { color: var(--yl-red); }
+        .yl_method.patch { color: var(--yl-purple); }
+        .yl_url {
+            flex: 1; padding: 10px 14px; border-radius: 8px;
+            border: 1px solid var(--yl-line); background: #fafbff;
+            font-family: var(--yl-mono); font-size: .84em; outline: none;
+            transition: border-color .2s;
+        }
+        .yl_url:focus { border-color: var(--yl-blue); background: #fff; }
+        .yl_url.err { border-color: var(--yl-red); background: #fff9f9; }
+        .yl_send {
+            padding: 0 22px; border-radius: 8px; border: none; cursor: pointer;
+            font-size: .86em; font-weight: 600; color: #fff;
+            background: linear-gradient(135deg, #007aff, #5ac8fa);
+            box-shadow: 0 3px 10px rgba(0,122,255,.3);
+            transition: all .25s var(--yl-ease);
+            white-space: nowrap;
+        }
+        .yl_send:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 5px 14px rgba(0,122,255,.4); }
+        .yl_send:disabled { opacity: .6; cursor: not-allowed; }
+        .yl_send .yl_spinner {
+            display: inline-block; width: 12px; height: 12px; border: 2px solid #fff;
+            border-top-color: transparent; border-radius: 50%;
+            animation: yl_rot .7s linear infinite; margin-right: 6px; vertical-align: middle;
+        }
+        @keyframes yl_rot { to { transform: rotate(360deg); } }
+
+        /* Headers / Body 折叠面板 */
+        .yl_panes {
+            display: flex; flex-direction: column; gap: 10px; margin-top: 12px;
+        }
+        .yl_pane {
+            background: #fff; border-radius: 12px; overflow: hidden;
+            border: 1px solid var(--yl-line);
+        }
+        .yl_pane-head {
+            padding: 10px 14px; cursor: pointer;
+            display: flex; align-items: center; gap: 10px;
+            background: #faf7ff; font-size: .84em; font-weight: 600;
+            user-select: none;
+        }
+        .yl_pane-head:hover { background: #f5f0ff; }
+        .yl_pane-head .yl_chev {
+            font-size: .7em; color: var(--yl-sub); transition: transform .2s;
+        }
+        .yl_pane.collapsed .yl_pane-head .yl_chev { transform: rotate(-90deg); }
+        .yl_pane-head .yl_count {
+            font-size: .72em; padding: 1px 8px; border-radius: 999px;
+            background: #fff; color: var(--yl-sub); font-family: var(--yl-mono);
+            border: 1px solid var(--yl-line);
+        }
+        .yl_pane-body {
+            padding: 12px; border-top: 1px solid var(--yl-line);
+        }
+        .yl_pane.collapsed .yl_pane-body { display: none; }
+
+        /* Headers 编辑 */
+        .yl_kv-row {
+            display: grid; grid-template-columns: 1fr 1fr auto;
+            gap: 8px; margin-bottom: 6px; align-items: center;
+        }
+        .yl_kv-row input {
+            padding: 7px 10px; border-radius: 6px; border: 1px solid var(--yl-line);
+            font-family: var(--yl-mono); font-size: .82em; outline: none; background: #fafbff;
+        }
+        .yl_kv-row input:focus { border-color: var(--yl-blue); background: #fff; }
+        .yl_kv-row button {
+            width: 30px; height: 30px; border-radius: 6px; border: none; cursor: pointer;
+            background: #fff1f0; color: var(--yl-red); font-size: 1em; font-weight: 700;
+            transition: background .15s;
+        }
+        .yl_kv-row button:hover { background: #ffe0dc; }
+        .yl_add-btn {
+            padding: 6px 14px; border-radius: 6px; border: 1px dashed var(--yl-blue);
+            background: transparent; color: var(--yl-blue); font-size: .78em; cursor: pointer;
+            margin-top: 6px;
+        }
+        .yl_add-btn:hover { background: #eaf3ff; }
+
+        /* Body 编辑 */
+        .yl_body-textarea {
+            width: 100%; min-height: 140px; padding: 12px;
+            font-family: var(--yl-mono); font-size: .82em; line-height: 1.7;
+            border-radius: 8px; border: 1px solid var(--yl-line);
+            background: #1d1d1f; color: #f5f5f7; outline: none; resize: vertical;
+        }
+        .yl_body-textarea:focus { border-color: var(--yl-blue); }
+        .yl_body-actions {
+            display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;
+        }
+        .yl_body-actions button {
+            padding: 6px 12px; border-radius: 999px; border: 1px solid var(--yl-line);
+            background: #fff; color: var(--yl-sub); font-size: .78em; cursor: pointer;
+            transition: all .2s;
+        }
+        .yl_body-actions button:hover { border-color: var(--yl-blue); color: var(--yl-blue); }
+        .yl_body-actions button.active {
+            background: #eaf3ff; border-color: var(--yl-blue); color: var(--yl-blue);
+        }
+        .yl_body-hint {
+            font-size: .76em; color: var(--yl-sub); margin-top: 6px; line-height: 1.6;
+        }
+
+        /* 响应区 */
+        .yl_resp {
+            margin-top: 16px;
+            background: #fff; border-radius: 14px; overflow: hidden;
+            box-shadow: 0 4px 18px rgba(0,0,0,.06);
+            border: 1px solid var(--yl-line);
+        }
+        .yl_resp-head {
+            padding: 12px 16px; background: #faf7ff;
+            border-bottom: 1px solid var(--yl-line);
+            display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+        }
+        .yl_status {
+            font-family: var(--yl-mono); font-weight: 700; font-size: 1.05em;
+            padding: 4px 12px; border-radius: 6px;
+            background: #f0f0f0; color: var(--yl-sub);
+        }
+        .yl_status.ok { background: #eaf7ee; color: #1e7e34; }
+        .yl_status.warn { background: #fff5ec; color: var(--yl-orange); }
+        .yl_status.err { background: #fff1f0; color: var(--yl-red); }
+        .yl_meta {
+            font-size: .76em; font-family: var(--yl-mono); color: var(--yl-sub);
+            display: flex; gap: 14px; flex-wrap: wrap;
+        }
+        .yl_meta code {
+            background: transparent; color: var(--yl-blue); font-family: inherit;
+        }
+        .yl_resp-tabs {
+            display: flex; gap: 0; border-bottom: 1px solid var(--yl-line);
+        }
+        .yl_resp-tabs button {
+            padding: 10px 20px; border: none; background: transparent; cursor: pointer;
+            font-size: .82em; font-weight: 500; color: var(--yl-sub);
+            border-bottom: 2px solid transparent; transition: all .2s;
+        }
+        .yl_resp-tabs button:hover { color: var(--yl-ink); }
+        .yl_resp-tabs button.active {
+            color: var(--yl-blue); border-bottom-color: var(--yl-blue);
+        }
+        .yl_resp-body {
+            display: none; padding: 0;
+        }
+        .yl_resp-body.active { display: block; }
+        pre.yl_resp-content {
+            padding: 16px 20px; font-family: var(--yl-mono); font-size: .82em; line-height: 1.75;
+            white-space: pre-wrap; word-break: break-all; max-height: 480px; overflow: auto;
+        }
+        pre.yl_resp-content.json { background: #1d1d1f; color: #f5f5f7; }
+        pre.yl_resp-content.text { background: #fafbff; color: var(--yl-ink); }
+        pre.yl_resp-content.headers { background: #faf7ff; color: var(--yl-ink); }
+        /* 语法高亮 */
+        pre.json .k { color: #5ac8fa; }
+        pre.json .s { color: #ffd60a; }
+        pre.json .n { color: #ff9f0a; }
+        pre.json .b { color: #bf5af2; }
+
+        /* 空 / 错误状态 */
+        .yl_empty, .yl_err-box {
+            padding: 40px 20px; text-align: center;
+        }
+        .yl_empty { color: var(--yl-sub); }
+        .yl_empty .yl_icon { font-size: 2em; margin-bottom: 8px; }
+        .yl_err-box {
+            color: var(--yl-red); background: #fff9f9; border: 1px dashed #ffc9c6;
+        }
+        .yl_err-box .yl_err-title { font-weight: 600; margin-bottom: 6px; }
+        .yl_err-box pre {
+            text-align: left; background: #1d1d1f; color: #f5f5f7;
+            padding: 10px 14px; border-radius: 8px; margin-top: 10px;
+            font-size: .76em; font-family: var(--yl-mono); max-height: 200px; overflow: auto;
+        }
+
+        /* 历史记录 */
+        .yl_history {
+            margin-top: 16px; background: #fff; border-radius: 14px; overflow: hidden;
+            box-shadow: 0 4px 14px rgba(0,0,0,.04); border: 1px solid var(--yl-line);
+        }
+        .yl_history-head {
+            padding: 10px 14px; background: #faf7ff; border-bottom: 1px solid var(--yl-line);
+            font-size: .82em; font-weight: 600; color: var(--yl-sub);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .yl_history-head button {
+            font-size: .74em; padding: 3px 10px; border-radius: 999px;
+            border: none; background: #fff1f0; color: var(--yl-red); cursor: pointer;
+        }
+        .yl_history-head button:hover { background: #ffe0dc; }
+        .yl_hist-list { list-style: none; max-height: 200px; overflow: auto; }
+        .yl_hist-list li {
+            padding: 8px 14px; border-bottom: 1px solid var(--yl-line);
+            display: flex; align-items: center; gap: 10px; cursor: pointer;
+            font-family: var(--yl-mono); font-size: .76em; transition: background .15s;
+        }
+        .yl_hist-list li:last-child { border-bottom: none; }
+        .yl_hist-list li:hover { background: #f5f9ff; }
+        .yl_hist-list li .yl_m {
+            width: 52px; font-weight: 700; flex-shrink: 0;
+        }
+        .yl_hist-list li .yl_url-h {
+            flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--yl-ink);
+        }
+        .yl_hist-list li .yl_s {
+            flex-shrink: 0; padding: 1px 8px; border-radius: 4px;
+            font-size: .72em; font-weight: 600;
+        }
+        .yl_hist-list li .yl_s.ok { background: #eaf7ee; color: #1e7e34; }
+        .yl_hist-list li .yl_s.err { background: #fff1f0; color: var(--yl-red); }
+
+        .yl_footer {
+            text-align: center; padding: 28px 20px; color: var(--yl-sub);
+            font-size: .84em; border-top: 1px solid var(--yl-line);
+            background: rgba(255,255,255,.6);
+        }
+    </style>
+</head>
+<body>
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  建立时间：2026-11-02 14:23:21
+  使用的大模型：DeepSeek-V4.1-Flash
+  功能：接口测试工具 —— 支持 GET / POST / PUT / DELETE / PATCH，自定义请求头 + JSON 请求体，完整响应展示（状态码 + 耗时 + JSON 高亮 + 原始文本 + 响应头 + 错误堆栈）+ 最近 5 次历史
+-->
+
+    <div class="yl_hero">
+        <h1>🛠️ 接口测试工具</h1>
+        <p>选方法 · 输 URL · 带上 body · 点发送，看完整响应和错误堆栈</p>
+    </div>
+
+    <div class="yl_wrap">
+
+        <!-- 预设接口 -->
+        <div class="yl_presets">
+            <div class="yl_presets-title">📚 内置公开接口（点一下自动填 URL）</div>
+            <div class="yl_presets-row">
+                <div class="yl_preset" data-yl-m="GET" data-yl-url="https://jsonplaceholder.typicode.com/posts/1"><span class="yl_m get">GET</span>jsonplaceholder posts/1</div>
+                <div class="yl_preset" data-yl-m="GET" data-yl-url="https://jsonplaceholder.typicode.com/users"><span class="yl_m get">GET</span>jsonplaceholder users</div>
+                <div class="yl_preset" data-yl-m="GET" data-yl-url="https://dummyjson.com/products"><span class="yl_m get">GET</span>dummyjson products</div>
+                <div class="yl_preset" data-yl-m="GET" data-yl-url="https://fakestoreapi.com/products"><span class="yl_m get">GET</span>fakestore products</div>
+                <div class="yl_preset" data-yl-m="GET" data-yl-url="https://dog.ceo/api/breeds/image/random"><span class="yl_m get">GET</span>dog.ceo 随机狗图</div>
+                <div class="yl_preset" data-yl-m="GET" data-yl-url="https://dog.ceo/api/breed/hound/images/random/3"><span class="yl_m get">GET</span>dog.ceo hound 3张</div>
+                <div class="yl_preset" data-yl-m="POST" data-yl-url="https://jsonplaceholder.typicode.com/posts"><span class="yl_m post">POST</span>jsonplaceholder posts</div>
+                <div class="yl_preset" data-yl-m="PUT" data-yl-url="https://jsonplaceholder.typicode.com/posts/1"><span class="yl_m put">PUT</span>更新 posts/1</div>
+                <div class="yl_preset" data-yl-m="DELETE" data-yl-url="https://jsonplaceholder.typicode.com/posts/1"><span class="yl_m del">DEL</span>删除 posts/1</div>
+            </div>
+        </div>
+
+        <!-- 请求栏 -->
+        <div class="yl_req-bar">
+            <select class="yl_method" id="yl_method">
+                <option value="GET" class="get">GET</option>
+                <option value="POST" class="post">POST</option>
+                <option value="PUT" class="put">PUT</option>
+                <option value="DELETE" class="del">DELETE</option>
+                <option value="PATCH" class="get">PATCH</option>
+            </select>
+            <input class="yl_url" id="yl_url" placeholder="https://..." value="https://jsonplaceholder.typicode.com/posts/1">
+            <button class="yl_send" id="yl_send">▶ 发送</button>
+        </div>
+
+        <!-- 可折叠面板：Headers / Body -->
+        <div class="yl_panes">
+            <!-- Headers -->
+            <div class="yl_pane collapsed" id="yl_headers-pane">
+                <div class="yl_pane-head" data-yl-pane="headers">
+                    <span class="yl_chev">▼</span>
+                    <span>🔹 Request Headers</span>
+                    <span class="yl_count" id="yl_headers-count">2</span>
+                </div>
+                <div class="yl_pane-body" id="yl_headers-body">
+                    <div id="yl_headers"></div>
+                    <button class="yl_add-btn" id="yl_add-header">+ 添加 Header</button>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="yl_pane collapsed" id="yl_body-pane">
+                <div class="yl_pane-head" data-yl-pane="body">
+                    <span class="yl_chev">▼</span>
+                    <span>📦 Request Body</span>
+                    <span class="yl_count" id="yl_body-count">0</span>
+                </div>
+                <div class="yl_pane-body">
+                    <textarea class="yl_body-textarea" id="yl_body" placeholder='// JSON 格式，仅 POST / PUT / PATCH / DELETE 生效&#10;{&#10;  "title": "新标题",&#10;  "body": "内容...",&#10;  "userId": 1&#10;}'></textarea>
+                    <div class="yl_body-actions">
+                        <button data-yl-body="none" class="active">无 body</button>
+                        <button data-yl-body="json">JSON</button>
+                        <button data-yl-body="form">表单</button>
+                        <button data-yl-body="raw">Raw 文本</button>
+                        <button id="yl_body-prettify" style="margin-left:auto;">✨ 格式化</button>
+                        <button id="yl_body-clear">🧹 清空</button>
+                    </div>
+                    <div class="yl_body-hint">
+                        POST 预设 JSON：<code>{"title":"测试帖子","body":"这是正文","userId":1}</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 响应区 -->
+        <div class="yl_resp" id="yl_resp" style="display:none;">
+            <div class="yl_resp-head" id="yl_resp-head">
+                <!-- JS 填充状态码、耗时等 -->
+            </div>
+            <div class="yl_resp-tabs">
+                <button class="active" data-yl-tab="preview">📄 预览</button>
+                <button data-yl-tab="raw">📝 原始文本</button>
+                <button data-yl-tab="headers">🔧 响应头</button>
+            </div>
+            <div class="yl_resp-body active" data-yl-body-tab="preview">
+                <pre class="yl_resp-content json" id="yl_resp-preview">// 等待发送...</pre>
+            </div>
+            <div class="yl_resp-body" data-yl-body-tab="raw">
+                <pre class="yl_resp-content text" id="yl_resp-raw">// 等待发送...</pre>
+            </div>
+            <div class="yl_resp-body" data-yl-body-tab="headers">
+                <pre class="yl_resp-content headers" id="yl_resp-headers">// 等待发送...</pre>
+            </div>
+        </div>
+
+        <!-- 历史记录 -->
+        <div class="yl_history">
+            <div class="yl_history-head">
+                <span>🕓 最近 5 次请求</span>
+                <button id="yl_clear-history">清空</button>
+            </div>
+            <ul class="yl_hist-list" id="yl_history-list">
+                <li style="color:var(--yl-sub);justify-content:center;">暂无历史记录</li>
+            </ul>
+        </div>
+
+        <div class="yl_footer">宁瑞祥 · 计算机23005 · 2001010503 · 17-4 接口测试工具</div>
+    </div>
+
+    <script>
+    /* ===== 状态 ===== */
+    var yl_headers = [
+        { k: "Content-Type", v: "application/json" },
+        { k: "Accept", v: "*/*" }
+    ];
+    var yl_bodyMode = "none"; // none / json / form / raw
+    var yl_history = [];
+
+    /* ===== 渲染 Headers ===== */
+    function yl_renderHeaders() {
+        var el = document.getElementById("yl_headers");
+        var html = "";
+        for (var i = 0; i < yl_headers.length; i++) {
+            var h = yl_headers[i];
+            html += '<div class="yl_kv-row">'
+                  + '<input data-yl-k="' + i + '" placeholder="Key" value="' + yl_escape(h.k) + '">'
+                  + '<input data-yl-v="' + i + '" placeholder="Value" value="' + yl_escape(h.v) + '">'
+                  + '<button data-yl-del="' + i + '" title="删除">✕</button>'
+                  + '</div>';
+        }
+        el.innerHTML = html;
+        document.getElementById("yl_headers-count").textContent = yl_headers.length;
+    }
+    yl_renderHeaders();
+
+    /* ===== Headers 添加 / 删除 / 修改 ===== */
+    document.getElementById("yl_add-header").addEventListener("click", function () {
+        yl_headers.push({ k: "", v: "" });
+        yl_renderHeaders();
+        document.getElementById("yl_headers-body").scrollTop = 9999;
+    });
+    document.getElementById("yl_headers").addEventListener("click", function (e) {
+        var btn = e.target.closest("button[data-yl-del]");
+        if (!btn) return;
+        var idx = parseInt(btn.getAttribute("data-yl-del"), 10);
+        yl_headers.splice(idx, 1);
+        yl_renderHeaders();
+    });
+    document.getElementById("yl_headers").addEventListener("input", function (e) {
+        var t = e.target;
+        var ki = t.getAttribute("data-yl-k");
+        var vi = t.getAttribute("data-yl-v");
+        if (ki !== null) yl_headers[parseInt(ki, 10)].k = t.value;
+        if (vi !== null) yl_headers[parseInt(vi, 10)].v = t.value;
+    });
+
+    /* ===== Body 模式 ===== */
+    document.querySelectorAll(".yl_body-actions button[data-yl-body]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            document.querySelectorAll(".yl_body-actions button[data-yl-body]").forEach(function (b) { b.classList.remove("active"); });
+            btn.classList.add("active");
+            yl_bodyMode = btn.getAttribute("data-yl-body");
+            yl_updateBodyCount();
+        });
+    });
+    document.getElementById("yl_body").addEventListener("input", yl_updateBodyCount);
+    document.getElementById("yl_body-prettify").addEventListener("click", function () {
+        var ta = document.getElementById("yl_body");
+        if (!ta.value.trim()) return;
+        try { ta.value = JSON.stringify(JSON.parse(ta.value), null, 2); }
+        catch (e) { alert("JSON 格式错误：" + e.message); }
+    });
+    document.getElementById("yl_body-clear").addEventListener("click", function () {
+        document.getElementById("yl_body").value = "";
+        yl_updateBodyCount();
+    });
+    function yl_updateBodyCount() {
+        var ta = document.getElementById("yl_body");
+        var text = ta.value.trim();
+        var cnt = yl_bodyMode === "none" ? 0 : (text ? text.length + " 字" : "0");
+        document.getElementById("yl_body-count").textContent = cnt;
+        // GET/DELETE 通常没有 body 但用户可以手动塞，只做视觉提示
+        var method = document.getElementById("yl_method").value;
+        if ((method === "GET" || method === "DELETE") && text) {
+            document.getElementById("yl_body-hint").innerHTML =
+                '<span style="color:var(--yl-orange);">⚠️ ' + method + ' 通常不带 body，是否确认？</span>';
+        } else {
+            document.getElementById("yl_body-hint").innerHTML = 'POST 预设 JSON：<code>{"title":"测试帖子","body":"这是正文","userId":1}</code>';
+        }
+    }
+
+    /* ===== 折叠面板 ===== */
+    document.querySelectorAll(".yl_pane-head").forEach(function (head) {
+        head.addEventListener("click", function () {
+            head.parentElement.classList.toggle("collapsed");
+        });
+    });
+
+    /* ===== Method 样式 ===== */
+    var ylMethodSel = document.getElementById("yl_method");
+    function yl_methodClass() {
+        var opt = ylMethodSel.options[ylMethodSel.selectedIndex];
+        ylMethodSel.className = "yl_method " + opt.className;
+    }
+    ylMethodSel.addEventListener("change", yl_methodClass);
+    yl_methodClass();
+
+    /* ===== 预设 ===== */
+    document.querySelectorAll(".yl_preset").forEach(function (p) {
+        p.addEventListener("click", function () {
+            document.getElementById("yl_url").value = p.getAttribute("data-yl-url");
+            var m = p.getAttribute("data-yl-m");
+            document.getElementById("yl_method").value = m;
+            yl_methodClass();
+            // POST 默认填一个 JSON body
+            if (m === "POST" && !document.getElementById("yl_body").value.trim()) {
+                document.getElementById("yl_body").value = JSON.stringify(
+                    { title: "测试帖子", body: "这是通过 17-4 接口测试工具发出的请求", userId: 1 },
+                    null, 2
+                );
+                // 切到 JSON 模式
+                document.querySelectorAll(".yl_body-actions button[data-yl-body]").forEach(function (b) { b.classList.remove("active"); });
+                document.querySelector('.yl_body-actions button[data-yl-body="json"]').classList.add("active");
+                yl_bodyMode = "json";
+                yl_updateBodyCount();
+                // 展开 body 面板
+                document.getElementById("yl_body-pane").classList.remove("collapsed");
+            }
+        });
+    });
+
+    /* ===== 发送 ===== */
+    document.getElementById("yl_send").addEventListener("click", yl_doFetch);
+    document.getElementById("yl_url").addEventListener("keydown", function (e) { if (e.key === "Enter") yl_doFetch(); });
+
+    function yl_doFetch() {
+        var method = document.getElementById("yl_method").value;
+        var url = document.getElementById("yl_url").value.trim();
+        var sendBtn = document.getElementById("yl_send");
+        var urlEl = document.getElementById("yl_url");
+
+        if (!url) {
+            urlEl.classList.add("err");
+            urlEl.focus();
+            setTimeout(function () { urlEl.classList.remove("err"); }, 1500);
+            return;
+        }
+        if (!/^https?:\/\//i.test(url)) {
+            urlEl.classList.add("err");
+            urlEl.focus();
+            alert("URL 需要以 http:// 或 https:// 开头");
+            setTimeout(function () { urlEl.classList.remove("err"); }, 1500);
+            return;
+        }
+
+        // 构造 headers（用户填的 kv + 默认 accept）
+        var hdrs = {};
+        for (var i = 0; i < yl_headers.length; i++) {
+            var h = yl_headers[i];
+            if (h.k.trim()) hdrs[h.k.trim()] = h.v;
+        }
+
+        // 构造 body
+        var body = undefined;
+        if (yl_bodyMode !== "none") {
+            var raw = document.getElementById("yl_body").value;
+            if (!raw.trim()) {
+                // 空 body 但模式不是 none，给提示不报错
+            } else if (yl_bodyMode === "json") {
+                try { JSON.parse(raw); }
+                catch (e) { alert("Body JSON 格式错误：" + e.message); return; }
+                body = raw;
+                if (!hdrs["Content-Type"] && !hdrs["content-type"]) hdrs["Content-Type"] = "application/json";
+            } else if (yl_bodyMode === "form") {
+                var params = new URLSearchParams(raw);
+                body = params.toString();
+                if (!hdrs["Content-Type"] && !hdrs["content-type"]) hdrs["Content-Type"] = "application/x-www-form-urlencoded";
+            } else {
+                body = raw;
+            }
+        }
+
+        // 界面进入 loading
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<span class="yl_spinner"></span>请求中...';
+
+        var t0 = performance.now();
+        var respEl = document.getElementById("yl_resp");
+        respEl.style.display = "block";
+        document.querySelector('.yl_resp-tabs button[data-yl-tab="preview"]').click();
+        document.getElementById("yl_resp-preview").textContent = "// 请求发出中...";
+        document.getElementById("yl_resp-raw").textContent = "// 等待响应...";
+        document.getElementById("yl_resp-headers").textContent = "// 等待响应...";
+
+        fetch(url, { method: method, headers: hdrs, body: body })
+            .then(function (res) {
+                var t1 = performance.now();
+                var status = res.status;
+                var statusText = res.statusText;
+                var ok = res.ok;
+                var ct = res.headers.get("content-type") || "";
+                var hdrsList = [];
+                res.headers.forEach(function (v, k) { hdrsList.push({ k: k, v: v }); });
+
+                return res.text().then(function (text) {
+                    yl_showResp({
+                        ok: ok, status: status, statusText: statusText,
+                        ct: ct, headers: hdrsList, text: text,
+                        elapsed: t1 - t0
+                    });
+                    yl_pushHistory({ method: method, url: url, status: status, ok: ok, elapsed: t1 - t0 });
+                });
+            })
+            .catch(function (err) {
+                var t1 = performance.now();
+                yl_showErr({ method: method, url: url, err: err, elapsed: t1 - t0 });
+                yl_pushHistory({ method: method, url: url, status: 0, ok: false, elapsed: t1 - t0 });
+            })
+            .finally(function () {
+                sendBtn.disabled = false;
+                sendBtn.textContent = "▶ 再发送一次";
+            });
+    }
+
+    /* ===== 渲染响应 ===== */
+    function yl_showResp(d) {
+        var head = document.getElementById("yl_resp-head");
+        var statusClass = d.ok ? "ok" : (d.status >= 400 && d.status < 500 ? "warn" : "err");
+        var statusText = d.ok ? "✔ " : "✘ ";
+        if (d.status >= 300 && d.status < 400) { statusClass = "warn"; statusText = "↪ "; }
+        head.innerHTML =
+            '<div class="yl_status ' + statusClass + '">' + statusText + d.status + ' ' + yl_escape(d.statusText) + '</div>'
+            + '<div class="yl_meta">'
+            +   '<span>⏱️ <code>' + d.elapsed.toFixed(0) + 'ms</code></span>'
+            +   '<span>📦 <code>' + yl_escape(d.ct.split(";")[0] || "—") + '</code></span>'
+            +   '<span>📏 <code>' + d.text.length + ' chars</code></span>'
+            + '</div>';
+
+        // 预览：JSON 高亮 or 纯文本
+        var isJson = /json/i.test(d.ct) || (d.text.trim().startsWith("{") || d.text.trim().startsWith("["));
+        var previewEl = document.getElementById("yl_resp-preview");
+        if (isJson) {
+            try {
+                var obj = JSON.parse(d.text);
+                previewEl.className = "yl_resp-content json";
+                previewEl.innerHTML = yl_jsonHighlight(JSON.stringify(obj, null, 2));
+            } catch (e) {
+                previewEl.className = "yl_resp-content text";
+                previewEl.textContent = d.text;
+            }
+        } else {
+            previewEl.className = "yl_resp-content text";
+            previewEl.textContent = d.text;
+        }
+        // 原始文本
+        document.getElementById("yl_resp-raw").className = d.text.startsWith("{") || d.text.startsWith("[") ? "yl_resp-content json" : "yl_resp-content text";
+        document.getElementById("yl_resp-raw").textContent = d.text;
+        // 响应头
+        var hdrsHtml = d.headers.map(function (h) {
+            return h.k + ": " + h.v;
+        }).join("\n");
+        document.getElementById("yl_resp-headers").textContent = hdrsHtml || "(无)";
+    }
+
+    function yl_showErr(d) {
+        var head = document.getElementById("yl_resp-head");
+        head.innerHTML =
+            '<div class="yl_status err">✘ 网络错误</div>'
+            + '<div class="yl_meta">'
+            +   '<span>⏱️ <code>' + d.elapsed.toFixed(0) + 'ms</code></span>'
+            +   '<span>📡 <code>' + yl_escape(d.url) + '</code></span>'
+            + '</div>';
+
+        var stack = d.err.stack || ("Type: " + d.err.name + "\nMessage: " + d.err.message);
+        var previewEl = document.getElementById("yl_resp-preview");
+        previewEl.className = "yl_resp-content text";
+        previewEl.innerHTML =
+            '<div style="color:var(--yl-red);font-weight:600;margin-bottom:8px;">🚫 请求无法到达服务器</div>'
+            + '<div style="color:var(--yl-sub);font-size:.8em;line-height:1.7;">可能原因：'
+            + '<br>1) 接口不存在（404）<br>2) CORS 跨域未放开<br>3) URL 格式错误<br>4) 网络断开 / DNS 解析失败<br>5) 请求体 JSON 语法错误被后端拒</div>'
+            + '<pre style="background:#1d1d1f;color:#f5f5f7;padding:10px 14px;border-radius:8px;margin-top:10px;font-size:.76em;">'
+            + yl_escape(stack) + '</pre>';
+        document.getElementById("yl_resp-raw").textContent = stack;
+        document.getElementById("yl_resp-headers").textContent = "(无响应头，请求根本没出去)";
+    }
+
+    /* ===== JSON 语法高亮（简化版） ===== */
+    function yl_jsonHighlight(s) {
+        // 顺序很重要：先字符串，再数字，再布尔/null
+        return yl_escape(s)
+            .replace(/"([^"\\]|\\.)*"/g, function (m) { return '<span class="s">' + m + '</span>'; })
+            .replace(/\b(true|false|null)\b/g, '<span class="b">$1</span>')
+            .replace(/\b(-?\d+\.?\d*(?:[eE][+-]?\d+)?)\b/g, '<span class="n">$1</span>')
+            .replace(/("(?:[^"\\]|\\.)*")(\s*:)/g, '<span class="k">$1</span>$2');
+    }
+
+    /* ===== Tabs ===== */
+    document.querySelector(".yl_resp-tabs").addEventListener("click", function (e) {
+        var btn = e.target.closest("button[data-yl-tab]");
+        if (!btn) return;
+        document.querySelectorAll(".yl_resp-tabs button").forEach(function (b) { b.classList.remove("active"); });
+        btn.classList.add("active");
+        var tab = btn.getAttribute("data-yl-tab");
+        document.querySelectorAll(".yl_resp-body").forEach(function (b) { b.classList.remove("active"); });
+        document.querySelector('.yl_resp-body[data-yl-body-tab="' + tab + '"]').classList.add("active");
+    });
+
+    /* ===== 历史 ===== */
+    function yl_pushHistory(h) {
+        yl_history.unshift(h);
+        if (yl_history.length > 5) yl_history.pop();
+        yl_renderHistory();
+    }
+    function yl_renderHistory() {
+        var el = document.getElementById("yl_history-list");
+        if (yl_history.length === 0) {
+            el.innerHTML = '<li style="color:var(--yl-sub);justify-content:center;">暂无历史记录</li>';
+            return;
+        }
+        var html = "";
+        yl_history.forEach(function (h, i) {
+            var cls = h.ok ? "ok" : "err";
+            var mcls = h.method.toLowerCase();
+            html += '<li data-yl-hist="' + i + '">'
+                  + '<span class="yl_m ' + mcls + '">' + h.method + '</span>'
+                  + '<span class="yl_url-h">' + yl_escape(h.url) + '</span>'
+                  + '<span class="yl_s ' + cls + '">' + (h.status || "ERR") + '</span>'
+                  + '</li>';
+        });
+        el.innerHTML = html;
+    }
+    document.getElementById("yl_history-list").addEventListener("click", function (e) {
+        var li = e.target.closest("li[data-yl-hist]");
+        if (!li) return;
+        var idx = parseInt(li.getAttribute("data-yl-hist"), 10);
+        var h = yl_history[idx];
+        if (!h) return;
+        // 恢复到输入框
+        document.getElementById("yl_url").value = h.url;
+        document.getElementById("yl_method").value = h.method;
+        yl_methodClass();
+        // 不自动发送，让用户确认
+        document.getElementById("yl_send").focus();
+    });
+    document.getElementById("yl_clear-history").addEventListener("click", function () {
+        yl_history = [];
+        yl_renderHistory();
+    });
+
+    function yl_escape(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+    </script>
+</body>
+</html>

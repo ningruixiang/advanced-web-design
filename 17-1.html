@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON 可视化 · 宁瑞祥 · 计算机23005</title>
+    <style>
+        :root {
+            --yl-blue: #007aff;
+            --yl-teal: #5ac8fa;
+            --yl-purple: #af52de;
+            --yl-green: #34c759;
+            --yl-orange: #ff9500;
+            --yl-red: #ff3b30;
+            --yl-ink: #1d1d1f;
+            --yl-sub: #6e6e73;
+            --yl-line: rgba(0,0,0,.06);
+            --yl-mono: "SF Mono", Menlo, Consolas, monospace;
+            --yl-ease: cubic-bezier(.25,.46,.45,.94);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(180deg, #f5f7fa 0%, #ffffff 40%, #f0f2f5 100%);
+            color: var(--yl-ink); min-height: 100vh; line-height: 1.6;
+        }
+        /* Hero */
+        .yl_hero {
+            position: relative; padding: 50px 20px 42px; text-align: center;
+            background: linear-gradient(135deg, #af52de 0%, #007aff 50%, #34c759 100%);
+            color: #fff; overflow: hidden;
+        }
+        .yl_hero::before {
+            content: ""; position: absolute; inset: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(255,255,255,.18) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, rgba(255,255,255,.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .yl_hero h1 { position: relative; font-size: clamp(1.8em, 4.4vw, 2.6em); font-weight: 700; letter-spacing: 2px; }
+        .yl_hero p { position: relative; margin-top: 8px; font-size: .95em; opacity: .95; }
+        .yl_hero .yl_badge {
+            position: relative; display: inline-block; margin-top: 16px;
+            padding: 6px 16px; border-radius: 999px; font-size: .86em;
+            background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.3);
+            backdrop-filter: blur(10px);
+        }
+        .yl_wrap { max-width: 1040px; margin: 0 auto; padding: 28px 18px 50px; }
+
+        /* 区块 */
+        .yl_section-title {
+            font-size: 1.35em; font-weight: 600; color: var(--yl-ink);
+            padding-left: 14px; border-left: 4px solid var(--yl-purple);
+            margin: 30px 0 6px;
+        }
+        .yl_section-desc { color: var(--yl-sub); font-size: .92em; padding-left: 18px; margin-bottom: 14px; }
+
+        /* 两栏 */
+        .yl_two-col {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+        }
+        @media (max-width: 720px) { .yl_two-col { grid-template-columns: 1fr; } }
+
+        /* 卡片 */
+        .yl_card {
+            background: #fff; border-radius: 16px; overflow: hidden;
+            box-shadow: 0 4px 18px rgba(0,0,0,.05);
+            border: 1px solid var(--yl-line);
+        }
+        .yl_card-head {
+            padding: 12px 16px; background: #faf7ff;
+            border-bottom: 1px solid var(--yl-line);
+            font-weight: 600; font-size: .95em;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .yl_card-head .yl_tag {
+            font-size: .74em; padding: 3px 10px; border-radius: 999px;
+            background: #fff1f0; color: var(--yl-red); font-weight: 500;
+        }
+        .yl_card-body { padding: 16px; }
+
+        /* JSON 代码块（语法高亮） */
+        pre.yl_json {
+            font-family: var(--yl-mono); font-size: .84em;
+            background: #1d1d1f; color: #f5f5f7;
+            padding: 16px 18px; border-radius: 10px;
+            overflow-x: auto; line-height: 1.75;
+        }
+        pre.yl_json .k { color: #5ac8fa; }       /* 键 */
+        pre.yl_json .s { color: #ffd60a; }       /* 字符串 */
+        pre.yl_json .n { color: #ff9f0a; }       /* 数字 */
+        pre.yl_json .b { color: #bf5af2; }       /* 布尔 */
+        pre.yl_json .c { color: #8e8e93; font-style: italic; } /* 注释（示例） */
+
+        /* 可视化树 */
+        .yl_tree { font-family: var(--yl-mono); font-size: .86em; }
+        .yl_tree-row {
+            display: flex; align-items: flex-start; gap: 6px;
+            padding: 3px 0; white-space: pre;
+        }
+        .yl_tree-row .yl_k { color: var(--yl-blue); flex-shrink: 0; }
+        .yl_tree-row .yl_colon { color: var(--yl-sub); flex-shrink: 0; }
+        .yl_tree-row .yl_v { flex: 1; }
+        .yl_tree-row.indent-1 { padding-left: 20px; }
+        .yl_tree-row.indent-2 { padding-left: 40px; }
+        .yl_tree-row.indent-3 { padding-left: 60px; }
+        .yl_scalar-str { color: var(--yl-orange); }
+        .yl_scalar-num { color: var(--yl-red); }
+        .yl_scalar-bool { color: var(--yl-purple); }
+        .yl_scalar-null { color: var(--yl-sub); font-style: italic; }
+        .yl_bracket { color: var(--yl-sub); font-weight: 700; }
+
+        /* 实验台 */
+        .yl_lab {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+        }
+        .yl_lab textarea {
+            width: 100%; min-height: 160px; resize: vertical;
+            font-family: var(--yl-mono); font-size: .82em;
+            padding: 12px; border-radius: 8px;
+            border: 1px solid var(--yl-line); background: #fafbff; color: var(--yl-ink);
+            outline: none; transition: border-color .2s;
+        }
+        .yl_lab textarea:focus { border-color: var(--yl-blue); }
+        .yl_actions { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+        .yl_btn {
+            padding: 9px 18px; border-radius: 999px; font-size: .88em; font-weight: 500;
+            cursor: pointer; transition: all .25s var(--yl-ease); border: 1px solid var(--yl-line);
+        }
+        .yl_btn-primary {
+            background: linear-gradient(135deg, #007aff, #5ac8fa); color: #fff; border: none;
+            box-shadow: 0 4px 12px rgba(0,122,255,.25);
+        }
+        .yl_btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,122,255,.35); }
+        .yl_btn-ghost { background: #fff; color: var(--yl-blue); border-color: var(--yl-line); }
+        .yl_btn-ghost:hover { border-color: var(--yl-blue); background: #f5f9ff; }
+        .yl_result {
+            min-height: 120px; padding: 12px; border-radius: 8px;
+            background: #1d1d1f; color: #f5f5f7;
+            font-family: var(--yl-mono); font-size: .82em; line-height: 1.7;
+            overflow-x: auto;
+        }
+        .yl_err { color: #ff6961; }
+        .yl_ok { color: #30d158; }
+        .yl_meta {
+            display: flex; gap: 16px; font-size: .78em; color: var(--yl-sub);
+            margin-top: 10px; font-family: var(--yl-mono);
+        }
+        .yl_meta span code {
+            background: #f5f7fa; color: var(--yl-blue);
+            padding: 1px 6px; border-radius: 4px; font-family: inherit;
+        }
+
+        /* 速查表 */
+        table.yl_tbl {
+            width: 100%; border-collapse: collapse; font-size: .86em;
+        }
+        table.yl_tbl th, table.yl_tbl td {
+            padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--yl-line);
+        }
+        table.yl_tbl th { background: #faf7ff; font-weight: 600; }
+        table.yl_tbl tr:hover td { background: #fafbff; }
+        table.yl_tbl code {
+            font-family: var(--yl-mono); background: #f5f7fa; color: var(--yl-blue);
+            padding: 1px 6px; border-radius: 4px; font-size: .84em;
+        }
+        table.yl_tbl td:first-child { font-family: var(--yl-mono); white-space: nowrap; }
+
+        /* 页脚 */
+        .yl_footer {
+            text-align: center; padding: 30px 20px; color: var(--yl-sub);
+            font-size: .84em; border-top: 1px solid var(--yl-line);
+            background: rgba(255,255,255,.6); margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  建立时间：2026-11-02 13:57:42
+  使用的大模型：DeepSeek-V4.1-Flash
+  功能：JSON 可视化展示 —— 语法高亮、解析/stringify 实验台、嵌套数据类型示意图、陷阱提示、速查表
+-->
+
+    <div class="yl_hero">
+        <h1>📦 JSON 可视化</h1>
+        <p>语法高亮 · 在线解析 / 序列化 · 类型陷阱一览</p>
+        <span class="yl_badge">宁瑞祥 · 计算机23005 · 2001010503</span>
+    </div>
+
+    <div class="yl_wrap">
+
+        <!-- 一、什么是 JSON -->
+        <div class="yl_section-title">一、什么是 JSON</div>
+        <div class="yl_section-desc">JavaScript Object Notation（对象表示法），一种轻量的数据交换格式。结构上就是 JavaScript 的对象 / 数组，语法几乎一模一样。</div>
+
+        <div class="yl_card">
+            <div class="yl_card-head">
+                <span>一个真实例子：学生信息</span>
+                <span class="yl_tag">JSON 文本</span>
+            </div>
+            <div class="yl_card-body">
+<pre class="yl_json"><span class="yl_bracket">{</span>
+  <span class="yl_k">"name"</span>: <span class="yl_s">"宁瑞祥"</span>,
+  <span class="yl_k">"age"</span>: <span class="yl_n">20</span>,
+  <span class="yl_k">"major"</span>: <span class="yl_s">"计算机科学与技术"</span>,
+  <span class="yl_k">"isStudent"</span>: <span class="yl_b">true</span>,
+  <span class="yl_k">"grade"</span>: <span class="yl_scalar-null">null</span>,
+  <span class="yl_k">"hobbies"</span>: <span class="yl_bracket">[</span>
+    <span class="yl_s">"前端开发"</span>,
+    <span class="yl_s">"打篮球"</span>,
+    <span class="yl_s">"听音乐"</span>
+  <span class="yl_bracket">]</span>
+<span class="yl_bracket">}</span></pre>
+                <div class="yl_meta" style="margin-top:12px;">
+                    类型：<code>object</code>  ·  合法 JSON 里可以出现：<code>对象</code> <code>数组</code> <code>字符串</code> <code>数字</code> <code>true/false</code> <code>null</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- 二、六种合法类型 -->
+        <div class="yl_section-title">二、六种合法值</div>
+        <div class="yl_section-desc">JSON 规定，只有这 6 种值是合法的。函数、undefined、Symbol、Date 对象——这些直接放进去都会出问题。</div>
+
+        <div class="yl_two-col">
+            <div class="yl_card">
+                <div class="yl_card-head">✅ 合法的 6 种</div>
+                <div class="yl_card-body">
+<pre class="yl_json"><span class="yl_k">"str"</span>:  <span class="yl_s">"你好"</span>        <span class="yl_c">// 字符串，双引号</span>
+<span class="yl_k">"num"</span>:  <span class="yl_n">42</span> / <span class="yl_n">3.14</span>   <span class="yl_c">// 数字（含小数）</span>
+<span class="yl_k">"bool"</span>: <span class="yl_b">true</span>          <span class="yl_c">// 布尔，小写</span>
+<span class="yl_k">"nil"</span>:  <span class="yl_scalar-null">null</span>         <span class="yl_c">// 空值，小写</span>
+<span class="yl_k">"arr"</span>:  <span class="yl_bracket">[</span><span class="yl_n">1</span>, <span class="yl_n">2</span>, <span class="yl_n">3</span><span class="yl_bracket">]</span>   <span class="yl_c">// 数组</span>
+<span class="yl_k">"obj"</span>:  <span class="yl_bracket">{</span><span class="yl_k">"a"</span>: <span class="yl_n">1</span><span class="yl_bracket">}</span>   <span class="yl_c">// 对象</span></pre>
+                </div>
+            </div>
+            <div class="yl_card">
+                <div class="yl_card-head" style="background:#fff1f0;">❌ 容易踩的坑</div>
+                <div class="yl_card-body">
+<pre class="yl_json"><span class="yl_k">"fn"</span>: <span style="color:#ff6961">"function(){}"</span>  <span class="yl_c">// ❌ 不支持函数</span>
+<span class="yl_k">"u"</span>: <span style="color:#ff6961">"undefined"</span>       <span class="yl_c">// ❌ 不支持 undefined</span>
+<span class="yl_k">"date"</span>: <span style="color:#ff6961">"2024-01-01T..."</span> <span class="yl_c">// ⚠️ Date 只能转字符串</span>
+<span class="yl_k">"key"</span>: <span style="color:#ff6961">'单引号'</span>       <span class="yl_c">// ❌ 键和字符串必须双引号</span>
+<span class="yl_k">"trail"</span>: <span class="yl_n">1</span>, <span style="color:#ff6961">null,</span>  <span class="yl_c">// ❌ 不允许尾随逗号</span></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- 三、解析 / 序列化 实验台 -->
+        <div class="yl_section-title">三、JSON.parse / JSON.stringify 实验台</div>
+        <div class="yl_section-desc">左边输入 JSON 文本，点「解析」看变成了什么 JS 对象；右边输入 JS 对象，点「序列化」看生成的 JSON 文本。</div>
+
+        <div class="yl_card" style="padding:16px;">
+            <div class="yl_lab">
+                <div>
+                    <div style="font-weight:600;font-size:.9em;margin-bottom:8px;color:var(--yl-blue);">📥 JSON 文本 → JS 对象（parse）</div>
+                    <textarea id="yl_json-in">{ "name": "宁瑞祥", "age": 20, "tags": ["前端","UI"] }</textarea>
+                    <div class="yl_actions">
+                        <button class="yl_btn yl_btn-primary" id="yl_parse">▶ 解析</button>
+                        <button class="yl_btn yl_btn-ghost" id="yl_beautify">✨ 格式化</button>
+                    </div>
+                    <div class="yl_meta">
+                        JSON 长度：<code id="yl_json-len">—</code>
+                        字符数：<code id="yl_json-chars">—</code>
+                    </div>
+                </div>
+                <div>
+                    <div style="font-weight:600;font-size:.9em;margin-bottom:8px;color:var(--yl-purple);">📤 JS 对象 → JSON 文本（stringify）</div>
+                    <textarea id="yl-js-in">const obj = { name: "宁瑞祥", age: 20, isOk: true, hobbies: ["前端", "篮球"] };</textarea>
+                    <div class="yl_actions">
+                        <button class="yl_btn yl_btn-primary" id="yl_stringify">▶ 序列化</button>
+                        <button class="yl_btn yl_btn-ghost" id="yl_stringify-prettify">✨ 带缩进</button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:16px;">
+                <div style="font-weight:600;font-size:.9em;margin-bottom:8px;">🖨️ 输出</div>
+                <div class="yl_result" id="yl_result">点上方按钮开始 ↖</div>
+            </div>
+        </div>
+
+        <!-- 四、嵌套结构可视化 -->
+        <div class="yl_section-title">四、嵌套结构长啥样</div>
+        <div class="yl_section-desc">真实接口返回的数据经常是套娃。右边把 JSON 变成一棵缩进的树，一眼看清层级。</div>
+
+        <div class="yl_two-col">
+            <div class="yl_card">
+                <div class="yl_card-head">原始 JSON</div>
+                <div class="yl_card-body">
+<pre class="yl_json"><span class="yl_bracket">{</span>
+  <span class="yl_k">"code"</span>: <span class="yl_n">0</span>,
+  <span class="yl_k">"message"</span>: <span class="yl_s">"ok"</span>,
+  <span class="yl_k">"data"</span>: <span class="yl_bracket">{</span>
+    <span class="yl_k">"user"</span>: <span class="yl_bracket">{</span>
+      <span class="yl_k">"id"</span>: <span class="yl_n">1024</span>,
+      <span class="yl_k">"profile"</span>: <span class="yl_bracket">{</span>
+        <span class="yl_k">"nick"</span>: <span class="yl_s">"小明"</span>
+      <span class="yl_bracket">}</span>
+    <span class="yl_bracket">}</span>,
+    <span class="yl_k">"items"</span>: <span class="yl_bracket">[</span>
+      <span class="yl_bracket">{</span> <span class="yl_k">"id"</span>: <span class="yl_n">1</span>, <span class="yl_k">"price"</span>: <span class="yl_n">99</span> <span class="yl_bracket">}</span>,
+      <span class="yl_bracket">{</span> <span class="yl_k">"id"</span>: <span class="yl_n">2</span>, <span class="yl_k">"price"</span>: <span class="yl_n">199</span> <span class="yl_bracket">}</span>
+    <span class="yl_bracket">]</span>
+  <span class="yl_bracket">}</span>
+<span class="yl_bracket">}</span></pre>
+                </div>
+            </div>
+            <div class="yl_card">
+                <div class="yl_card-head">📚 层级树</div>
+                <div class="yl_card-body">
+                    <div class="yl_tree" id="yl_tree"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 五、速查表 -->
+        <div class="yl_section-title">五、速查表</div>
+        <div class="yl_section-desc">最常用的 6 个 JSON 相关 API，一句话记住。</div>
+        <div class="yl_card" style="overflow-x:auto;">
+            <div class="yl_card-body" style="padding:0;">
+                <table class="yl_tbl">
+                    <thead><tr><th>API</th><th>作用</th><th>返回</th><th>可能报错</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>JSON.parse(str)</code></td><td>JSON 文本 → JS 对象</td><td>JS 对象 / 数组</td><td>格式错误 → SyntaxError</td></tr>
+                        <tr><td><code>JSON.stringify(obj)</code></td><td>JS 对象 → JSON 文本</td><td>字符串</td><td>循环引用 → TypeError</td></tr>
+                        <tr><td><code>JSON.stringify(obj, null, 2)</code></td><td>带缩进的好看 JSON</td><td>字符串</td><td>同上</td></tr>
+                        <tr><td><code>JSON.parse(JSON.stringify(obj))</code></td><td>深拷贝（简单版）</td><td>新对象</td><td>丢函数 / Symbol / undefined</td></tr>
+                        <tr><td><code>JSON.stringify(obj, replacer)</code></td><td>自定义序列化字段</td><td>字符串</td><td>同 stringify</td></tr>
+                        <tr><td><code>fetch(url).then(r => r.json())</code></td><td>从接口拿 JSON</td><td>Promise</td><td>网络错误 / 404</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="yl_footer">宁瑞祥 · 计算机23005 · 2001010503 · 17-1 JSON 可视化</div>
+    </div>
+
+    <script>
+    /* ===== 嵌套结构可视化 ===== */
+    var yl_struct = {
+        code: 0,
+        message: "ok",
+        data: {
+            user: {
+                id: 1024,
+                profile: { nick: "小明" }
+            },
+            items: [
+                { id: 1, price: 99 },
+                { id: 2, price: 199 }
+            ]
+        }
+    };
+    function yl_renderTree(val, indent, key) {
+        var html = "";
+        var pad = "indent-" + indent;
+        if (key !== undefined) {
+            html += '<div class="yl_tree-row ' + pad + '"><span class="yl_k">' + key + '</span><span class="yl_colon">:</span>';
+        } else {
+            html += '<div class="yl_tree-row ' + pad + '">';
+        }
+        if (val === null) html += '<span class="yl_v yl_scalar-null">null</span>';
+        else if (typeof val === "string") html += '<span class="yl_v yl_scalar-str">"' + val + '"</span>';
+        else if (typeof val === "number") html += '<span class="yl_v yl_scalar-num">' + val + '</span>';
+        else if (typeof val === "boolean") html += '<span class="yl_v yl_scalar-bool">' + val + '</span>';
+        else if (Array.isArray(val)) {
+            html += '<span class="yl_bracket">[</span></div>';
+            for (var i = 0; i < val.length; i++) html += yl_renderTree(val[i], indent + 1, i);
+            html += '<div class="yl_tree-row ' + pad + '"><span class="yl_bracket">]</span></div>';
+            return html;
+        } else if (typeof val === "object") {
+            html += '<span class="yl_bracket">{</span></div>';
+            for (var k in val) html += yl_renderTree(val[k], indent + 1, k);
+            html += '<div class="yl_tree-row ' + pad + '"><span class="yl_bracket">}</span></div>';
+            return html;
+        }
+        html += '</div>';
+        return html;
+    }
+    document.getElementById("yl_tree").innerHTML = yl_renderTree(yl_struct, 0);
+
+    /* ===== 实验台交互 ===== */
+    var ylIn = document.getElementById("yl_json-in");
+    var ylLen = document.getElementById("yl_json-len");
+    var ylChars = document.getElementById("yl_json-chars");
+    var ylResult = document.getElementById("yl_result");
+    ylLen.textContent = ylIn.value.length;
+    ylChars.textContent = ylIn.value.length;
+    ylIn.addEventListener("input", function () {
+        ylLen.textContent = ylIn.value.length;
+        ylChars.textContent = ylIn.value.length;
+    });
+
+    document.getElementById("yl_parse").addEventListener("click", function () {
+        try {
+            var obj = JSON.parse(ylIn.value);
+            ylResult.innerHTML = '<span class="yl_ok">✔ 解析成功</span> 类型：' + (Array.isArray(obj) ? "array" : typeof obj) + '<br>'
+                + '<div style="margin-top:8px;white-space:pre;">' + yl_escape(JSON.stringify(obj, null, 2)) + '</div>';
+        } catch (e) {
+            ylResult.innerHTML = '<span class="yl_err">✘ ' + e.name + '</span><br>' + yl_escape(e.message);
+        }
+    });
+    document.getElementById("yl_beautify").addEventListener("click", function () {
+        try {
+            ylIn.value = JSON.stringify(JSON.parse(ylIn.value), null, 2);
+            ylLen.textContent = ylIn.value.length;
+            ylChars.textContent = ylIn.value.length;
+        } catch (e) {
+            ylResult.innerHTML = '<span class="yl_err">✘ ' + e.message + '</span>';
+        }
+    });
+    document.getElementById("yl_stringify").addEventListener("click", function () {
+        yl_doStringify(false);
+    });
+    document.getElementById("yl_stringify-prettify").addEventListener("click", function () {
+        yl_doStringify(true);
+    });
+
+    function yl_doStringify(pretty) {
+        var src = document.getElementById("yl-js-in").value;
+        var obj;
+        try {
+            // 兼容两种输入：纯 JSON 文本 或 `const x = {...};` 形式
+            var m = src.match(/=\s*([\s\S]+?);?\s*$/);
+            var clean = m ? m[1] : src;
+            obj = eval("(" + clean + ")");
+        } catch (e) {
+            ylResult.innerHTML = '<span class="yl_err">✘ 无法解析为 JS 对象：' + e.message + '</span>';
+            return;
+        }
+        try {
+            var str = pretty ? JSON.stringify(obj, null, 2) : JSON.stringify(obj);
+            ylResult.innerHTML = '<span class="yl_ok">✔ 序列化成功</span> 长度：' + str.length + '<br>'
+                + '<div style="margin-top:8px;white-space:pre;">' + yl_escape(str) + '</div>';
+        } catch (e) {
+            ylResult.innerHTML = '<span class="yl_err">✘ JSON.stringify 失败：' + e.message + '</span>';
+        }
+    }
+
+    function yl_escape(s) {
+        return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+    </script>
+</body>
+</html>
