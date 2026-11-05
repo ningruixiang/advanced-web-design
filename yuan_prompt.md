@@ -177,3 +177,346 @@
 
 
 
+
+## 2026-11-05 13:35:07
+- 模型：DeepSeek-V4.1-Flash
+- 提示词：
+  > 1、完成18-1.html和18-2.html，第一个显示canvas动画，包括文字袁磊，第二个显示基于canvas的全站系统的系统架构图（电商系统）。
+
+## 2026-11-05 13:46:29
+- 模型：DeepSeek-V4.1-Flash
+- 提示词：
+  > 2、完成18-3.html，其中包括基于知识库智能客服的系统架构图，图的格式为svg，科研方向。
+## 2026-11-05 13:55:31
+- 模型：DeepSeek-V4.1-Flash
+- 提示词：
+  > 给我链接，登记题目和自己平时作品的首页的url
+
+
+## 2026-11-05 13:59:12
+- 模型：DeepSeek-V4.1-Flash
+- 提示词：
+  > 3、实现18-4.html，其中包括echarts的两个图，cdn文件下载到cdn目录下。示例代码：myChart.showLoading();
+  > $.get(ROOT_PATH + '/data/asset/data/product.json', function (data) {
+  >   myChart.hideLoading();
+  >   myChart.setOption(
+  >     (option = {
+  >       title: {
+  >         text: 'Sankey Diagram'
+  >       },
+  >       tooltip: {
+  >         trigger: 'item',
+  >         triggerOn: 'mousemove'
+  >       },
+  >       series: [
+  >         {
+  >           type: 'sankey',
+  >           data: data.nodes,
+  >           links: data.links,
+  >           emphasis: {
+  >             focus: 'adjacency'
+  >           },
+  >           levels: [
+  >             {
+  >               depth: 0,
+  >               itemStyle: {
+  >                 color: '#fbb4ae'
+  >               },
+  >               lineStyle: {
+  >                 color: 'source',
+  >                 opacity: 0.6
+  >               }
+  >             },
+  >             {
+  >               depth: 1,
+  >               itemStyle: {
+  >                 color: '#b3cde3'
+  >               },
+  >               lineStyle: {
+  >                 color: 'source',
+  >                 opacity: 0.6
+  >               }
+  >             },
+  >             {
+  >               depth: 2,
+  >               itemStyle: {
+  >                 color: '#ccebc5'
+  >               },
+  >               lineStyle: {
+  >                 color: 'source',
+  >                 opacity: 0.6
+  >               }
+  >             },
+  >             {
+  >               depth: 3,
+  >               itemStyle: {
+  >                 color: '#decbe4'
+  >               },
+  >               lineStyle: {
+  >                 color: 'source',
+  >                 opacity: 0.6
+  >               }
+  >             }
+  >           ],
+  >           lineStyle: {
+  >             curveness: 0.5
+  >           }
+  >         }
+  >       ]
+  >     })
+  >   );
+  > });import * as echarts from 'echarts';
+  > 
+  > var ROOT_PATH = '`https://echarts.apache.org/examples`';
+  > 
+  > var chartDom = document.getElementById('main');
+  > var myChart = echarts.init(chartDom);
+  > var option;
+  > 
+  > myChart.showLoading();
+  > $.get(ROOT_PATH + '/data/asset/data/product.json', function (data) {
+  >   myChart.hideLoading();
+  >   myChart.setOption(
+  >     (option = {
+  >       title: {
+  >         text: 'Sankey Diagram'
+  >       },
+  >       tooltip: {
+  >         trigger: 'item',
+  >         triggerOn: 'mousemove'
+  >       },
+  >       series: [
+  >         {
+  >           type: 'sankey',
+  >           data: data.nodes,
+  >           links: data.links,
+  >           emphasis: {
+  >             focus: 'adjacency'
+  >           },
+  >           levels: [
+  >             {
+  >               depth: 0,
+  >               itemStyle: {
+  >                 color: '#fbb4ae'
+  >               },
+  >               lineStyle: {
+  >                 color: 'source',
+  >                 opacity: 0.6
+  >               }
+  >             },
+  >             {
+  >               depth: 1,
+  >               itemStyle: {
+  >                 color: '#b3cde3'
+  >               },
+  >               lineStyle: {
+  >                 color: 'source',
+  >                 opacity: 0.6
+  >               }
+  >             },
+  >             {
+  >               depth: 2,
+  >               itemStyle: {
+  >                 color: '#ccebc5'
+  >               },
+  >               lineStyle: {
+  >                 color: 'source',
+  >                 opacity: 0.6
+  >               }
+  >             },
+  >             {
+  >               depth: 3,
+  >               itemStyle: {
+  >                 color: '#decbe4'
+  >               },
+  >               lineStyle: {
+  >                 color: 'source',
+  >                 opacity: 0.6
+  >               }
+  >             }
+  >           ],
+  >           lineStyle: {
+  >             curveness: 0.5
+  >           }
+  >         }
+  >       ]
+  >     })
+  >   );
+  > });
+  > 
+  > option && myChart.setOption(option); import * as echarts from 'echarts';
+  > 
+  > var chartDom = document.getElementById('main');
+  > var myChart = echarts.init(chartDom);
+  > var option;
+  > 
+  > option = {
+  >   title: {
+  >     text: 'Proportion of Browsers',
+  >     subtext: 'Fake Data',
+  >     top: 10,
+  >     left: 10
+  >   },
+  >   tooltip: {
+  >     trigger: 'item'
+  >   },
+  >   legend: {
+  >     type: 'scroll',
+  >     bottom: 10,
+  >     data: (function () {
+  >       var list = [];
+  >       for (var i = 1; i <= 28; i++) {
+  >         list.push(i + 2000 + '');
+  >       }
+  >       return list;
+  >     })()
+  >   },
+  >   visualMap: {
+  >     top: 'middle',
+  >     right: 10,
+  >     inRange: {
+  >       color: ['red', 'yellow']
+  >     },
+  >     calculable: true
+  >   },
+  >   radar: {
+  >     indicator: [
+  >       { text: 'IE8-', max: 400 },
+  >       { text: 'IE9+', max: 400 },
+  >       { text: 'Safari', max: 400 },
+  >       { text: 'Firefox', max: 400 },
+  >       { text: 'Chrome', max: 400 }
+  >     ]
+  >   },
+  >   series: (function () {
+  >     var series = [];
+  >     for (var i = 1; i <= 28; i++) {
+  >       series.push({
+  >         type: 'radar',
+  >         symbol: 'none',
+  >         lineStyle: {
+  >           width: 1
+  >         },
+  >         emphasis: {
+  >           areaStyle: {
+  >             color: 'rgba(0,250,0,0.3)'
+  >           }
+  >         },
+  >         data: [
+  >           {
+  >             value: [
+  >               (40 - i) * 10,
+  >               (38 - i) * 4 + 60,
+  >               i * 5 + 10,
+  >               i * 9,
+  >               (i * i) / 2
+  >             ],
+  >             name: i + 2000 + ''
+  >           }
+  >         ]
+  >       });
+  >     }
+  >     return series;
+  >   })()
+  > };
+  > 
+  > option && myChart.setOption(option);
+  > option = {
+  >   title: {
+  >     text: 'Proportion of Browsers',
+  >     subtext: 'Fake Data',
+  >     top: 10,
+  >     left: 10
+  >   },
+  >   tooltip: {
+  >     trigger: 'item'
+  >   },
+  >   legend: {
+  >     type: 'scroll',
+  >     bottom: 10,
+  >     data: (function () {
+  >       var list = [];
+  >       for (var i = 1; i <= 28; i++) {
+  >         list.push(i + 2000 + '');
+  >       }
+  >       return list;
+  >     })()
+  >   },
+  >   visualMap: {
+  >     top: 'middle',
+  >     right: 10,
+  >     inRange: {
+  >       color: ['red', 'yellow']
+  >     },
+  >     calculable: true
+  >   },
+  >   radar: {
+  >     indicator: [
+  >       { text: 'IE8-', max: 400 },
+  >       { text: 'IE9+', max: 400 },
+  >       { text: 'Safari', max: 400 },
+  >       { text: 'Firefox', max: 400 },
+  >       { text: 'Chrome', max: 400 }
+  >     ]
+  >   },
+  >   series: (function () {
+  >     var series = [];
+  >     for (var i = 1; i <= 28; i++) {
+  >       series.push({
+  >         type: 'radar',
+  >         symbol: 'none',
+  >         lineStyle: {
+  >           width: 1
+  >         },
+  >         emphasis: {
+  >           areaStyle: {
+  >             color: 'rgba(0,250,0,0.3)'
+  >           }
+  >         },
+  >         data: [
+  >           {
+  >             value: [
+  >               (40 - i) * 10,
+  >               (38 - i) * 4 + 60,
+  >               i * 5 + 10,
+  >               i * 9,
+  >               (i * i) / 2
+  >             ],
+  >             name: i + 2000 + ''
+  >           }
+  >         ]
+  >       });
+  >     }
+  >     return series;
+  >   })()
+  > };
+
+
+## 2026-11-05 14:19:30
+- 模型：DeepSeek-V4.1-Flash
+- 提示词：
+  > 4、实现18-6.html，实现基于mermaid的智能客服系统的流程图和er图，cdn文件下载到cdn目录下。
+
+
+## 2026-11-05 14:28:20
+- 模型：DeepSeek-V4.1-Flash
+- 提示词：
+  > 5、实现18-7.html，实现基于three.js的两个图表，cdn文件下载到cdn目录下。
+
+
+## 2026-11-05 14:33:47
+- 模型：DeepSeek-V4.1-Flash
+- 提示词：
+  > 请帮我实现 18-5.html，包含 3D 地球和 3D 地图
+
+
+## 2026-11-05 14:43:39
+- 模型：DeepSeek-V4.1-Flash
+- 提示词：
+  > 6、实现18-8.html，实现基于three.js或echarts的数据大屏，大屏要求：三列，中间上面是某种地理信息的图，cdn文件下载到cdn目录下。
+
+## 2026-11-05 14:50:19
+- 模型：DeepSeek-V4.1-Flash
+- 提示词：
+  > 提交github
+

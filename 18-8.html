@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>18-8 · ECharts 数据大屏（校园二手交易平台）</title>
+    <link rel="icon" href="data:,">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --yl_bg: #050b18;
+            --yl_panel: rgba(9, 24, 46, 0.78);
+            --yl_line: rgba(64, 158, 255, 0.22);
+            --yl_cyan: #22d3ee;
+            --yl_blue: #3b82f6;
+            --yl_text: #dbeafe;
+            --yl_dim: #8fb3d9;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            color: var(--yl_text);
+            background:
+                radial-gradient(circle at 50% -10%, rgba(34, 130, 210, 0.30) 0%, transparent 55%),
+                radial-gradient(circle at 8% 96%, rgba(20, 90, 170, 0.22) 0%, transparent 46%),
+                radial-gradient(circle at 94% 96%, rgba(13, 148, 136, 0.18) 0%, transparent 44%),
+                var(--yl_bg);
+            overflow: hidden;
+        }
+
+        /* ===== 大屏骨架 ===== */
+        .yl_screen {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            min-height: 0;
+            padding: 0 14px 14px;
+            position: relative;
+        }
+
+        .yl_screen::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(64, 158, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(64, 158, 255, 0.05) 1px, transparent 1px);
+            background-size: 46px 46px;
+            pointer-events: none;
+        }
+
+        /* ===== 顶栏 ===== */
+        .yl_top {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 12px;
+            height: 74px;
+            padding: 0 6px;
+        }
+
+        .yl_topL,
+        .yl_topR {
+            font-size: 12.5px;
+            color: var(--yl_dim);
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .yl_topR {
+            justify-content: flex-end;
+        }
+
+        .yl_topC {
+            text-align: center;
+        }
+
+        .yl_topC h1 {
+            font-size: clamp(19px, 1.5vw, 25px);
+            font-weight: 700;
+            letter-spacing: 2px;
+            background: linear-gradient(180deg, #ffffff 12%, #63d5f5 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 26px rgba(56, 189, 248, 0.35);
+        }
+
+        .yl_topC p {
+            margin-top: 3px;
+            font-size: 11.5px;
+            letter-spacing: 3px;
+            color: rgba(143, 179, 217, 0.85);
+        }
+
+        .yl_clock {
+            font-variant-numeric: tabular-nums;
+            color: #7fe3f8;
+            font-size: 13.5px;
+            letter-spacing: 1px;
+        }
+
+        .yl_live {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(34, 211, 238, 0.35);
+            background: rgba(34, 211, 238, 0.10);
+            color: #67e8f9;
+            font-size: 11.5px;
+        }
+
+        .yl_live i {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #22d3ee;
+            box-shadow: 0 0 8px #22d3ee;
+            animation: yl_pulse 1.6s ease-in-out infinite;
+        }
+
+        @keyframes yl_pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.35; transform: scale(0.7); }
+        }
+
+        /* ===== KPI 条 ===== */
+        .yl_kpi {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .yl_kpiItem {
+            position: relative;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--yl_line);
+            background: linear-gradient(180deg, rgba(13, 36, 66, 0.82) 0%, rgba(7, 18, 36, 0.72) 100%);
+            box-shadow: inset 0 0 22px rgba(30, 120, 200, 0.12);
+            overflow: hidden;
+        }
+
+        .yl_kpiItem::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(180deg, #22d3ee, rgba(34, 211, 238, 0));
+        }
+
+        .yl_kpiItem span {
+            display: block;
+            font-size: 11.5px;
+            letter-spacing: 1px;
+            color: var(--yl_dim);
+        }
+
+        .yl_kpiItem b {
+            display: block;
+            margin-top: 2px;
+            font-size: clamp(17px, 1.45vw, 23px);
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: #e6f6ff;
+            text-shadow: 0 0 16px rgba(56, 189, 248, 0.45);
+        }
+
+        .yl_kpiItem b em {
+            font-style: normal;
+            font-size: 0.62em;
+            margin-left: 3px;
+            color: #7dd3fc;
+        }
+
+        /* ===== 三列主体 ===== */
+        .yl_body {
+            position: relative;
+            z-index: 2;
+            flex: 1;
+            min-height: 0;
+            display: grid;
+            grid-template-columns: minmax(280px, 1fr) minmax(420px, 1.55fr) minmax(280px, 1fr);
+            gap: 12px;
+        }
+
+        .yl_col {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: 0;
+        }
+
+        .yl_panel {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 0;
+            min-height: 0;
+            border-radius: 8px;
+            border: 1px solid var(--yl_line);
+            background: var(--yl_panel);
+            box-shadow:
+                inset 0 0 40px rgba(28, 110, 190, 0.10),
+                0 6px 22px rgba(0, 0, 0, 0.35);
+            overflow: hidden;
+        }
+
+        .yl_panel::before,
+        .yl_panel::after {
+            content: "";
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(56, 189, 248, 0.6);
+            pointer-events: none;
+        }
+
+        .yl_panel::before {
+            left: -1px;
+            top: -1px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .yl_panel::after {
+            right: -1px;
+            bottom: -1px;
+            border-left: none;
+            border-top: none;
+        }
+
+        .yl_pHead {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 12px 7px;
+            border-bottom: 1px solid rgba(64, 158, 255, 0.14);
+        }
+
+        .yl_pHead h3 {
+            font-size: 13.5px;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            color: #bfe6ff;
+            white-space: nowrap;
+        }
+
+        .yl_pHead .yl_bar {
+            width: 3px;
+            height: 13px;
+            border-radius: 2px;
+            background: linear-gradient(180deg, #22d3ee, #3b82f6);
+            box-shadow: 0 0 8px rgba(34, 211, 238, 0.7);
+        }
+
+        .yl_pHead .yl_tipTag {
+            margin-left: auto;
+            padding: 1px 8px;
+            border-radius: 999px;
+            font-size: 10.5px;
+            letter-spacing: 0.6px;
+            color: #7dd3fc;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            background: rgba(56, 189, 248, 0.1);
+        }
+
+        .yl_pBody {
+            position: relative;
+            flex: 1;
+            min-height: 0;
+            padding: 4px 6px 6px;
+        }
+
+        .yl_chart {
+            width: 100%;
+            height: 100%;
+        }
+
+        .yl_colMid .yl_panelMap {
+            flex: 1.62 1 0;
+        }
+
+        .yl_colMid .yl_panelMap .yl_pBody {
+            background:
+                radial-gradient(circle at 50% 46%, rgba(24, 96, 168, 0.20) 0%, transparent 62%);
+        }
+
+        /* ===== 排行榜 ===== */
+        .yl_rank {
+            padding: 8px 14px 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            height: 100%;
+            min-height: 0;
+        }
+
+        .yl_rankItem {
+            display: grid;
+            grid-template-columns: 20px 1fr auto;
+            align-items: center;
+            gap: 9px;
+            font-size: 12px;
+        }
+
+        .yl_rankItem .yl_no {
+            width: 18px;
+            height: 18px;
+            line-height: 18px;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 10.5px;
+            font-weight: 700;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            color: #94a3b8;
+            background: rgba(90, 140, 200, 0.16);
+        }
+
+        .yl_rankItem:nth-child(1) .yl_no {
+            color: #0b1622;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        }
+
+        .yl_rankItem:nth-child(2) .yl_no {
+            color: #0b1622;
+            background: linear-gradient(135deg, #e2e8f0, #94a3b8);
+        }
+
+        .yl_rankItem:nth-child(3) .yl_no {
+            color: #0b1622;
+            background: linear-gradient(135deg, #fdba74, #d97706);
+        }
+
+        .yl_rankItem .yl_name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #cfe6ff;
+        }
+
+        .yl_rankItem .yl_val {
+            font-variant-numeric: tabular-nums;
+            font-size: 11.5px;
+            color: #67e8f9;
+        }
+
+        .yl_rankItem .yl_track {
+            grid-column: 1 / -1;
+            height: 3px;
+            margin-top: -3px;
+            border-radius: 2px;
+            background: rgba(90, 140, 200, 0.14);
+            overflow: hidden;
+        }
+
+        .yl_rankItem .yl_fill {
+            display: block;
+            height: 100%;
+            border-radius: 2px;
+            background: linear-gradient(90deg, #3b82f6, #22d3ee);
+            box-shadow: 0 0 10px rgba(34, 211, 238, 0.6);
+            transform-origin: left center;
+            animation: yl_grow 1.1s ease-out both;
+        }
+
+        @keyframes yl_grow {
+            from { transform: scaleX(0); }
+            to { transform: scaleX(1); }
+        }
+
+        /* ===== 窄屏兜底 ===== */
+        @media (max-width: 1100px) {
+            html, body { height: auto; }
+            body { overflow: auto; }
+            .yl_screen { height: auto; }
+            .yl_top { grid-template-columns: 1fr; height: auto; padding: 16px 4px 12px; gap: 8px; }
+            .yl_topL, .yl_topR { justify-content: center; }
+            .yl_kpi { grid-template-columns: repeat(2, 1fr); }
+            .yl_body { grid-template-columns: 1fr; }
+            .yl_col { min-height: 0; }
+            .yl_panel { flex: 0 0 auto; height: 300px; }
+            .yl_colMid .yl_panelMap { flex: 0 0 auto; height: 400px; }
+            .yl_rankItem .yl_track { margin-top: 0; }
+        }
+    </style>
+</head>
+<body>
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  建立时间：2026-11-05 14:43:39
+  使用的大模型：DeepSeek-V4.1-Flash
+  功能：ECharts 数据大屏（校园二手交易平台运营看板，三列布局，中上为中国地理地图 + 城市光点 + 飞线）
+-->
+<div class="yl_screen">
+
+    <!-- ===== 顶栏 ===== -->
+    <header class="yl_top">
+        <div class="yl_topL">
+            <span class="yl_live"><i></i>实时数据 · 5 秒刷新</span>
+        </div>
+        <div class="yl_topC">
+            <h1>校园二手交易平台 · 运营数据大屏</h1>
+            <p>REAL-TIME OPERATION DASHBOARD</p>
+        </div>
+        <div class="yl_topR">
+            <span class="yl_clock" id="yl_clock">--:--:--</span>
+        </div>
+    </header>
+
+    <!-- ===== KPI ===== -->
+    <div class="yl_kpi">
+        <div class="yl_kpiItem">
+            <span>今日成交额</span>
+            <b>128.6<em>万元</em></b>
+        </div>
+        <div class="yl_kpiItem">
+            <span>在线商品</span>
+            <b>3 842<em>件</em></b>
+        </div>
+        <div class="yl_kpiItem">
+            <span>注册用户</span>
+            <b>12.8<em>万人</em></b>
+        </div>
+        <div class="yl_kpiItem">
+            <span>实时在线</span>
+            <b>1 264<em>人</em></b>
+        </div>
+    </div>
+
+    <!-- ===== 三列 ===== -->
+    <main class="yl_body">
+
+        <!-- 左列 -->
+        <section class="yl_col">
+            <div class="yl_panel">
+                <div class="yl_pHead">
+                    <span class="yl_bar"></span>
+                    <h3>近 12 个月成交额趋势</h3>
+                    <span class="yl_tipTag">单位：万元</span>
+                </div>
+                <div class="yl_pBody"><div class="yl_chart" id="yl_c1"></div></div>
+            </div>
+            <div class="yl_panel">
+                <div class="yl_pHead">
+                    <span class="yl_bar"></span>
+                    <h3>分类目发布量 Top 6</h3>
+                    <span class="yl_tipTag">件</span>
+                </div>
+                <div class="yl_pBody"><div class="yl_chart" id="yl_c2"></div></div>
+            </div>
+        </section>
+
+        <!-- 中列 -->
+        <section class="yl_col yl_colMid">
+            <div class="yl_panel yl_panelMap">
+                <div class="yl_pHead">
+                    <span class="yl_bar"></span>
+                    <h3>全国高校用户分布</h3>
+                    <span class="yl_tipTag">注册用户 · 热力</span>
+                </div>
+                <div class="yl_pBody"><div class="yl_chart" id="yl_c3"></div></div>
+            </div>
+            <div class="yl_panel">
+                <div class="yl_pHead">
+                    <span class="yl_bar"></span>
+                    <h3>24 小时实时成交</h3>
+                    <span class="yl_tipTag">订单 / 人数</span>
+                </div>
+                <div class="yl_pBody"><div class="yl_chart" id="yl_c4"></div></div>
+            </div>
+        </section>
+
+        <!-- 右列 -->
+        <section class="yl_col">
+            <div class="yl_panel">
+                <div class="yl_pHead">
+                    <span class="yl_bar"></span>
+                    <h3>品类成交占比</h3>
+                    <span class="yl_tipTag">%</span>
+                </div>
+                <div class="yl_pBody"><div class="yl_chart" id="yl_c5"></div></div>
+            </div>
+            <div class="yl_panel">
+                <div class="yl_pHead">
+                    <span class="yl_bar"></span>
+                    <h3>服务质量评估</h3>
+                    <span class="yl_tipTag">满分 100</span>
+                </div>
+                <div class="yl_pBody"><div class="yl_chart" id="yl_c6"></div></div>
+            </div>
+            <div class="yl_panel">
+                <div class="yl_pHead">
+                    <span class="yl_bar"></span>
+                    <h3>热门成交单品</h3>
+                    <span class="yl_tipTag">近 7 日</span>
+                </div>
+                <div class="yl_pBody">
+                    <div class="yl_rank" id="yl_rank"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script src="cdn/echarts.min.js"></script>
+<script src="cdn/china-geo.js"></script>
+<script>
+    (function () {
+        if (typeof echarts === 'undefined') {
+            document.body.innerHTML = '<p style="padding:40px;color:#f87171">未找到 cdn/echarts.min.js，请确认 cdn 目录已随页面一起拷贝。</p>';
+            return;
+        }
+
+        var yl_TEXT = '#8fb3d9';
+        var yl_SPLIT = 'rgba(90, 150, 210, 0.14)';
+        var yl_AXIS = 'rgba(110, 165, 220, 0.32)';
+        var yl_TIP = {
+            backgroundColor: 'rgba(6, 20, 38, 0.94)',
+            borderColor: 'rgba(56, 189, 248, 0.42)',
+            borderWidth: 1,
+            padding: [7, 11],
+            textStyle: { color: '#dff3ff', fontSize: 12 }
+        };
+
+        /* ===== 图表实例池 ===== */
+        var yl_charts = [];
+
+        function yl_init(yl_id, yl_option) {
+            var yl_dom = document.getElementById(yl_id);
+            var yl_c = echarts.init(yl_dom, null, { renderer: 'canvas' });
+            yl_c.setOption(yl_option);
+            yl_charts.push({ inst: yl_c, dom: yl_dom });
+        }
+
+        /* ===== 时钟 ===== */
+        var yl_clockEl = document.getElementById('yl_clock');
+        function yl_tickClock() {
+            var yl_d = new Date();
+            var yl_pad = function (yl_n) { return (yl_n < 10 ? '0' : '') + yl_n; };
+            yl_clockEl.textContent =
+                yl_d.getFullYear() + '-' + yl_pad(yl_d.getMonth() + 1) + '-' + yl_pad(yl_d.getDate()) +
+                '  ' + yl_pad(yl_d.getHours()) + ':' + yl_pad(yl_d.getMinutes()) + ':' + yl_pad(yl_d.getSeconds());
+        }
+        yl_tickClock();
+        setInterval(yl_tickClock, 1000);
+
+        /* ================= ① 近 12 个月成交额趋势 ================= */
+        var yl_months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+        var yl_amount = [62, 58, 71, 66, 83, 79, 95, 88, 104, 112, 121, 136];
+
+        yl_init('yl_c1', {
+            grid: { left: 42, right: 16, top: 24, bottom: 26 },
+            tooltip: Object.assign({ trigger: 'axis', axisPointer: { type: 'line', lineStyle: { color: 'rgba(56,189,248,.5)' } } }, yl_TIP),
+            xAxis: {
+                type: 'category',
+                data: yl_months,
+                boundaryGap: false,
+                axisLine: { lineStyle: { color: yl_AXIS } },
+                axisTick: { show: false },
+                axisLabel: { color: yl_TEXT, fontSize: 10, interval: 1 }
+            },
+            yAxis: {
+                type: 'value',
+                splitLine: { lineStyle: { color: yl_SPLIT } },
+                axisLabel: { color: yl_TEXT, fontSize: 10 }
+            },
+            series: [{
+                name: '成交额',
+                type: 'line',
+                smooth: true,
+                symbol: 'circle',
+                symbolSize: 5,
+                data: yl_amount,
+                lineStyle: { width: 2.4, color: '#22d3ee', shadowBlur: 12, shadowColor: 'rgba(34,211,238,.65)' },
+                itemStyle: { color: '#22d3ee', borderColor: '#0b2b3a', borderWidth: 1 },
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(34, 211, 238, 0.42)' },
+                        { offset: 1, color: 'rgba(34, 211, 238, 0)' }
+                    ])
+                },
+                emphasis: { scale: 1.4 }
+            }]
+        });
+
+        /* ================= ② 分类目发布量 ================= */
+        var yl_cats = ['数码', '图书', '家居', '服饰', '运动', '出行'];
+        var yl_catVal = [1260, 1080, 920, 760, 640, 520];
+
+        yl_init('yl_c2', {
+            grid: { left: 44, right: 46, top: 16, bottom: 18 },
+            tooltip: Object.assign({ trigger: 'axis', axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(34,211,238,.10)' } } }, yl_TIP),
+            xAxis: {
+                type: 'value',
+                splitLine: { lineStyle: { color: yl_SPLIT } },
+                axisLabel: { color: yl_TEXT, fontSize: 10 }
+            },
+            yAxis: {
+                type: 'category',
+                data: yl_cats.slice().reverse(),
+                axisLine: { lineStyle: { color: yl_AXIS } },
+                axisTick: { show: false },
+                axisLabel: { color: '#cfe6ff', fontSize: 11.5 }
+            },
+            series: [{
+                name: '发布量',
+                type: 'bar',
+                barWidth: 12,
+                data: yl_catVal.slice().reverse(),
+                itemStyle: {
+                    borderRadius: [0, 6, 6, 0],
+                    color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                        { offset: 0, color: 'rgba(59, 130, 246, 0.35)' },
+                        { offset: 1, color: '#22d3ee' }
+                    ])
+                },
+                label: { show: true, position: 'right', color: '#67e8f9', fontSize: 11 }
+            }]
+        });
+
+        /* ================= ③ 中国地图 ================= */
+        var yl_features = (window.yl_chinaMap || []).map(function (yl_p) {
+            return {
+                type: 'Feature',
+                properties: { name: yl_p.name, cp: yl_p.cp },
+                geometry: {
+                    type: 'MultiPolygon',
+                    coordinates: yl_p.rings.map(function (yl_ring) { return [yl_ring]; })
+                }
+            };
+        });
+        echarts.registerMap('yl_china', { type: 'FeatureCollection', features: yl_features });
+
+        var yl_provinceOrder = [160, 148, 136, 122, 108, 96, 88, 80, 74, 68, 62, 56, 52, 48, 44, 40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10, 8, 6, 4];
+        var yl_provData = (window.yl_chinaMap || []).map(function (yl_p, yl_i) {
+            return { name: yl_p.name, value: yl_provinceOrder[yl_i] !== undefined ? yl_provinceOrder[yl_i] : 20 };
+        });
+
+        var yl_cityPoints = [
+            { name: '北京', coord: [116.41, 39.90], value: 1280, pos: 'top' },
+            { name: '上海', coord: [121.47, 31.23], value: 1120, pos: 'right' },
+            { name: '广州', coord: [113.26, 23.13], value: 980, pos: 'left' },
+            { name: '深圳', coord: [114.06, 22.55], value: 940, pos: 'bottom' },
+            { name: '成都', coord: [104.07, 30.67], value: 760, pos: 'left' },
+            { name: '武汉', coord: [114.31, 30.59], value: 720, pos: 'top' },
+            { name: '西安', coord: [108.95, 34.34], value: 640, pos: 'bottom' },
+            { name: '杭州', coord: [120.15, 30.27], value: 610, pos: 'bottom' },
+            { name: '南京', coord: [118.80, 32.06], value: 560, pos: 'top' },
+            { name: '重庆', coord: [106.55, 29.56], value: 520, pos: 'bottom' },
+            { name: '哈尔滨', coord: [126.53, 45.80], value: 380, pos: 'right' },
+            { name: '乌鲁木齐', coord: [87.62, 43.79], value: 320, pos: 'right' }
+        ];
+
+        var yl_routeFrom = [116.41, 39.90];
+        var yl_routes = yl_cityPoints.slice(1).map(function (yl_c) {
+            return { coords: [yl_routeFrom, yl_c.coord] };
+        });
+
+        yl_init('yl_c3', {
+            tooltip: Object.assign({
+                trigger: 'item',
+                formatter: function (yl_param) {
+                    if (yl_param.seriesType === 'effectScatter') {
+                        return yl_param.name + '：<b style="color:#67e8f9">' + yl_param.value[2] + '</b> 人';
+                    }
+                    if (yl_param.seriesType === 'map') {
+                        return yl_param.name + '：<b style="color:#67e8f9">' + (yl_param.value || 0) + '</b> 人';
+                    }
+                    return yl_param.name;
+                }
+            }, yl_TIP),
+            geo: {
+                map: 'yl_china',
+                roam: false,
+                zoom: 1.16,
+                layoutCenter: ['50%', '52%'],
+                layoutSize: '96%',
+                itemStyle: {
+                    areaColor: 'rgba(10, 40, 74, 0.85)',
+                    borderColor: 'rgba(74, 190, 255, 0.55)',
+                    borderWidth: 1,
+                    shadowColor: 'rgba(20, 140, 240, 0.75)',
+                    shadowBlur: 16,
+                    shadowOffsetY: 6
+                },
+                emphasis: { disabled: true }
+            },
+            visualMap: {
+                show: true,
+                min: 4,
+                max: 160,
+                left: 8,
+                bottom: 6,
+                itemWidth: 10,
+                itemHeight: 74,
+                text: ['高', '低'],
+                textStyle: { color: yl_TEXT, fontSize: 10 },
+                calculable: false,
+                inRange: { color: ['#0b3d63', '#0e6fa8', '#22a7c9', '#4be0e8'] },
+                seriesIndex: 0
+            },
+            series: [
+                {
+                    name: '注册用户',
+                    type: 'map',
+                    map: 'yl_china',
+                    geoIndex: 0,
+                    data: yl_provData,
+                    emphasis: { label: { show: true, color: '#ffffff', fontSize: 11 } }
+                },
+                {
+                    name: '重点高校城市',
+                    type: 'effectScatter',
+                    coordinateSystem: 'geo',
+                    geoIndex: 0,
+                    zlevel: 2,
+                    symbolSize: function (yl_v) { return 5 + yl_v[2] / 170; },
+                    rippleEffect: { brushType: 'stroke', scale: 3.2, period: 4 },
+                    label: {
+                        show: true,
+                        position: 'right',
+                        formatter: '{b}',
+                        color: '#bfe9ff',
+                        fontSize: 10.5,
+                        distance: 4
+                    },
+                    itemStyle: { color: '#fde047', shadowColor: '#fde047', shadowBlur: 10 },
+                    data: yl_cityPoints.map(function (yl_c) {
+                        return {
+                            name: yl_c.name,
+                            value: [yl_c.coord[0], yl_c.coord[1], yl_c.value],
+                            label: { position: yl_c.pos || 'right', distance: 5 }
+                        };
+                    })
+                },
+                {
+                    name: '交易流向',
+                    type: 'lines',
+                    coordinateSystem: 'geo',
+                    geoIndex: 0,
+                    zlevel: 2,
+                    effect: {
+                        show: true,
+                        period: 5,
+                        trailLength: 0.34,
+                        symbol: 'arrow',
+                        symbolSize: 6,
+                        color: '#7df3ff'
+                    },
+                    lineStyle: { color: '#22d3ee', width: 1, opacity: 0.42, curveness: 0.24 },
+                    data: yl_routes
+                }
+            ]
+        });
+
+        /* ================= ④ 24 小时实时成交 ================= */
+        var yl_hours = [];
+        for (var yl_h = 0; yl_h < 24; yl_h++) {
+            yl_hours.push((yl_h < 10 ? '0' : '') + yl_h + ':00');
+        }
+        var yl_order = [42, 26, 18, 12, 9, 14, 38, 96, 168, 214, 246, 232, 198, 176, 208, 252, 288, 306, 274, 262, 236, 188, 132, 84];
+        var yl_people = yl_order.map(function (yl_v) { return Math.round(yl_v * 0.46); });
+
+        yl_init('yl_c4', {
+            legend: {
+                top: 4,
+                right: 8,
+                itemWidth: 12,
+                itemHeight: 8,
+                textStyle: { color: yl_TEXT, fontSize: 11 }
+            },
+            grid: { left: 46, right: 20, top: 34, bottom: 26 },
+            tooltip: Object.assign({ trigger: 'axis', axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(34,211,238,.10)' } } }, yl_TIP),
+            xAxis: {
+                type: 'category',
+                data: yl_hours,
+                axisLine: { lineStyle: { color: yl_AXIS } },
+                axisTick: { show: false },
+                axisLabel: { color: yl_TEXT, fontSize: 10, interval: 2 }
+            },
+            yAxis: {
+                type: 'value',
+                splitLine: { lineStyle: { color: yl_SPLIT } },
+                axisLabel: { color: yl_TEXT, fontSize: 10 }
+            },
+            series: [
+                {
+                    name: '订单数',
+                    type: 'bar',
+                    barWidth: '46%',
+                    data: yl_order,
+                    itemStyle: {
+                        borderRadius: [3, 3, 0, 0],
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: 'rgba(56, 189, 248, 0.92)' },
+                            { offset: 1, color: 'rgba(59, 130, 246, 0.10)' }
+                        ])
+                    }
+                },
+                {
+                    name: '成交人数',
+                    type: 'line',
+                    smooth: true,
+                    symbol: 'none',
+                    data: yl_people,
+                    lineStyle: { width: 2, color: '#fbbf24', shadowBlur: 10, shadowColor: 'rgba(251,191,36,.5)' },
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: 'rgba(251, 191, 36, 0.22)' },
+                            { offset: 1, color: 'rgba(251, 191, 36, 0)' }
+                        ])
+                    }
+                }
+            ]
+        });
+
+        /* ================= ⑤ 品类成交占比 ================= */
+        yl_init('yl_c5', {
+            tooltip: Object.assign({ trigger: 'item', formatter: '{b}<br/>占比 {d}%（{c} 万）' }, yl_TIP),
+            color: ['#22d3ee', '#3b82f6', '#818cf8', '#34d399', '#fbbf24', '#f472b6'],
+            legend: {
+                orient: 'vertical',
+                right: 6,
+                top: 'middle',
+                itemWidth: 9,
+                itemHeight: 9,
+                itemGap: 9,
+                textStyle: { color: yl_TEXT, fontSize: 11 }
+            },
+            series: [{
+                name: '品类占比',
+                type: 'pie',
+                radius: ['48%', '70%'],
+                center: ['35%', '52%'],
+                avoidLabelOverlap: true,
+                itemStyle: {
+                    borderColor: 'rgba(5, 12, 26, 0.9)',
+                    borderWidth: 2,
+                    borderRadius: 4
+                },
+                label: {
+                    show: true,
+                    position: 'inside',
+                    formatter: '{d}%',
+                    color: '#e6f8ff',
+                    fontSize: 11,
+                    fontWeight: 600
+                },
+                labelLine: { show: false },
+                emphasis: { scale: true, scaleSize: 6 },
+                data: [
+                    { name: '数码', value: 34 },
+                    { name: '图书', value: 22 },
+                    { name: '家居', value: 18 },
+                    { name: '服饰', value: 14 },
+                    { name: '运动', value: 8 },
+                    { name: '其他', value: 4 }
+                ]
+            }]
+        });
+
+        /* ================= ⑥ 服务质量雷达 ================= */
+        yl_init('yl_c6', {
+            legend: {
+                top: 4,
+                right: 8,
+                itemWidth: 12,
+                itemHeight: 8,
+                textStyle: { color: yl_TEXT, fontSize: 11 }
+            },
+            tooltip: Object.assign({ trigger: 'item' }, yl_TIP),
+            radar: {
+                center: ['50%', '53%'],
+                radius: '56%',
+                splitNumber: 4,
+                axisName: { color: yl_TEXT, fontSize: 10.5 },
+                indicator: [
+                    { name: '响应速度', max: 100 },
+                    { name: '履约率', max: 100 },
+                    { name: '商品质量', max: 100 },
+                    { name: '价格优势', max: 100 },
+                    { name: '用户口碑', max: 100 },
+                    { name: '售后保障', max: 100 }
+                ],
+                splitLine: { lineStyle: { color: 'rgba(90, 150, 210, 0.22)' } },
+                splitArea: { areaStyle: { color: ['rgba(20, 60, 110, 0.14)', 'rgba(20, 60, 110, 0.03)'] } },
+                axisLine: { lineStyle: { color: 'rgba(90, 150, 210, 0.22)' } }
+            },
+            series: [{
+                type: 'radar',
+                symbolSize: 4,
+                data: [
+                    {
+                        name: '本月',
+                        value: [92, 88, 85, 79, 90, 82],
+                        lineStyle: { width: 2, color: '#22d3ee' },
+                        itemStyle: { color: '#22d3ee' },
+                        areaStyle: { color: 'rgba(34, 211, 238, 0.30)' }
+                    },
+                    {
+                        name: '上月',
+                        value: [84, 80, 78, 74, 82, 76],
+                        lineStyle: { width: 2, color: '#818cf8' },
+                        itemStyle: { color: '#818cf8' },
+                        areaStyle: { color: 'rgba(129, 140, 248, 0.16)' }
+                    }
+                ]
+            }]
+        });
+
+        /* ================= ⑦ 热门成交单品 ================= */
+        var yl_hot = [
+            { name: 'iPad Air 5 · 95 新', val: 186 },
+            { name: '人体工学椅 · 九成新', val: 152 },
+            { name: '考研全套资料（2026）', val: 138 },
+            { name: 'Nintendo Switch OLED', val: 121 },
+            { name: '公路自行车 · 骑行 300km', val: 96 },
+            { name: 'Kindle Paperwhite 4', val: 88 }
+        ];
+
+        var yl_rankEl = document.getElementById('yl_rank');
+        var yl_hotMax = yl_hot[0].val;
+        yl_hot.forEach(function (yl_item, yl_idx) {
+            var yl_row = document.createElement('div');
+            yl_row.className = 'yl_rankItem';
+            yl_row.innerHTML =
+                '<span class="yl_no">' + (yl_idx + 1) + '</span>' +
+                '<span class="yl_name">' + yl_item.name + '</span>' +
+                '<span class="yl_val">' + yl_item.val + ' 单</span>' +
+                '<div class="yl_track"><span class="yl_fill" style="width:' +
+                Math.round(yl_item.val / yl_hotMax * 100) + '%;animation-delay:' + (yl_idx * 0.09).toFixed(2) + 's"></span></div>';
+            yl_rankEl.appendChild(yl_row);
+        });
+
+        /* ================= 自适应 ================= */
+        function yl_resizeAll() {
+            yl_charts.forEach(function (yl_item) {
+                if (yl_item.dom.clientWidth && yl_item.dom.clientHeight) {
+                    yl_item.inst.resize();
+                }
+            });
+        }
+
+        window.addEventListener('resize', yl_resizeAll);
+        if (window.ResizeObserver) {
+            new ResizeObserver(yl_resizeAll).observe(document.querySelector('.yl_body'));
+        }
+
+        /* ================= 数据轻量滚动刷新 ================= */
+        var yl_c4 = yl_charts[3].inst;
+        setInterval(function () {
+            var yl_base = yl_c4.getOption().series[0].data;
+            yl_base[23] = Math.max(60, Math.min(360, Math.round(yl_base[23] + (Math.random() - 0.5) * 46)));
+            yl_c4.setOption({
+                series: [
+                    { data: yl_base.slice() },
+                    { data: yl_base.map(function (yl_v) { return Math.round(yl_v * 0.46); }) }
+                ]
+            });
+        }, 5000);
+    })();
+</script>
+</body>
+</html>

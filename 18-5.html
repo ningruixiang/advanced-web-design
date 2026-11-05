@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>18-5 · Three.js 3D 地球与 3D 地图</title>
+    <link rel="icon" href="data:,">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            color: #1f2937;
+            background:
+                radial-gradient(circle at 10% 6%, rgba(13, 148, 136, 0.10) 0%, transparent 42%),
+                radial-gradient(circle at 90% 2%, rgba(99, 102, 241, 0.10) 0%, transparent 40%),
+                #f6f8fb;
+            line-height: 1.65;
+        }
+
+        .yl_hero {
+            padding: 54px 24px 46px;
+            text-align: center;
+            color: #ffffff;
+            background: linear-gradient(135deg, #0f766e 0%, #0d9488 45%, #4f46e5 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .yl_hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 72% 18%, rgba(255, 255, 255, 0.22) 0%, transparent 45%);
+            pointer-events: none;
+        }
+
+        .yl_hero h1 {
+            position: relative;
+            font-size: clamp(1.7em, 3.6vw, 2.5em);
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .yl_hero .yl_sub {
+            position: relative;
+            margin-top: 10px;
+            font-size: 0.98em;
+            opacity: 0.92;
+        }
+
+        .yl_badge {
+            position: relative;
+            display: inline-block;
+            margin-top: 16px;
+            padding: 5px 16px;
+            border-radius: 999px;
+            font-size: 0.84em;
+            letter-spacing: 1px;
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.36);
+            backdrop-filter: blur(6px);
+        }
+
+        .yl_wrap {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 34px 20px 64px;
+            display: grid;
+            gap: 26px;
+        }
+
+        .yl_card {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.06);
+            border-radius: 20px;
+            padding: 22px 22px 18px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.07);
+        }
+
+        .yl_cHead {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 10px;
+            margin-bottom: 14px;
+            padding-left: 12px;
+            border-left: 4px solid #0d9488;
+        }
+
+        .yl_cHead h2 {
+            font-size: 1.16em;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .yl_tag {
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 0.75em;
+            letter-spacing: 0.4px;
+            color: #0f766e;
+            background: #e6f6f4;
+            border: 1px solid #b7e4de;
+        }
+
+        .yl_tag.yl_indigo {
+            color: #4338ca;
+            background: #eef0fe;
+            border-color: #c7cbfb;
+        }
+
+        .yl_desc {
+            margin-bottom: 14px;
+            font-size: 0.9em;
+            color: #64748b;
+        }
+
+        .yl_desc code,
+        .yl_note code {
+            padding: 1px 6px;
+            border-radius: 5px;
+            font-size: 0.92em;
+            color: #0f766e;
+            background: #f1f7f6;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+        }
+
+        .yl_legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 0.82em;
+            color: #475569;
+        }
+
+        .yl_legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .yl_dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* ===== 3D 画布 ===== */
+        .yl_stage {
+            position: relative;
+            height: 540px;
+            border-radius: 14px;
+            overflow: hidden;
+            cursor: grab;
+        }
+
+        .yl_stage:active {
+            cursor: grabbing;
+        }
+
+        .yl_stage canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .yl_stageGlobe {
+            background: radial-gradient(circle at 50% 42%, #12314c 0%, #0a1826 58%, #050b14 100%);
+        }
+
+        .yl_stageMap {
+            border: 1px solid rgba(15, 23, 42, 0.06);
+            background: linear-gradient(180deg, #fcfdff 0%, #edf5fa 100%);
+        }
+
+        .yl_tip {
+            position: absolute;
+            left: 0;
+            top: 0;
+            transform: translate(-50%, -100%);
+            padding: 6px 10px;
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.88);
+            color: #ffffff;
+            font-size: 12px;
+            line-height: 1.5;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.12s ease;
+        }
+
+        .yl_hint {
+            position: absolute;
+            right: 12px;
+            bottom: 10px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            font-size: 0.75em;
+            color: #cbd5e1;
+            pointer-events: none;
+        }
+
+        .yl_hint.yl_hintDark {
+            background: rgba(255, 255, 255, 0.72);
+            border-color: rgba(15, 23, 42, 0.08);
+            color: #64748b;
+        }
+
+        .yl_cFoot {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(15, 23, 42, 0.09);
+            font-size: 0.82em;
+            color: #94a3b8;
+        }
+
+        .yl_note {
+            background: #ffffff;
+            border: 1px dashed rgba(13, 148, 136, 0.35);
+            border-radius: 16px;
+            padding: 18px 22px;
+            font-size: 0.88em;
+            color: #475569;
+        }
+
+        .yl_note h3 {
+            font-size: 0.98em;
+            color: #0f766e;
+            margin-bottom: 8px;
+        }
+
+        .yl_note li {
+            margin-left: 18px;
+            padding: 2px 0;
+        }
+
+        @media (max-width: 720px) {
+            .yl_wrap { padding: 24px 14px 46px; }
+            .yl_card { padding: 16px 14px 12px; }
+            .yl_stage { height: 420px; }
+        }
+    </style>
+</head>
+<body>
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  建立时间：2026-11-05 14:36:30
+  使用的大模型：DeepSeek-V4.1-Flash
+  功能：Three.js 的 3D 地球（海岸线球体 + 城市光点 + 飞线）与 3D 中国地图（省级拉伸体 + 数值着色 + 悬停提示）
+-->
+<header class="yl_hero">
+    <h1>Three.js · 3D 地球与 3D 地图</h1>
+    <p class="yl_sub">3D Globe × 3D 省级拉伸地图</p>
+    <span class="yl_badge">18-5 · 本地 cdn/three.min.js + 本地地图数据</span>
+</header>
+
+<main class="yl_wrap">
+    <section class="yl_card">
+        <div class="yl_cHead">
+            <h2>① 3D 地球</h2>
+            <span class="yl_tag">球面投影</span>
+            <span class="yl_tag">飞线动画</span>
+        </div>
+        <p class="yl_desc">把世界海岸线按经纬度投影到球面（球半径 2），叠加发光大气层与星空背景；8 个城市光点，自北京出发的飞线沿二次贝塞尔曲线运动，模拟客服请求的分发路径。</p>
+        <div class="yl_legend" id="yl_cityLegend"></div>
+        <div class="yl_stage yl_stageGlobe" id="yl_globeStage">
+            <canvas id="yl_globeCanvas"></canvas>
+            <div class="yl_hint">拖动旋转 · 滚轮缩放 · 双击复位</div>
+        </div>
+        <div class="yl_cFoot">海岸线数据由 <code>cdn/world.json</code> 抽稀为 <code>cdn/world-coast.js</code>（每 2 点取 1、精度 0.01°，267 条环共 1.1 万点）。</div>
+    </section>
+
+    <section class="yl_card">
+        <div class="yl_cHead">
+            <h2>② 3D 中国地图</h2>
+            <span class="yl_tag yl_indigo">ExtrudeGeometry</span>
+            <span class="yl_tag yl_indigo">悬停查看数据</span>
+        </div>
+        <p class="yl_desc">34 个省级行政区按经纬度投影后拉伸成体块，高度与颜色同时映射"客服会话量"（万次）——越高、越深色，表示会话量越大。鼠标悬停可查看具体省份与数值。</p>
+        <div class="yl_stage yl_stageMap" id="yl_mapStage">
+            <canvas id="yl_mapCanvas"></canvas>
+            <div class="yl_tip" id="yl_mapTip"></div>
+            <div class="yl_hint yl_hintDark">拖动旋转 · 滚轮缩放 · 双击复位</div>
+        </div>
+        <div class="yl_cFoot">省界数据由 <code>cdn/china.json</code>（ECharts 压缩编码）解码为 <code>cdn/china-geo.js</code>，绘图时按 <code>x=(lon-104)*0.52、y=(lat-36)*0.52</code> 做等距投影。</div>
+    </section>
+
+    <section class="yl_note">
+        <h3>本例要点</h3>
+        <ul>
+            <li>three.js 离线引入：<code>&lt;script src="cdn/three.min.js"&gt;</code>（r140，全局 <code>THREE</code>），配合两个本地数据脚本一起使用，断网也能打开。</li>
+            <li>球面坐标公式：<code>x=-R·sinφ·cosθ、y=R·cosφ、z=R·sinφ·sinθ</code>（φ 为余纬、θ 为经度），把经纬度点统一投射到半径 R 的球上。</li>
+            <li>地图拉伸：把每个省的边界点转成 <code>THREE.Shape</code>，用 <code>ExtrudeGeometry</code> 挤出为体块，再用 <code>rotateX(-90°)</code> 放平；挤出体的正面与侧面分别用不同材质，形成明暗层次。</li>
+            <li>交互：手写 pointer / wheel / dblclick 事件，未引入 OrbitControls（官方版本为 ES Module，离线打开易失败）。</li>
+        </ul>
+    </section>
+</main>
+
+<script src="cdn/three.min.js"></script>
+<script src="cdn/world-coast.js"></script>
+<script src="cdn/china-geo.js"></script>
+<script>
+    (function () {
+        if (typeof THREE === 'undefined') {
+            document.body.innerHTML = '<p style="padding:40px;color:#b91c1c">未找到 cdn/three.min.js，请确认 cdn 目录已随页面一起拷贝。</p>';
+            return;
+        }
+
+        var yl_cities = [
+            { name: '北京', lon: 116.41, lat: 39.90 },
+            { name: '上海', lon: 121.47, lat: 31.23 },
+            { name: '广州', lon: 113.26, lat: 23.13 },
+            { name: '深圳', lon: 114.06, lat: 22.55 },
+            { name: '成都', lon: 104.07, lat: 30.67 },
+            { name: '武汉', lon: 114.31, lat: 30.59 },
+            { name: '西安', lon: 108.95, lat: 34.34 },
+            { name: '杭州', lon: 120.15, lat: 30.27 }
+        ];
+
+        /* 图例 */
+        var yl_cityLegend = document.getElementById('yl_cityLegend');
+        yl_cities.forEach(function (yl_c) {
+            var yl_s = document.createElement('span');
+            yl_s.innerHTML = '<i class="yl_dot" style="background:#fcd34d"></i>' + yl_c.name;
+            yl_cityLegend.appendChild(yl_s);
+        });
+
+        /* 球面投影 */
+        function yl_spherePoint(yl_lon, yl_lat, yl_r) {
+            var yl_phi = (90 - yl_lat) * Math.PI / 180;
+            var yl_theta = (yl_lon + 180) * Math.PI / 180;
+            return new THREE.Vector3(
+                -yl_r * Math.sin(yl_phi) * Math.cos(yl_theta),
+                yl_r * Math.cos(yl_phi),
+                yl_r * Math.sin(yl_phi) * Math.sin(yl_theta)
+            );
+        }
+
+        /* ================= ① 3D 地球 ================= */
+        var yl_gStage = document.getElementById('yl_globeStage');
+        var yl_gCanvas = document.getElementById('yl_globeCanvas');
+        var yl_gRenderer = new THREE.WebGLRenderer({ canvas: yl_gCanvas, antialias: true, alpha: true });
+        yl_gRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+        var yl_gScene = new THREE.Scene();
+        var yl_gCamera = new THREE.PerspectiveCamera(42, 1, 0.1, 500);
+        var yl_gGroup = new THREE.Group();
+        var yl_gRoot = new THREE.Group();
+        yl_gRoot.add(yl_gGroup);
+        yl_gScene.add(yl_gRoot);
+
+        yl_gScene.add(new THREE.AmbientLight(0x93c5fd, 0.55));
+        var yl_gLight = new THREE.DirectionalLight(0xffffff, 0.85);
+        yl_gLight.position.set(4, 6, 7);
+        yl_gScene.add(yl_gLight);
+
+        var yl_globeR = 2;
+
+        var yl_sphere = new THREE.Mesh(
+            new THREE.SphereGeometry(yl_globeR, 64, 48),
+            new THREE.MeshStandardMaterial({ color: 0x0d2b45, roughness: 0.92, metalness: 0.06 })
+        );
+        yl_gGroup.add(yl_sphere);
+
+        var yl_atmo = new THREE.Mesh(
+            new THREE.SphereGeometry(yl_globeR * 1.11, 48, 36),
+            new THREE.MeshBasicMaterial({
+                color: 0x2dd4bf,
+                transparent: true,
+                opacity: 0.13,
+                side: THREE.BackSide,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            })
+        );
+        yl_gGroup.add(yl_atmo);
+
+        /* 海岸线 */
+        var yl_coastRings = window.yl_worldCoast || [];
+        var yl_coastPos = [];
+        var yl_coastR = yl_globeR * 1.012;
+        yl_coastRings.forEach(function (yl_ring) {
+            for (var yl_i = 0; yl_i < yl_ring.length - 1; yl_i++) {
+                var yl_a = yl_spherePoint(yl_ring[yl_i][0], yl_ring[yl_i][1], yl_coastR);
+                var yl_b = yl_spherePoint(yl_ring[yl_i + 1][0], yl_ring[yl_i + 1][1], yl_coastR);
+                yl_coastPos.push(yl_a.x, yl_a.y, yl_a.z, yl_b.x, yl_b.y, yl_b.z);
+            }
+        });
+        var yl_coastGeo = new THREE.BufferGeometry();
+        yl_coastGeo.setAttribute('position', new THREE.Float32BufferAttribute(yl_coastPos, 3));
+        var yl_coastLine = new THREE.LineSegments(
+            yl_coastGeo,
+            new THREE.LineBasicMaterial({ color: 0x8df5e4, transparent: true, opacity: 0.82 })
+        );
+        yl_gGroup.add(yl_coastLine);
+
+        /* 城市光点 */
+        var yl_markerGeo = new THREE.SphereGeometry(0.045, 12, 8);
+        var yl_markerMat = new THREE.MeshBasicMaterial({ color: 0xfcd34d });
+        yl_cities.forEach(function (yl_c) {
+            var yl_p = yl_spherePoint(yl_c.lon, yl_c.lat, yl_globeR * 1.01);
+            var yl_m = new THREE.Mesh(yl_markerGeo, yl_markerMat);
+            yl_m.position.copy(yl_p);
+            yl_gGroup.add(yl_m);
+        });
+
+        /* 飞线：北京 → 其余城市 */
+        var yl_arcDots = [];
+        var yl_from = yl_cities[0];
+        var yl_arcMat = new THREE.LineBasicMaterial({ color: 0x67e8f9, transparent: true, opacity: 0.65 });
+
+        for (var yl_ac = 1; yl_ac < yl_cities.length; yl_ac++) {
+            var yl_start = yl_spherePoint(yl_from.lon, yl_from.lat, yl_globeR * 1.01);
+            var yl_end = yl_spherePoint(yl_cities[yl_ac].lon, yl_cities[yl_ac].lat, yl_globeR * 1.01);
+            var yl_mid = yl_start.clone().add(yl_end).normalize().multiplyScalar(yl_globeR * 1.5);
+            var yl_curve = new THREE.QuadraticBezierCurve3(yl_start, yl_mid, yl_end);
+            var yl_pts = yl_curve.getPoints(48);
+
+            var yl_lineGeo = new THREE.BufferGeometry().setFromPoints(yl_pts);
+            yl_gGroup.add(new THREE.Line(yl_lineGeo, yl_arcMat));
+
+            var yl_dot = new THREE.Mesh(
+                new THREE.SphereGeometry(0.035, 10, 8),
+                new THREE.MeshBasicMaterial({ color: 0xa5f3fc })
+            );
+            yl_gGroup.add(yl_dot);
+            yl_arcDots.push({ curve: yl_curve, t: yl_ac / 8, speed: 0.0035 + yl_ac * 0.0004, mesh: yl_dot });
+        }
+
+        /* 星空 */
+        var yl_starPos = [];
+        for (var yl_s = 0; yl_s < 900; yl_s++) {
+            var yl_sr = 16 + Math.random() * 22;
+            var yl_sp = (Math.random() - 0.5) * 2;
+            var yl_sq = Math.random() * Math.PI * 2;
+            yl_starPos.push(
+                yl_sr * Math.sqrt(1 - yl_sp * yl_sp) * Math.cos(yl_sq),
+                yl_sr * yl_sp,
+                yl_sr * Math.sqrt(1 - yl_sp * yl_sp) * Math.sin(yl_sq)
+            );
+        }
+        var yl_starGeo = new THREE.BufferGeometry();
+        yl_starGeo.setAttribute('position', new THREE.Float32BufferAttribute(yl_starPos, 3));
+        yl_gScene.add(new THREE.Points(yl_starGeo, new THREE.PointsMaterial({
+            color: 0xcbd5e1, size: 0.09, transparent: true, opacity: 0.65, sizeAttenuation: true
+        })));
+
+        /* ================= ② 3D 中国地图 ================= */
+        var yl_mStage = document.getElementById('yl_mapStage');
+        var yl_mCanvas = document.getElementById('yl_mapCanvas');
+        var yl_mTip = document.getElementById('yl_mapTip');
+        var yl_mRenderer = new THREE.WebGLRenderer({ canvas: yl_mCanvas, antialias: true, alpha: true });
+        yl_mRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+        var yl_mScene = new THREE.Scene();
+        var yl_mCamera = new THREE.PerspectiveCamera(40, 1, 0.1, 300);
+        var yl_mGroup = new THREE.Group();
+        yl_mScene.add(yl_mGroup);
+
+        yl_mScene.add(new THREE.AmbientLight(0xffffff, 0.9));
+        var yl_mLight = new THREE.DirectionalLight(0xffffff, 0.7);
+        yl_mLight.position.set(6, 16, 10);
+        yl_mScene.add(yl_mLight);
+        var yl_mLight2 = new THREE.DirectionalLight(0xc7d2fe, 0.35);
+        yl_mLight2.position.set(-10, 6, -8);
+        yl_mScene.add(yl_mLight2);
+
+        var yl_values = { '广东': 98, '上海': 88, '江苏': 82, '浙江': 79, '北京': 70, '山东': 74, '四川': 65, '河南': 61, '湖北': 58, '福建': 55, '湖南': 51, '安徽': 49, '河北': 47, '辽宁': 42, '陕西': 40, '重庆': 38, '台湾': 35, '江西': 34, '广西': 33, '天津': 32, '云南': 30, '山西': 28, '贵州': 27, '黑龙江': 25, '吉林': 24, '内蒙古': 22, '香港': 21, '新疆': 20, '甘肃': 18, '海南': 16, '宁夏': 12, '青海': 10, '澳门': 9, '西藏': 6 };
+        var yl_maxValue = 98;
+        var yl_k = 0.52;
+        var yl_meshes = [];
+
+        function yl_ringArea(yl_ring) {
+            var yl_s2 = 0;
+            for (var yl_i = 0; yl_i < yl_ring.length - 1; yl_i++) {
+                yl_s2 += yl_ring[yl_i][0] * yl_ring[yl_i + 1][1] - yl_ring[yl_i + 1][0] * yl_ring[yl_i][1];
+            }
+            return Math.abs(yl_s2 / 2);
+        }
+
+        var yl_provinces = window.yl_chinaMap || [];
+        yl_provinces.forEach(function (yl_pv) {
+            var yl_val = yl_values[yl_pv.name] !== undefined ? yl_values[yl_pv.name] : 15;
+            var yl_norm = yl_val / yl_maxValue;
+            var yl_depth = 0.35 + yl_norm * 2.5;
+            var yl_hue = 174 - yl_norm * 40;
+            var yl_topColor = new THREE.Color().setHSL(yl_hue / 360, 0.55, 0.80 - 0.32 * yl_norm);
+            var yl_sideColor = yl_topColor.clone().multiplyScalar(0.72);
+
+            var yl_shapes = [];
+            yl_pv.rings.forEach(function (yl_ring) {
+                if (yl_ring.length < 4 || yl_ringArea(yl_ring) < 0.05) return;
+                var yl_shape = new THREE.Shape();
+                yl_ring.forEach(function (yl_pt, yl_idx) {
+                    var yl_x = (yl_pt[0] - 104) * yl_k;
+                    var yl_y = (yl_pt[1] - 36) * yl_k;
+                    if (yl_idx === 0) yl_shape.moveTo(yl_x, yl_y);
+                    else yl_shape.lineTo(yl_x, yl_y);
+                });
+                yl_shapes.push(yl_shape);
+            });
+            if (!yl_shapes.length) return;
+
+            var yl_geo = new THREE.ExtrudeGeometry(yl_shapes, {
+                depth: yl_depth,
+                bevelEnabled: true,
+                bevelSize: 0.04,
+                bevelThickness: 0.04,
+                bevelSegments: 1
+            });
+            yl_geo.rotateX(-Math.PI / 2);
+
+            var yl_topMat = new THREE.MeshStandardMaterial({ color: yl_topColor, roughness: 0.72, metalness: 0.05 });
+            var yl_sideMat = new THREE.MeshStandardMaterial({ color: yl_sideColor, roughness: 0.85, metalness: 0.05 });
+            var yl_mesh = new THREE.Mesh(yl_geo, [yl_topMat, yl_sideMat]);
+            yl_mesh.userData = { name: yl_pv.name, value: yl_val, topMat: yl_topMat };
+            yl_mGroup.add(yl_mesh);
+            yl_meshes.push(yl_mesh);
+        });
+
+        yl_mGroup.position.y = -1.2;
+
+        /* ================= 尺寸与交互 ================= */
+        function yl_fit(yl_renderer, yl_camera, yl_stage) {
+            var yl_w = yl_stage.clientWidth;
+            var yl_h = yl_stage.clientHeight;
+            if (!yl_w || !yl_h) return;
+            yl_renderer.setSize(yl_w, yl_h, false);
+            yl_camera.aspect = yl_w / yl_h;
+            yl_camera.updateProjectionMatrix();
+        }
+
+        function yl_bindOrbit(yl_cv, yl_state, yl_camera, yl_lookY, yl_minDist, yl_maxDist) {
+            var yl_drag = false;
+            var yl_px = 0;
+            var yl_py = 0;
+
+            yl_cv.addEventListener('pointerdown', function (e) {
+                yl_drag = true;
+                yl_px = e.clientX;
+                yl_py = e.clientY;
+                if (yl_cv.setPointerCapture) yl_cv.setPointerCapture(e.pointerId);
+            });
+            yl_cv.addEventListener('pointermove', function (e) {
+                if (!yl_drag) return;
+                yl_state.ry += (e.clientX - yl_px) * 0.006;
+                yl_state.rx += (e.clientY - yl_py) * 0.004;
+                yl_state.rx = Math.max(-0.7, Math.min(0.5, yl_state.rx));
+                yl_px = e.clientX;
+                yl_py = e.clientY;
+            });
+            function yl_stop() { yl_drag = false; }
+            yl_cv.addEventListener('pointerup', yl_stop);
+            yl_cv.addEventListener('pointercancel', yl_stop);
+            yl_cv.addEventListener('pointerleave', yl_stop);
+
+            yl_cv.addEventListener('wheel', function (e) {
+                e.preventDefault();
+                yl_state.dist += e.deltaY * 0.01;
+                yl_state.dist = Math.max(yl_minDist, Math.min(yl_maxDist, yl_state.dist));
+                yl_camera.position.z = yl_state.dist;
+            }, { passive: false });
+
+            yl_cv.addEventListener('dblclick', function () {
+                yl_state.ry = yl_state.homeRy || 0;
+                yl_state.rx = 0;
+                yl_state.dist = yl_state.home;
+                yl_camera.position.set(0, yl_state.camY, yl_state.dist);
+                yl_camera.lookAt(0, yl_lookY, 0);
+            });
+        }
+
+        var yl_gState = { ry: 2.68, rx: -0.14, dist: 7.4, home: 7.4, camY: 0.9, homeRy: 2.68 };
+        var yl_mState = { ry: 0, rx: 0.1, dist: 27, home: 27, camY: 21, homeRy: 0 };
+
+        yl_bindOrbit(yl_gCanvas, yl_gState, yl_gCamera, 0, 4.6, 13);
+        yl_bindOrbit(yl_mCanvas, yl_mState, yl_mCamera, 0, 18, 55);
+
+        /* 地图悬停 */
+        var yl_ray = new THREE.Raycaster();
+        var yl_ndc = new THREE.Vector2();
+        var yl_hoverMesh = null;
+
+        yl_mCanvas.addEventListener('pointermove', function (e) {
+            var yl_rect = yl_mCanvas.getBoundingClientRect();
+            yl_ndc.x = ((e.clientX - yl_rect.left) / yl_rect.width) * 2 - 1;
+            yl_ndc.y = -((e.clientY - yl_rect.top) / yl_rect.height) * 2 + 1;
+            yl_ray.setFromCamera(yl_ndc, yl_mCamera);
+            var yl_hits = yl_ray.intersectObjects(yl_meshes, false);
+
+            if (yl_hits.length) {
+                var yl_obj = yl_hits[0].object;
+                if (yl_hoverMesh !== yl_obj) {
+                    if (yl_hoverMesh) yl_hoverMesh.userData.topMat.emissive.setHex(0x000000);
+                    yl_hoverMesh = yl_obj;
+                    yl_hoverMesh.userData.topMat.emissive.setHex(0x2dd4bf);
+                    yl_hoverMesh.userData.topMat.emissiveIntensity = 0.35;
+                }
+                yl_mTip.textContent = yl_obj.userData.name + '：' + yl_obj.userData.value + ' 万次';
+                yl_mTip.style.opacity = 1;
+                yl_mTip.style.left = (e.clientX - yl_rect.left) + 'px';
+                yl_mTip.style.top = (e.clientY - yl_rect.top - 10) + 'px';
+            } else {
+                if (yl_hoverMesh) {
+                    yl_hoverMesh.userData.topMat.emissive.setHex(0x000000);
+                    yl_hoverMesh = null;
+                }
+                yl_mTip.style.opacity = 0;
+            }
+        });
+
+        yl_mCanvas.addEventListener('pointerleave', function () {
+            if (yl_hoverMesh) {
+                yl_hoverMesh.userData.topMat.emissive.setHex(0x000000);
+                yl_hoverMesh = null;
+            }
+            yl_mTip.style.opacity = 0;
+        });
+
+        function yl_resizeAll() {
+            yl_fit(yl_gRenderer, yl_gCamera, yl_gStage);
+            yl_fit(yl_mRenderer, yl_mCamera, yl_mStage);
+        }
+
+        yl_resizeAll();
+        window.addEventListener('resize', yl_resizeAll);
+        if (window.ResizeObserver) {
+            new ResizeObserver(yl_resizeAll).observe(yl_gStage);
+            new ResizeObserver(yl_resizeAll).observe(yl_mStage);
+        }
+
+        /* ================= 主循环 ================= */
+        function yl_frame() {
+            requestAnimationFrame(yl_frame);
+
+            yl_gGroup.rotation.y = yl_gState.ry + performance.now() * 0.00003;
+            yl_gGroup.rotation.x = yl_gState.rx;
+            yl_gCamera.position.set(0, yl_gState.camY, yl_gState.dist);
+            yl_gCamera.lookAt(0, 0, 0);
+
+            for (var yl_d = 0; yl_d < yl_arcDots.length; yl_d++) {
+                var yl_ad = yl_arcDots[yl_d];
+                yl_ad.t += yl_ad.speed;
+                if (yl_ad.t > 1) yl_ad.t = 0;
+                yl_ad.mesh.position.copy(yl_ad.curve.getPointAt(yl_ad.t));
+            }
+            yl_gRenderer.render(yl_gScene, yl_gCamera);
+
+            yl_mGroup.rotation.y = yl_mState.ry;
+            yl_mGroup.rotation.x = yl_mState.rx;
+            yl_mCamera.position.set(0, yl_mState.camY, yl_mState.dist);
+            yl_mCamera.lookAt(0, 0, 0);
+            yl_mRenderer.render(yl_mScene, yl_mCamera);
+        }
+
+        yl_frame();
+    })();
+</script>
+</body>
+</html>

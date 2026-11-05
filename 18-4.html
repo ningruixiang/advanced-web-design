@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>18-4 · ECharts 双图（桑基图 + 雷达图）</title>
+    <link rel="icon" href="data:,">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            color: #1f2937;
+            background:
+                radial-gradient(circle at 12% 8%, rgba(13, 148, 136, 0.10) 0%, transparent 42%),
+                radial-gradient(circle at 88% 4%, rgba(99, 102, 241, 0.10) 0%, transparent 40%),
+                #f6f8fb;
+            line-height: 1.65;
+        }
+
+        /* ===== 顶部标题 ===== */
+        .yl_hero {
+            padding: 54px 24px 46px;
+            text-align: center;
+            color: #ffffff;
+            background: linear-gradient(135deg, #0f766e 0%, #0d9488 45%, #4f46e5 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .yl_hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 75% 20%, rgba(255, 255, 255, 0.22) 0%, transparent 45%);
+            pointer-events: none;
+        }
+
+        .yl_hero h1 {
+            position: relative;
+            font-size: clamp(1.7em, 3.6vw, 2.5em);
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .yl_hero .yl_sub {
+            position: relative;
+            margin-top: 10px;
+            font-size: 0.98em;
+            opacity: 0.92;
+        }
+
+        .yl_badge {
+            position: relative;
+            display: inline-block;
+            margin-top: 16px;
+            padding: 5px 16px;
+            border-radius: 999px;
+            font-size: 0.84em;
+            letter-spacing: 1px;
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.36);
+            backdrop-filter: blur(6px);
+        }
+
+        /* ===== 主体 ===== */
+        .yl_wrap {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 34px 20px 64px;
+            display: grid;
+            gap: 26px;
+        }
+
+        .yl_card {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.06);
+            border-radius: 20px;
+            padding: 22px 22px 16px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.07);
+        }
+
+        .yl_cHead {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 10px;
+            margin-bottom: 14px;
+            padding-left: 12px;
+            border-left: 4px solid #0d9488;
+        }
+
+        .yl_cHead h2 {
+            font-size: 1.16em;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .yl_cHead .yl_tag {
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 0.75em;
+            letter-spacing: 0.4px;
+            color: #0f766e;
+            background: #e6f6f4;
+            border: 1px solid #b7e4de;
+        }
+
+        .yl_cHead .yl_tag.yl_indigo {
+            color: #4338ca;
+            background: #eef0fe;
+            border-color: #c7cbfb;
+        }
+
+        .yl_desc {
+            margin-bottom: 14px;
+            padding: 0 2px;
+            font-size: 0.9em;
+            color: #64748b;
+        }
+
+        .yl_desc code {
+            padding: 1px 6px;
+            border-radius: 5px;
+            font-size: 0.92em;
+            color: #0f766e;
+            background: #f1f7f6;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+        }
+
+        /* ===== 图表容器 ===== */
+        .yl_chart {
+            width: 100%;
+            height: 540px;
+            border-radius: 14px;
+            border: 1px solid rgba(15, 23, 42, 0.05);
+            background: linear-gradient(180deg, #fcfdff 0%, #f4f8fc 100%);
+        }
+
+        .yl_chart.yl_tall {
+            height: 640px;
+        }
+
+        .yl_cFoot {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(15, 23, 42, 0.09);
+            font-size: 0.82em;
+            color: #94a3b8;
+        }
+
+        /* ===== 底部说明 ===== */
+        .yl_note {
+            background: #ffffff;
+            border: 1px dashed rgba(13, 148, 136, 0.35);
+            border-radius: 16px;
+            padding: 18px 22px;
+            font-size: 0.88em;
+            color: #475569;
+        }
+
+        .yl_note h3 {
+            font-size: 0.98em;
+            color: #0f766e;
+            margin-bottom: 8px;
+        }
+
+        .yl_note li {
+            margin-left: 18px;
+            padding: 2px 0;
+        }
+
+        .yl_note code {
+            padding: 1px 6px;
+            border-radius: 5px;
+            color: #0f766e;
+            background: #f1f7f6;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+        }
+
+        @media (max-width: 720px) {
+            .yl_chart { height: 460px; }
+            .yl_chart.yl_tall { height: 420px; }
+            .yl_wrap { padding: 24px 14px 46px; }
+            .yl_card { padding: 16px 14px 12px; }
+        }
+    </style>
+</head>
+<body>
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  建立时间：2026-11-05 14:00:12
+  使用的大模型：DeepSeek-V4.1-Flash
+  功能：ECharts 双图表页（桑基图 Sankey + 雷达图 Radar，本地 cdn 目录离线引入 echarts.min.js）
+-->
+<header class="yl_hero">
+    <h1>ECharts 双图实践</h1>
+    <p class="yl_sub">桑基图 Sankey Diagram × 雷达图 Radar Chart</p>
+    <span class="yl_badge">18-4 · 本地 cdn/echarts.min.js 离线加载</span>
+</header>
+
+<main class="yl_wrap">
+    <section class="yl_card">
+        <div class="yl_cHead">
+            <h2>① 桑基图 · Sankey Diagram</h2>
+            <span class="yl_tag">product.json</span>
+            <span class="yl_tag">4 层流向</span>
+        </div>
+        <p class="yl_desc">数据为 ECharts 官方示例的 <code>product.json</code>（巧克力供应链的环境与人文影响），已本地化为 <code>cdn/product.js</code>，无需联网即可加载。</p>
+        <div id="yl_sankey" class="yl_chart yl_tall"></div>
+        <div class="yl_cFoot">鼠标悬停任一节点，会高亮与它直接相连的流向（emphasis.focus = adjacency）；四层分别使用不同色板。</div>
+    </section>
+
+    <section class="yl_card">
+        <div class="yl_cHead">
+            <h2>② 雷达图 · Proportion of Browsers</h2>
+            <span class="yl_tag yl_indigo">28 组数据</span>
+            <span class="yl_tag yl_indigo">visualMap 着色</span>
+        </div>
+        <p class="yl_desc">2001–2028 共 28 组"浏览器占比"模拟数据，5 个维度（IE8-、IE9+、Safari、Firefox、Chrome），底部图例可滚动，右侧 visualMap 按数值自动着色。</p>
+        <div id="yl_radar" class="yl_chart"></div>
+        <div class="yl_cFoot">悬停或拖动右侧色带可筛选数值区间；点击图例项可显示 / 隐藏对应年份的雷达线。</div>
+    </section>
+
+    <section class="yl_note">
+        <h3>本例要点</h3>
+        <ul>
+            <li>图表库离线引入：<code>&lt;script src="cdn/echarts.min.js"&gt;</code>，文件从 CDN 下载后放于 <code>cdn/</code> 目录。</li>
+            <li>桑基图数据本地化：<code>cdn/product.js</code> 以 <code>window.yl_sankeyData</code> 暴露 nodes / links，替代示例中的 <code>$.get(...product.json)</code>。</li>
+            <li>两个实例分别 <code>echarts.init</code>，窗口尺寸变化时调用 <code>resize()</code> 自适应。</li>
+        </ul>
+    </section>
+</main>
+
+<script src="cdn/echarts.min.js"></script>
+<script src="cdn/product.js"></script>
+<script>
+    (function () {
+        if (typeof echarts === 'undefined') {
+            document.getElementById('yl_sankey').innerHTML =
+                '<p style="padding:24px;color:#b91c1c">未找到 cdn/echarts.min.js，请确认 cdn 目录已随页面一起拷贝。</p>';
+            return;
+        }
+
+        var yl_sankeyDom = document.getElementById('yl_sankey');
+        var yl_radarDom = document.getElementById('yl_radar');
+        var yl_sankeyChart = echarts.init(yl_sankeyDom);
+        var yl_radarChart = echarts.init(yl_radarDom);
+        var yl_sankeyOption;
+        var yl_radarOption;
+
+        /* ===== ① 桑基图：模拟示例中的异步取数，先 loading 再 setOption ===== */
+        yl_sankeyChart.showLoading('default', {
+            text: '载入桑基数据…',
+            color: '#0d9488',
+            textColor: '#475569',
+            maskColor: 'rgba(255,255,255,0.72)'
+        });
+
+        setTimeout(function () {
+            var yl_sankeyData = window.yl_sankeyData || { nodes: [], links: [] };
+            yl_sankeyChart.hideLoading();
+            yl_sankeyChart.setOption(
+                (yl_sankeyOption = {
+                    title: {
+                        text: 'Sankey Diagram',
+                        subtext: '产品供应链的环境与人文影响',
+                        left: 12,
+                        top: 6,
+                        textStyle: { fontSize: 16, color: '#0f172a' },
+                        subtextStyle: { fontSize: 12, color: '#94a3b8' }
+                    },
+                    tooltip: {
+                        trigger: 'item',
+                        triggerOn: 'mousemove'
+                    },
+                    series: [
+                        {
+                            type: 'sankey',
+                            data: yl_sankeyData.nodes,
+                            links: yl_sankeyData.links,
+                            emphasis: {
+                                focus: 'adjacency'
+                            },
+                            levels: [
+                                {
+                                    depth: 0,
+                                    itemStyle: { color: '#fbb4ae' },
+                                    lineStyle: { color: 'source', opacity: 0.6 }
+                                },
+                                {
+                                    depth: 1,
+                                    itemStyle: { color: '#b3cde3' },
+                                    lineStyle: { color: 'source', opacity: 0.6 }
+                                },
+                                {
+                                    depth: 2,
+                                    itemStyle: { color: '#ccebc5' },
+                                    lineStyle: { color: 'source', opacity: 0.6 }
+                                },
+                                {
+                                    depth: 3,
+                                    itemStyle: { color: '#decbe4' },
+                                    lineStyle: { color: 'source', opacity: 0.6 }
+                                }
+                            ],
+                            lineStyle: {
+                                curveness: 0.5
+                            },
+                            label: {
+                                position: 'right',
+                                fontSize: 11,
+                                color: '#334155'
+                            },
+                            nodeGap: 12,
+                            top: 54,
+                            bottom: 16,
+                            left: 8,
+                            right: 178
+                        }
+                    ]
+                })
+            );
+        }, 500);
+
+        /* ===== ② 雷达图：28 组数据 + 可滚动图例 + visualMap ===== */
+        yl_radarChart.setOption(
+            (yl_radarOption = {
+                title: {
+                    text: 'Proportion of Browsers',
+                    subtext: 'Fake Data',
+                    top: 10,
+                    left: 10,
+                    textStyle: { fontSize: 16, color: '#0f172a' },
+                    subtextStyle: { fontSize: 12, color: '#94a3b8' }
+                },
+                tooltip: {
+                    trigger: 'item'
+                },
+                legend: {
+                    type: 'scroll',
+                    bottom: 6,
+                    data: (function () {
+                        var yl_list = [];
+                        for (var yl_i = 1; yl_i <= 28; yl_i++) {
+                            yl_list.push(yl_i + 2000 + '');
+                        }
+                        return yl_list;
+                    })()
+                },
+                visualMap: {
+                    top: 'middle',
+                    right: 10,
+                    inRange: {
+                        color: ['red', 'yellow']
+                    },
+                    calculable: true
+                },
+                radar: {
+                    radius: '62%',
+                    center: ['46%', '54%'],
+                    indicator: [
+                        { text: 'IE8-', max: 400 },
+                        { text: 'IE9+', max: 400 },
+                        { text: 'Safari', max: 400 },
+                        { text: 'Firefox', max: 400 },
+                        { text: 'Chrome', max: 400 }
+                    ]
+                },
+                series: (function () {
+                    var yl_series = [];
+                    for (var yl_i = 1; yl_i <= 28; yl_i++) {
+                        yl_series.push({
+                            type: 'radar',
+                            symbol: 'none',
+                            lineStyle: {
+                                width: 1
+                            },
+                            emphasis: {
+                                areaStyle: {
+                                    color: 'rgba(0,250,0,0.3)'
+                                }
+                            },
+                            data: [
+                                {
+                                    value: [
+                                        (40 - yl_i) * 10,
+                                        (38 - yl_i) * 4 + 60,
+                                        yl_i * 5 + 10,
+                                        yl_i * 9,
+                                        (yl_i * yl_i) / 2
+                                    ],
+                                    name: yl_i + 2000 + ''
+                                }
+                            ]
+                        });
+                    }
+                    return yl_series;
+                })()
+            })
+        );
+
+        /* ===== 自适应 ===== */
+        window.addEventListener('resize', function () {
+            yl_sankeyChart.resize();
+            yl_radarChart.resize();
+        });
+    })();
+</script>
+</body>
+</html>

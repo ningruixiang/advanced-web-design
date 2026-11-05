@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知识库智能客服系统架构（SVG）· 宁瑞祥 · 计算机23005</title>
+<link rel="icon" href="data:,">
+<style>
+    :root {
+        --yl-ink: #12203a;
+        --yl-sub: #5b6b8c;
+        --yl-mute: #8093b3;
+        --yl-line: rgba(18, 32, 58, .10);
+        --yl-c1: #0fa3c8;
+        --yl-c2: #007aff;
+        --yl-c3: #7c3aed;
+        --yl-c4: #12a150;
+        --yl-c5: #e58a00;
+        --yl-mono: "SF Mono", Menlo, Consolas, monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+        background: linear-gradient(180deg, #eef2f9 0%, #f7f9fd 34%, #fbfcfe 100%);
+        color: var(--yl-ink);
+        min-height: 100vh;
+        line-height: 1.6;
+    }
+
+    .yl_hero {
+        position: relative;
+        padding: 40px 20px 30px;
+        text-align: center;
+        background: linear-gradient(135deg, #eaf3ff 0%, #f2f0ff 52%, #eefaf3 100%);
+        border-bottom: 1px solid var(--yl-line);
+    }
+    .yl_hero h1 {
+        font-size: clamp(1.4em, 3.4vw, 1.95em);
+        font-weight: 800;
+        letter-spacing: .02em;
+        color: #0f2b57;
+    }
+    .yl_hero h1 em { font-style: normal; color: var(--yl-c3); }
+    .yl_hero p { margin-top: 8px; font-size: .88em; color: var(--yl-sub); }
+    .yl_hero .yl_kicker {
+        display: inline-block;
+        margin-bottom: 14px;
+        font-family: var(--yl-mono);
+        font-size: 11px;
+        letter-spacing: .16em;
+        color: var(--yl-c2);
+        background: rgba(0, 122, 255, .08);
+        border: 1px solid rgba(0, 122, 255, .25);
+        border-radius: 999px;
+        padding: 3px 12px;
+    }
+
+    .yl_main { max-width: 1240px; margin: 0 auto; padding: 26px 20px 46px; }
+
+    .yl_figure {
+        position: relative;
+        padding: 18px;
+        border-radius: 18px;
+        background: #ffffff;
+        background-image: radial-gradient(circle, #dfe7f4 1px, transparent 1px);
+        background-size: 22px 22px;
+        border: 1px solid var(--yl-line);
+        box-shadow: 0 14px 40px rgba(20, 40, 80, .08);
+    }
+    #yl_svg { display: block; width: 100%; height: auto; }
+
+    .yl_caption {
+        margin-top: 14px;
+        text-align: center;
+        font-size: 13px;
+        color: var(--yl-sub);
+    }
+    .yl_caption b { color: var(--yl-ink); font-weight: 600; }
+
+    .yl_toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        margin-top: 16px;
+    }
+    .yl_btn {
+        padding: 8px 16px;
+        border-radius: 10px;
+        border: 1px solid rgba(18, 32, 58, .14);
+        background: #fff;
+        color: var(--yl-ink);
+        font-size: 13px;
+        font-family: inherit;
+        cursor: pointer;
+        transition: transform .18s, border-color .18s, box-shadow .18s, color .18s;
+    }
+    .yl_btn:hover {
+        transform: translateY(-2px);
+        color: var(--yl-c2);
+        border-color: rgba(0, 122, 255, .45);
+        box-shadow: 0 8px 20px rgba(0, 122, 255, .14);
+    }
+    .yl_btn.yl_on {
+        background: rgba(0, 122, 255, .08);
+        border-color: rgba(0, 122, 255, .45);
+        color: var(--yl-c2);
+        font-weight: 600;
+    }
+    .yl_tipText {
+        margin-left: auto;
+        font-size: 12px;
+        color: var(--yl-mute);
+    }
+
+    .yl_detail {
+        margin-top: 16px;
+        padding: 18px 20px;
+        border-radius: 14px;
+        background: #fff;
+        border: 1px solid var(--yl-line);
+        box-shadow: 0 6px 20px rgba(20, 40, 80, .05);
+        transition: border-color .25s;
+    }
+    .yl_detail.yl_has { border-color: rgba(0, 122, 255, .38); }
+    .yl_detailHead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .yl_dot {
+        width: 9px; height: 9px; border-radius: 50%;
+        background: var(--yl-c2);
+        box-shadow: 0 0 12px rgba(0, 122, 255, .6);
+        flex: none;
+    }
+    .yl_detailHead h3 { font-size: 15px; font-weight: 700; }
+    .yl_dLayer {
+        font-family: var(--yl-mono);
+        font-size: 11px;
+        padding: 2px 9px;
+        border-radius: 999px;
+        color: var(--yl-c2);
+        background: rgba(0, 122, 255, .08);
+        border: 1px solid rgba(0, 122, 255, .3);
+    }
+    .yl_detail p { margin-top: 8px; font-size: 13px; color: var(--yl-sub); line-height: 1.8; }
+
+    .yl_sectionTitle {
+        margin: 38px 0 6px;
+        font-size: 17px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .yl_sectionTitle::before {
+        content: "";
+        width: 4px; height: 18px;
+        border-radius: 3px;
+        background: linear-gradient(180deg, var(--yl-c2), var(--yl-c3));
+    }
+    .yl_sectionDesc { font-size: 13px; color: var(--yl-sub); margin-bottom: 18px; }
+
+    .yl_rcards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 14px;
+    }
+    .yl_rcard {
+        position: relative;
+        padding: 18px 20px 18px 54px;
+        border-radius: 14px;
+        background: #fff;
+        border: 1px solid var(--yl-line);
+        transition: transform .2s, box-shadow .2s, border-color .2s;
+    }
+    .yl_rcard:hover {
+        transform: translateY(-3px);
+        border-color: rgba(124, 58, 237, .35);
+        box-shadow: 0 12px 28px rgba(124, 58, 237, .12);
+    }
+    .yl_rcard .yl_idx {
+        position: absolute;
+        left: 18px; top: 18px;
+        width: 24px; height: 24px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--yl-c5), #ffb648);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 10px rgba(229, 138, 0, .3);
+    }
+    .yl_rcard h3 { font-size: 14px; margin-bottom: 6px; color: #17213a; }
+    .yl_rcard p { font-size: 12.5px; color: var(--yl-sub); line-height: 1.75; }
+
+    .yl_footer {
+        text-align: center;
+        padding: 22px 20px 40px;
+        font-size: 12px;
+        color: var(--yl-mute);
+        border-top: 1px solid var(--yl-line);
+        margin-top: 26px;
+    }
+
+    /* ===== SVG 样式 ===== */
+    .yl_svgText {
+        font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+        fill: var(--yl-ink);
+    }
+    .yl_band { fill: rgba(255, 255, 255, .82); }
+    .yl_chip { fill: rgba(255, 255, 255, .95); }
+    .yl_n rect {
+        fill: #ffffff;
+        stroke-width: 1.2;
+        transition: stroke-width .18s, filter .18s;
+    }
+    .yl_n:hover rect { stroke-width: 2.2; filter: drop-shadow(0 5px 12px rgba(20, 40, 80, .16)); }
+    .yl_n { cursor: pointer; }
+    .yl_n:hover text.yl_nm { fill: #0c1b33; }
+    .yl_pill rect { fill: #fbfcff; stroke-width: 1.1; }
+    .yl_pill:hover rect { stroke-width: 2; filter: drop-shadow(0 4px 10px rgba(20, 40, 80, .14)); }
+    .yl_pill { cursor: pointer; }
+    .yl_nm { font-size: 13.5px; font-weight: 600; }
+    .yl_sm { font-size: 11px; fill: var(--yl-sub); }
+    .yl_pnm { font-size: 12.5px; font-weight: 600; }
+    .yl_chipTx { font-size: 12.5px; font-weight: 700; }
+    .yl_flow {
+        stroke-dasharray: 7 7;
+        animation: yl_dash 1.5s linear infinite;
+    }
+    @keyframes yl_dash { to { stroke-dashoffset: -28; } }
+    .yl_curve {
+        stroke-dasharray: 9 7;
+        animation: yl_dash 2.4s linear infinite reverse;
+    }
+    .yl_star circle {
+        fill: #ff9500;
+        animation: yl_blink 2s ease-in-out infinite;
+    }
+    @keyframes yl_blink {
+        0%, 100% { opacity: .68; }
+        50% { opacity: 1; }
+    }
+    .yl_star text {
+        fill: #fff;
+        font-size: 10.5px;
+        font-weight: 700;
+    }
+    .yl_legend { font-size: 11.5px; fill: var(--yl-sub); }
+
+    @media (max-width: 720px) {
+        .yl_tipText { margin-left: 0; width: 100%; }
+        .yl_figure { padding: 10px; }
+    }
+</style>
+</head>
+<body>
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  建立时间：2026-11-05 13:46:29
+  使用的大模型：DeepSeek-V4.1-Flash
+  功能：基于知识库的智能客服系统架构图（SVG 矢量绘制，含科研方向切入点标注）
+-->
+<header class="yl_hero">
+    <span class="yl_kicker">RESEARCH FIGURE · SVG</span>
+    <h1>基于知识库的<em>智能客服</em>系统架构</h1>
+    <p>五层总体架构 · RAG 检索增强生成闭环 · 标注六处科研切入点</p>
+</header>
+
+<main class="yl_main">
+    <div class="yl_figure">
+        <svg id="yl_svg" viewBox="0 0 1240 940" xmlns="http://www.w3.org/2000/svg" role="img"
+             aria-label="基于知识库的智能客服系统架构图">
+            <defs>
+                <marker id="yl_arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                    <path d="M 0 1 L 9 5 L 0 9 z" fill="#8193b5"/>
+                </marker>
+                <marker id="yl_arrowAmber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                    <path d="M 0 1 L 9 5 L 0 9 z" fill="#e58a00"/>
+                </marker>
+            </defs>
+
+            <!-- ============ 第一层：用户与渠道层 ============ -->
+            <rect class="yl_band" x="34" y="76" width="1132" height="86" rx="12" stroke="rgba(15,163,200,.22)"/>
+            <rect x="34" y="90" width="4" height="58" rx="2" fill="#0fa3c8"/>
+            <rect class="yl_chip" x="34" y="50" width="98" height="22" rx="6" stroke="rgba(15,163,200,.45)"/>
+            <text class="yl_svgText yl_chipTx" x="46" y="65" fill="#0fa3c8">用户与渠道层</text>
+            <text class="yl_svgText" x="140" y="65" font-size="11" fill="#8093b3" font-family="Menlo,Consolas,monospace">CLIENT</text>
+
+            <g class="yl_n" data-name="网页在线客服" data-layer="用户与渠道层" data-desc="Web 端在线客服窗口，通过 WebSocket 保持长连接，支持图文、快捷菜单与文件传输，是主要的交互入口。">
+                <rect x="56" y="94" width="204.8" height="50" rx="9" stroke="rgba(15,163,200,.45)"/>
+                <text class="yl_svgText yl_nm" x="158.4" y="114" text-anchor="middle">🌐 网页在线客服</text>
+                <text class="yl_svgText yl_sm" x="158.4" y="131" text-anchor="middle">WebSocket · 富文本</text>
+            </g>
+            <g class="yl_n" data-name="App 内客服" data-layer="用户与渠道层" data-desc="以 SDK 形式嵌入移动 App，复用同一套会话服务，支持消息推送与离线消息补偿。">
+                <rect x="276.8" y="94" width="204.8" height="50" rx="9" stroke="rgba(15,163,200,.45)"/>
+                <text class="yl_svgText yl_nm" x="379.2" y="114" text-anchor="middle">📱 App 内客服</text>
+                <text class="yl_svgText yl_sm" x="379.2" y="131" text-anchor="middle">SDK 嵌入 · 推送</text>
+            </g>
+            <g class="yl_n" data-name="微信 / 企业微信" data-layer="用户与渠道层" data-desc="公众号、小程序与企业微信客服，依赖开放平台消息回调，覆盖社交与私域场景。">
+                <rect x="497.6" y="94" width="204.8" height="50" rx="9" stroke="rgba(15,163,200,.45)"/>
+                <text class="yl_svgText yl_nm" x="600" y="114" text-anchor="middle">💬 微信 / 企微</text>
+                <text class="yl_svgText yl_sm" x="600" y="131" text-anchor="middle">公众号 · 小程序</text>
+            </g>
+            <g class="yl_n" data-name="电话 IVR" data-layer="用户与渠道层" data-desc="传统呼叫中心入口，先用 ASR 语音转写为文本，再进入统一对话管线，可回退到 TTS 语音播报。">
+                <rect x="718.4" y="94" width="204.8" height="50" rx="9" stroke="rgba(15,163,200,.45)"/>
+                <text class="yl_svgText yl_nm" x="820.8" y="114" text-anchor="middle">☎️ 电话 IVR</text>
+                <text class="yl_svgText yl_sm" x="820.8" y="131" text-anchor="middle">ASR · TTS</text>
+            </g>
+            <g class="yl_n" data-name="邮件 / 工单" data-layer="用户与渠道层" data-desc="异步渠道，适合复杂问题与需要留痕的场景，工单与知识库条目双向关联。">
+                <rect x="939.2" y="94" width="204.8" height="50" rx="9" stroke="rgba(15,163,200,.45)"/>
+                <text class="yl_svgText yl_nm" x="1041.6" y="114" text-anchor="middle">🎫 邮件 / 工单</text>
+                <text class="yl_svgText yl_sm" x="1041.6" y="131" text-anchor="middle">异步 · 留痕</text>
+            </g>
+
+            <!-- 连线 1→2 -->
+            <line class="yl_flow" x1="300" y1="167" x2="300" y2="207" stroke="#8193b5" stroke-width="1.6" marker-end="url(#yl_arrow)"/>
+            <line class="yl_flow" x1="500" y1="167" x2="500" y2="207" stroke="#8193b5" stroke-width="1.6" marker-end="url(#yl_arrow)"/>
+            <line class="yl_flow" x1="700" y1="167" x2="700" y2="207" stroke="#8193b5" stroke-width="1.6" marker-end="url(#yl_arrow)"/>
+            <line class="yl_flow" x1="900" y1="167" x2="900" y2="207" stroke="#8193b5" stroke-width="1.6" marker-end="url(#yl_arrow)"/>
+
+            <!-- ============ 第二层：接入与会话层 ============ -->
+            <rect class="yl_band" x="34" y="216" width="1132" height="86" rx="12" stroke="rgba(0,122,255,.22)"/>
+            <rect x="34" y="230" width="4" height="58" rx="2" fill="#007aff"/>
+            <rect class="yl_chip" x="34" y="190" width="110" height="22" rx="6" stroke="rgba(0,122,255,.45)"/>
+            <text class="yl_svgText yl_chipTx" x="46" y="205" fill="#007aff">接入与会话层</text>
+            <text class="yl_svgText" x="152" y="205" font-size="11" fill="#8093b3" font-family="Menlo,Consolas,monospace">SESSION</text>
+
+            <g class="yl_n" data-name="多渠道接入网关" data-layer="接入与会话层" data-desc="统一所有渠道的消息协议与鉴权，做限流、灰度与渠道级路由，并保证同一用户会话粘性。">
+                <rect x="56" y="234" width="352" height="50" rx="9" stroke="rgba(0,122,255,.45)"/>
+                <text class="yl_svgText yl_nm" x="232" y="254" text-anchor="middle">🚪 多渠道接入网关</text>
+                <text class="yl_svgText yl_sm" x="232" y="271" text-anchor="middle">统一协议 · 鉴权 · 限流 · 会话粘性</text>
+            </g>
+            <g class="yl_n" data-name="会话与上下文管理" data-layer="接入与会话层" data-desc="维护多轮对话状态、槽位填充进度与用户画像，负责上下文的裁剪、摘要与跨渠道同步。">
+                <rect x="424" y="234" width="352" height="50" rx="9" stroke="rgba(0,122,255,.45)"/>
+                <text class="yl_svgText yl_nm" x="600" y="254" text-anchor="middle">🧵 会话与上下文管理</text>
+                <text class="yl_svgText yl_sm" x="600" y="271" text-anchor="middle">多轮状态 · 上下文摘要 · 用户画像</text>
+            </g>
+            <g class="yl_n" data-name="对话策略引擎" data-layer="接入与会话层" data-desc="决定下一步该澄清、追问、检索还是转人工，是对话系统的决策中枢，也是强化学习的主要作用点。">
+                <rect x="792" y="234" width="352" height="50" rx="9" stroke="rgba(0,122,255,.45)"/>
+                <text class="yl_svgText yl_nm" x="968" y="254" text-anchor="middle">🎭 对话策略引擎</text>
+                <text class="yl_svgText yl_sm" x="968" y="271" text-anchor="middle">澄清追问 · 转人工兜底 · 情绪安抚</text>
+            </g>
+            <g class="yl_star" data-r="5">
+                <circle cx="1129" cy="249" r="10"/>
+                <text class="yl_svgText" x="1129" y="253" text-anchor="middle">5</text>
+            </g>
+
+            <line class="yl_flow" x1="300" y1="307" x2="300" y2="347" stroke="#8193b5" stroke-width="1.6" marker-end="url(#yl_arrow)"/>
+            <line class="yl_flow" x1="500" y1="307" x2="500" y2="347" stroke="#8193b5" stroke-width="1.6" marker-end="url(#yl_arrow)"/>
+            <line class="yl_flow" x1="700" y1="307" x2="700" y2="347" stroke="#8193b5" stroke-width="1.6" marker-end="url(#yl_arrow)"/>
+            <line class="yl_flow" x1="900" y1="307" x2="900" y2="347" stroke="#8193b5" stroke-width="1.6" marker-end="url(#yl_arrow)"/>
+
+            <!-- ============ 第三层：认知计算层 ============ -->
+            <rect class="yl_band" x="34" y="356" width="1132" height="196" rx="12" stroke="rgba(124,58,237,.22)"/>
+            <rect x="34" y="370" width="4" height="168" rx="2" fill="#7c3aed"/>
+            <rect class="yl_chip" x="34" y="330" width="86" height="22" rx="6" stroke="rgba(124,58,237,.45)"/>
+            <text class="yl_svgText yl_chipTx" x="46" y="345" fill="#7c3aed">认知计算层</text>
+            <text class="yl_svgText" x="128" y="345" font-size="11" fill="#8093b3" font-family="Menlo,Consolas,monospace">COGNITION</text>
+            <text class="yl_svgText" x="1166" y="345" font-size="11" fill="#a0aec9" text-anchor="end" font-family="Menlo,Consolas,monospace">NLU → RAG → LLM</text>
+
+            <!-- 面板 A：语义理解 -->
+            <g class="yl_panel">
+                <rect x="56" y="388" width="350.67" height="158" rx="10" fill="none" stroke="rgba(124,58,237,.28)" stroke-dasharray="4 5"/>
+                <text class="yl_svgText" x="56" y="382" font-size="12.5" font-weight="700" fill="#7c3aed">A · 语义理解 NLU</text>
+            </g>
+            <g class="yl_pill yl_n" data-name="意图识别" data-layer="认知计算层" data-desc="将用户语句映射到业务意图标签（查询订单、退换货、投诉等），通常用领域微调的分类模型 + 规则兜底。">
+                <rect x="68" y="398" width="326.67" height="40" rx="8" stroke="rgba(124,58,237,.45)"/>
+                <text class="yl_svgText yl_pnm" x="231.33" y="415" text-anchor="middle">🎯 意图识别</text>
+                <text class="yl_svgText yl_sm" x="231.33" y="430" text-anchor="middle">领域分类模型 · 规则兜底</text>
+            </g>
+            <g class="yl_pill yl_n" data-name="实体与槽位抽取" data-layer="认知计算层" data-desc="抽取订单号、时间、金额等关键实体，用于填槽与后续结构化查询，常用 BERT-CRF 或 LLM 抽取。">
+                <rect x="68" y="444" width="326.67" height="40" rx="8" stroke="rgba(124,58,237,.45)"/>
+                <text class="yl_svgText yl_pnm" x="231.33" y="461" text-anchor="middle">🧩 实体与槽位抽取</text>
+                <text class="yl_svgText yl_sm" x="231.33" y="476" text-anchor="middle">BERT-CRF · 槽位填充</text>
+            </g>
+            <g class="yl_pill yl_n" data-name="情绪与满意度识别" data-layer="认知计算层" data-desc="识别用户情绪强度与不满信号，触发升级策略或转人工，是服务质量监控的重要输入。">
+                <rect x="68" y="490" width="326.67" height="40" rx="8" stroke="rgba(124,58,237,.45)"/>
+                <text class="yl_svgText yl_pnm" x="231.33" y="507" text-anchor="middle">😊 情绪与满意度识别</text>
+                <text class="yl_svgText yl_sm" x="231.33" y="522" text-anchor="middle">投诉预警 · 升级策略</text>
+            </g>
+
+            <!-- 面板 B：知识检索 -->
+            <g class="yl_panel">
+                <rect x="424.67" y="388" width="350.67" height="158" rx="10" fill="none" stroke="rgba(124,58,237,.28)" stroke-dasharray="4 5"/>
+                <text class="yl_svgText" x="424.67" y="382" font-size="12.5" font-weight="700" fill="#7c3aed">B · 知识检索 RAG</text>
+            </g>
+            <g class="yl_pill yl_n" data-name="Query 改写" data-layer="认知计算层" data-desc="结合对话上下文做指代消解、同义扩展与多查询生成，显著提升检索召回质量。">
+                <rect x="436.67" y="398" width="326.67" height="40" rx="8" stroke="rgba(124,58,237,.45)"/>
+                <text class="yl_svgText yl_pnm" x="600" y="415" text-anchor="middle">✏️ Query 改写</text>
+                <text class="yl_svgText yl_sm" x="600" y="430" text-anchor="middle">指代消解 · 同义扩展</text>
+            </g>
+            <g class="yl_pill yl_n" data-name="混合召回 Top-K" data-layer="认知计算层" data-desc="BM25 稀疏检索与 Dense 向量检索双路并行召回，再按分数融合，兼顾关键词与语义匹配。">
+                <rect x="436.67" y="444" width="326.67" height="40" rx="8" stroke="rgba(124,58,237,.45)"/>
+                <text class="yl_svgText yl_pnm" x="600" y="461" text-anchor="middle">🔍 混合召回 Top-K</text>
+                <text class="yl_svgText yl_sm" x="600" y="476" text-anchor="middle">BM25 + Dense 双路检索</text>
+            </g>
+            <g class="yl_pill yl_n" data-name="交叉编码重排" data-layer="认知计算层" data-desc="用 Cross-Encoder 对 Top-K 候选逐条打分重排，精度高但延迟大，是精度与成本权衡的科研热点。">
+                <rect x="436.67" y="490" width="326.67" height="40" rx="8" stroke="rgba(124,58,237,.45)"/>
+                <text class="yl_svgText yl_pnm" x="600" y="507" text-anchor="middle">📊 交叉编码重排</text>
+                <text class="yl_svgText yl_sm" x="600" y="522" text-anchor="middle">Cross-Encoder Rerank</text>
+            </g>
+            <g class="yl_star" data-r="2">
+                <circle cx="748" cy="505" r="10"/>
+                <text class="yl_svgText" x="748" y="509" text-anchor="middle">2</text>
+            </g>
+
+            <!-- 面板 C：可控生成 -->
+            <g class="yl_panel">
+                <rect x="793.33" y="388" width="350.67" height="158" rx="10" fill="none" stroke="rgba(124,58,237,.28)" stroke-dasharray="4 5"/>
+                <text class="yl_svgText" x="793.33" y="382" font-size="12.5" font-weight="700" fill="#7c3aed">C · 可控生成 LLM</text>
+            </g>
+            <g class="yl_pill yl_n" data-name="提示编排" data-layer="认知计算层" data-desc="把检索到的知识、对话历史与业务规则编排为提示词，采用模板化 + Few-shot + 结构化输出约束。">
+                <rect x="805.33" y="398" width="326.67" height="40" rx="8" stroke="rgba(124,58,237,.45)"/>
+                <text class="yl_svgText yl_pnm" x="968.67" y="415" text-anchor="middle">🧱 提示编排</text>
+                <text class="yl_svgText yl_sm" x="968.67" y="430" text-anchor="middle">模板 · Few-shot · 结构化输出</text>
+            </g>
+            <g class="yl_pill yl_n" data-name="领域大模型推理" data-layer="认知计算层" data-desc="以开源基座模型为基础，用 LoRA/QLoRA 在业务语料上高效微调，兼顾领域效果与推理成本。">
+                <rect x="805.33" y="444" width="326.67" height="40" rx="8" stroke="rgba(124,58,237,.45)"/>
+                <text class="yl_svgText yl_pnm" x="968.67" y="461" text-anchor="middle">🤖 领域大模型推理</text>
+                <text class="yl_svgText yl_sm" x="968.67" y="476" text-anchor="middle">LoRA / QLoRA 高效微调</text>
+            </g>
+            <g class="yl_pill yl_n" data-name="事实校验与幻觉抑制" data-layer="认知计算层" data-desc="生成结果与召回文档做一致性校验，要求带引用溯源，置信度不足时降级为模板回复或转人工。">
+                <rect x="805.33" y="490" width="326.67" height="40" rx="8" stroke="rgba(124,58,237,.45)"/>
+                <text class="yl_svgText yl_pnm" x="968.67" y="507" text-anchor="middle">🛡️ 事实校验 · 幻觉抑制</text>
+                <text class="yl_svgText yl_sm" x="968.67" y="522" text-anchor="middle">引用溯源 · 置信度降级</text>
+            </g>
+            <g class="yl_star" data-r="3">
+                <circle cx="1117" cy="459" r="10"/>
+                <text class="yl_svgText" x="1117" y="463" text-anchor="middle">3</text>
+            </g>
+            <g class="yl_star" data-r="4">
+                <circle cx="1117" cy="505" r="10"/>
+                <text class="yl_svgText" x="1117" y="509" text-anchor="middle">4</text>
+            </g>
+
+            <line class="yl_flow" x1="300" y1="557" x2="300" y2="597" stroke="#8193b5" stroke-width="1.6" marker-end="url(#yl_arrow)"/>
+            <line class="yl_flow" x1="500" y1="557" x2="500" y2="597" stroke="#8193b5" stroke-width="1.6" marker-end="url(#yl_arrow)"/>
+            <line class="yl_flow" x1="700" y1="557" x2="700" y2="597" stroke="#8193b5" stroke-width="1.6" marker-end="url(#yl_arrow)"/>
+            <line class="yl_flow" x1="900" y1="557" x2="900" y2="597" stroke="#8193b5" stroke-width="1.6" marker-end="url(#yl_arrow)"/>
+
+            <!-- ============ 第四层：知识库层 ============ -->
+            <rect class="yl_band" x="34" y="606" width="1132" height="110" rx="12" stroke="rgba(18,161,80,.22)"/>
+            <rect x="34" y="620" width="4" height="82" rx="2" fill="#12a150"/>
+            <rect class="yl_chip" x="34" y="580" width="74" height="22" rx="6" stroke="rgba(18,161,80,.45)"/>
+            <text class="yl_svgText yl_chipTx" x="46" y="595" fill="#12a150">知识库层</text>
+            <text class="yl_svgText" x="116" y="595" font-size="11" fill="#8093b3" font-family="Menlo,Consolas,monospace">KNOWLEDGE BASE</text>
+
+            <g class="yl_n" data-name="文档解析" data-layer="知识库层" data-desc="解析 PDF、Word、HTML 与扫描件，OCR 识别图片文字，表格结构还原，是知识入库的第一步。">
+                <rect x="56" y="624" width="168" height="74" rx="9" stroke="rgba(18,161,80,.45)"/>
+                <text class="yl_svgText yl_nm" x="140" y="654" text-anchor="middle">📄 文档解析</text>
+                <text class="yl_svgText yl_sm" x="140" y="674" text-anchor="middle">PDF · OCR · 表格</text>
+            </g>
+            <g class="yl_n" data-name="切分与清洗" data-layer="知识库层" data-desc="按语义边界切分文档为 Chunk，去重去噪并保留标题层级，切分粒度直接影响召回与生成质量。">
+                <rect x="240" y="624" width="168" height="74" rx="9" stroke="rgba(18,161,80,.45)"/>
+                <text class="yl_svgText yl_nm" x="324" y="654" text-anchor="middle">✂️ 切分与清洗</text>
+                <text class="yl_svgText" x="324" y="674" text-anchor="middle" font-size="11" fill="#5b6b8c">Chunking 策略</text>
+            </g>
+            <g class="yl_n" data-name="向量化 Embedding" data-layer="知识库层" data-desc="用 BGE 等向量模型把 Chunk 编码为稠密向量，可针对领域语料做对比学习微调以提升表征质量。">
+                <rect x="424" y="624" width="168" height="74" rx="9" stroke="rgba(18,161,80,.45)"/>
+                <text class="yl_svgText yl_nm" x="508" y="654" text-anchor="middle">🧬 向量化 Embedding</text>
+                <text class="yl_svgText yl_sm" x="508" y="674" text-anchor="middle">BGE · 领域微调</text>
+            </g>
+            <g class="yl_n" data-name="向量数据库" data-layer="知识库层" data-desc="存储向量索引（HNSW/IVF），支撑毫秒级近似最近邻检索，并支持增量更新与多租户隔离。">
+                <rect x="608" y="624" width="168" height="74" rx="9" stroke="rgba(18,161,80,.45)"/>
+                <text class="yl_svgText yl_nm" x="692" y="654" text-anchor="middle">🗃️ 向量数据库</text>
+                <text class="yl_svgText yl_sm" x="692" y="674" text-anchor="middle">Milvus · HNSW</text>
+            </g>
+            <g class="yl_n" data-name="全文检索" data-layer="知识库层" data-desc="Elasticsearch 提供关键词与 BM25 检索，与向量检索互补，构成混合检索的另一路召回。">
+                <rect x="792" y="624" width="168" height="74" rx="9" stroke="rgba(18,161,80,.45)"/>
+                <text class="yl_svgText yl_nm" x="876" y="654" text-anchor="middle">📚 全文检索</text>
+                <text class="yl_svgText yl_sm" x="876" y="674" text-anchor="middle">Elasticsearch · BM25</text>
+            </g>
+            <g class="yl_n" data-name="知识图谱" data-layer="知识库层" data-desc="以实体—关系结构组织领域知识，支持多跳查询与推理，弥补纯文本检索在结构化问题上的不足。">
+                <rect x="976" y="624" width="168" height="74" rx="9" stroke="rgba(18,161,80,.45)"/>
+                <text class="yl_svgText yl_nm" x="1060" y="654" text-anchor="middle">🕸️ 知识图谱</text>
+                <text class="yl_svgText yl_sm" x="1060" y="674" text-anchor="middle">Neo4j · 实体关系</text>
+            </g>
+            <g class="yl_star" data-r="1">
+                <circle cx="1128" cy="640" r="10"/>
+                <text class="yl_svgText" x="1128" y="644" text-anchor="middle">1</text>
+            </g>
+
+            <line class="yl_flow" x1="300" y1="721" x2="300" y2="761" stroke="#8193b5" stroke-width="1.6" marker-end="url(#yl_arrow)"/>
+            <line class="yl_flow" x1="500" y1="721" x2="500" y2="761" stroke="#8193b5" stroke-width="1.6" marker-end="url(#yl_arrow)"/>
+            <line class="yl_flow" x1="700" y1="721" x2="700" y2="761" stroke="#8193b5" stroke-width="1.6" marker-end="url(#yl_arrow)"/>
+            <line class="yl_flow" x1="900" y1="721" x2="900" y2="761" stroke="#8193b5" stroke-width="1.6" marker-end="url(#yl_arrow)"/>
+
+            <!-- ============ 第五层：数据与评测层 ============ -->
+            <rect class="yl_band" x="34" y="770" width="1132" height="92" rx="12" stroke="rgba(229,138,0,.22)"/>
+            <rect x="34" y="784" width="4" height="64" rx="2" fill="#e58a00"/>
+            <rect class="yl_chip" x="34" y="744" width="98" height="22" rx="6" stroke="rgba(229,138,0,.45)"/>
+            <text class="yl_svgText yl_chipTx" x="46" y="759" fill="#e58a00">数据与评测层</text>
+            <text class="yl_svgText" x="140" y="759" font-size="11" fill="#8093b3" font-family="Menlo,Consolas,monospace">DATA &amp; EVAL</text>
+
+            <g class="yl_n" data-name="会话日志与埋点" data-layer="数据与评测层" data-desc="全链路记录用户输入、召回结果、生成内容与最终反馈，是模型迭代与问题复盘的原始语料。">
+                <rect x="56" y="786" width="260" height="56" rx="9" stroke="rgba(229,138,0,.45)"/>
+                <text class="yl_svgText yl_nm" x="186" y="808" text-anchor="middle">🧾 会话日志与埋点</text>
+                <text class="yl_svgText yl_sm" x="186" y="827" text-anchor="middle">全链路 Trace · 语料沉淀</text>
+            </g>
+            <g class="yl_n" data-name="人工标注与反馈" data-layer="数据与评测层" data-desc="客服坐席与用户满意度作为反馈信号，用于偏好对齐（RLHF/DPO）与意图、检索样本的持续标注。">
+                <rect x="332" y="786" width="260" height="56" rx="9" stroke="rgba(229,138,0,.45)"/>
+                <text class="yl_svgText yl_nm" x="462" y="808" text-anchor="middle">🏷️ 人工标注与反馈</text>
+                <text class="yl_svgText yl_sm" x="462" y="827" text-anchor="middle">RLHF · 满意度 · 偏好对齐</text>
+            </g>
+            <g class="yl_n" data-name="离线评测" data-layer="数据与评测层" data-desc="在固定测试集上评估意图准确率、Recall@K、答案正确率与幻觉率，是科研实验的主要验证手段。">
+                <rect x="608" y="786" width="260" height="56" rx="9" stroke="rgba(229,138,0,.45)"/>
+                <text class="yl_svgText yl_nm" x="738" y="808" text-anchor="middle">📏 离线评测</text>
+                <text class="yl_svgText yl_sm" x="738" y="827" text-anchor="middle">Recall@K · 幻觉率 · BLEU</text>
+            </g>
+            <g class="yl_n" data-name="在线监控与 A/B" data-layer="数据与评测层" data-desc="线上灰度与 A/B 实验，监控转人工率、一次解决率与响应时延，把离线指标与真实业务效果对齐。">
+                <rect x="884" y="786" width="260" height="56" rx="9" stroke="rgba(229,138,0,.45)"/>
+                <text class="yl_svgText yl_nm" x="1014" y="808" text-anchor="middle">📈 在线监控与 A/B</text>
+                <text class="yl_svgText yl_sm" x="1014" y="827" text-anchor="middle">灰度 · 一次解决率 · 时延</text>
+            </g>
+            <g class="yl_star" data-r="6">
+                <circle cx="853" cy="801" r="10"/>
+                <text class="yl_svgText" x="853" y="805" text-anchor="middle">6</text>
+            </g>
+
+            <!-- 反馈回流曲线 -->
+            <path class="yl_curve" d="M 1166 820 C 1204 820 1204 680 1166 680"
+                  fill="none" stroke="#e58a00" stroke-width="1.8" marker-end="url(#yl_arrowAmber)"/>
+            <text class="yl_svgText" transform="translate(1207 752) rotate(-90)" text-anchor="middle"
+                  font-size="11.5" fill="#e58a00">反馈回流 · 知识更新</text>
+
+            <!-- 图例 -->
+            <g class="yl_legend">
+                <line x1="300" y1="900" x2="340" y2="900" stroke="#8193b5" stroke-width="1.6" stroke-dasharray="7 7"/>
+                <text class="yl_svgText" x="348" y="904" font-size="11.5" fill="#5b6b8c">流动虚线 = 服务调用与数据流向</text>
+
+                <path d="M 640 900 C 654 900 654 888 668 888" fill="none" stroke="#e58a00" stroke-width="1.6"/>
+                <text class="yl_svgText" x="676" y="904" font-size="11.5" fill="#5b6b8c">琥珀曲线 = 反馈闭环（知识 / 模型迭代）</text>
+
+                <circle cx="946" cy="898" r="8" fill="#ff9500"/>
+                <text class="yl_svgText" x="946" y="902" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff">★</text>
+                <text class="yl_svgText" x="962" y="904" font-size="11.5" fill="#5b6b8c">序号 = 科研切入点（见下方列表）</text>
+            </g>
+        </svg>
+    </div>
+
+    <div class="yl_caption"><b>图 1</b> · 基于知识库的智能客服系统总体架构（科研方向标注版）</div>
+
+    <div class="yl_toolbar">
+        <button class="yl_btn yl_on" id="yl_btnFlow">◍ 流动动画</button>
+        <button class="yl_btn" id="yl_btnReset">✕ 清除高亮</button>
+        <span class="yl_tipText">点击任意模块 → 下方查看职责说明</span>
+    </div>
+
+    <div class="yl_detail" id="yl_detail">
+        <div class="yl_detailHead">
+            <span class="yl_dot"></span>
+            <h3 id="yl_dName">未选择模块</h3>
+            <span class="yl_dLayer" id="yl_dLayer">—</span>
+        </div>
+        <p id="yl_dDesc">这是一张矢量 SVG 架构图：从上到下依次是渠道、接入会话、认知计算、知识库、数据评测五个层次，橙色序号标出六个可切入的科研方向。</p>
+    </div>
+
+    <h2 class="yl_sectionTitle">科研方向切入点</h2>
+    <p class="yl_sectionDesc">对应图中橙色序号，每一处都可以展开为一篇论文或一个课题的实验设计。</p>
+
+    <section class="yl_rcards">
+        <div class="yl_rcard">
+            <span class="yl_idx">1</span>
+            <h3>领域知识建模与图谱构建</h3>
+            <p>面向金融、电信、政务等垂直领域抽取实体与关系，构建可推理的知识图谱，解决 FAQ 覆盖率不足与多跳问答问题，并研究图谱与文本检索的融合方式。</p>
+        </div>
+        <div class="yl_rcard">
+            <span class="yl_idx">2</span>
+            <h3>混合检索与重排优化</h3>
+            <p>BM25 稀疏检索 + Dense 向量检索双路召回，再用 Cross-Encoder 精排；重点研究召回率与推理延迟的帕累托最优，以及轻量化重排模型蒸馏。</p>
+        </div>
+        <div class="yl_rcard">
+            <span class="yl_idx">3</span>
+            <h3>低资源领域微调</h3>
+            <p>用 LoRA / QLoRA 在业务语料上高效微调基座模型，研究小样本条件下的指令数据构造、课程学习顺序与灾难性遗忘抑制。</p>
+        </div>
+        <div class="yl_rcard">
+            <span class="yl_idx">4</span>
+            <h3>可信生成与幻觉抑制</h3>
+            <p>基于引用溯源、事实一致性校验与知识约束解码，量化并降低幻觉率；研究生成内容的可解释性与置信度校准。</p>
+        </div>
+        <div class="yl_rcard">
+            <span class="yl_idx">5</span>
+            <h3>对话策略与强化学习</h3>
+            <p>用强化学习或偏好优化（PPO / DPO）学习澄清、追问与转人工的时机，目标函数同时考虑一次解决率、用户满意度与会话轮数成本。</p>
+        </div>
+        <div class="yl_rcard">
+            <span class="yl_idx">6</span>
+            <h3>评测基准与可解释性</h3>
+            <p>构建领域问答基准集与对抗样本，设计意图准确率、Recall@K、答案正确率、幻觉率、满意度等多维指标，并对错误做归因分析。</p>
+        </div>
+    </section>
+</main>
+
+<footer class="yl_footer">
+    © 2026 宁瑞祥 ·《高级网页设计》课堂实践 · 纯原生 HTML / CSS / SVG，未使用任何 CDN
+</footer>
+
+<script>
+(function () {
+    'use strict';
+
+    var yl_svg = document.getElementById('yl_svg');
+    var yl_detail = document.getElementById('yl_detail');
+    var yl_dName = document.getElementById('yl_dName');
+    var yl_dLayer = document.getElementById('yl_dLayer');
+    var yl_dDesc = document.getElementById('yl_dDesc');
+    var yl_btnFlow = document.getElementById('yl_btnFlow');
+    var yl_btnReset = document.getElementById('yl_btnReset');
+
+    function yl_findNode(el) {
+        while (el && el !== yl_svg) {
+            if (el.getAttribute && el.getAttribute('data-name')) return el;
+            el = el.parentNode;
+        }
+        return null;
+    }
+
+    function yl_show(g) {
+        var layer = g.getAttribute('data-layer') || '';
+        yl_dName.textContent = g.getAttribute('data-name');
+        yl_dLayer.textContent = layer;
+        yl_dDesc.textContent = g.getAttribute('data-desc');
+        yl_detail.classList.add('yl_has');
+    }
+
+    yl_svg.addEventListener('pointerover', function (e) {
+        var g = yl_findNode(e.target);
+        if (g) yl_show(g);
+    });
+
+    yl_svg.addEventListener('click', function (e) {
+        var g = yl_findNode(e.target);
+        if (g) yl_show(g);
+    });
+
+    yl_btnReset.addEventListener('click', function () {
+        yl_detail.classList.remove('yl_has');
+        yl_dName.textContent = '未选择模块';
+        yl_dLayer.textContent = '—';
+        yl_dDesc.textContent = '这是一张矢量 SVG 架构图：从上到下依次是渠道、接入会话、认知计算、知识库、数据评测五个层次，橙色序号标出六个可切入的科研方向。';
+    });
+
+    var yl_flowing = true;
+    yl_btnFlow.addEventListener('click', function () {
+        yl_flowing = !yl_flowing;
+        yl_btnFlow.classList.toggle('yl_on', yl_flowing);
+        yl_btnFlow.textContent = yl_flowing ? '◍ 流动动画' : '⏸ 已暂停';
+        var nodes = yl_svg.querySelectorAll('.yl_flow, .yl_curve, .yl_star circle');
+        for (var i = 0; i < nodes.length; i++) {
+            nodes[i].style.animationPlayState = yl_flowing ? 'running' : 'paused';
+        }
+    });
+})();
+</script>
+</body>
+</html>

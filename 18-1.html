@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canvas 粒子文字动画 · 袁磊 · 宁瑞祥 · 计算机23005</title>
+<style>
+    :root {
+        --yl-blue: #007aff;
+        --yl-teal: #5ac8fa;
+        --yl-purple: #af52de;
+        --yl-green: #34c759;
+        --yl-orange: #ff9500;
+        --yl-red: #ff3b30;
+        --yl-line: rgba(255, 255, 255, .10);
+        --yl-mono: "SF Mono", Menlo, Consolas, monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+        background: #080b14;
+        color: #e8ecf6;
+        min-height: 100vh;
+        line-height: 1.6;
+    }
+
+    .yl_hero {
+        position: relative;
+        padding: 44px 20px 34px;
+        text-align: center;
+        background:
+            radial-gradient(circle at 22% 20%, rgba(90, 200, 250, .22) 0%, transparent 46%),
+            radial-gradient(circle at 78% 76%, rgba(175, 82, 222, .22) 0%, transparent 46%),
+            linear-gradient(135deg, #0b1020 0%, #131a30 55%, #0b1020 100%);
+        border-bottom: 1px solid var(--yl-line);
+        overflow: hidden;
+    }
+    .yl_hero h1 {
+        font-size: clamp(1.5em, 3.6vw, 2.2em);
+        font-weight: 800;
+        letter-spacing: .04em;
+        background: linear-gradient(100deg, #5ac8fa, #ffffff 40%, #af52de 70%, #ff9500);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+    .yl_hero p { margin-top: 8px; font-size: .9em; color: #9aa6c2; }
+    .yl_hero .yl_tagline {
+        margin-top: 14px;
+        font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+        font-size: 1.5em;
+        font-weight: 800;
+        letter-spacing: .28em;
+        color: #fff;
+        text-shadow: 0 0 18px rgba(90, 200, 250, .55), 0 0 42px rgba(175, 82, 222, .35);
+    }
+
+    .yl_main { max-width: 1180px; margin: 0 auto; padding: 28px 20px 50px; }
+
+    .yl_stage {
+        position: relative;
+        width: 100%;
+        height: 460px;
+        border-radius: 18px;
+        overflow: hidden;
+        border: 1px solid rgba(90, 200, 250, .22);
+        background: #0a0e1b;
+        box-shadow: 0 18px 48px rgba(0, 0, 0, .55), inset 0 0 60px rgba(0, 122, 255, .08);
+        cursor: crosshair;
+    }
+    #yl_canvas { display: block; width: 100%; height: 100%; }
+
+    .yl_badge {
+        position: absolute;
+        left: 18px;
+        top: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--yl-mono);
+        font-size: 11px;
+        letter-spacing: .1em;
+        color: #6d7b9c;
+        pointer-events: none;
+    }
+    .yl_badge i {
+        width: 7px; height: 7px; border-radius: 50%;
+        background: #34c759;
+        box-shadow: 0 0 10px #34c759;
+        animation: yl_pulse 1.6s infinite;
+    }
+    @keyframes yl_pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+
+    .yl_toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        margin-top: 16px;
+    }
+    .yl_btn {
+        padding: 9px 18px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, .14);
+        background: rgba(255, 255, 255, .05);
+        color: #dfe6f5;
+        font-size: 13px;
+        font-family: inherit;
+        cursor: pointer;
+        transition: transform .18s, background .18s, border-color .18s, box-shadow .18s;
+    }
+    .yl_btn:hover {
+        transform: translateY(-2px);
+        background: rgba(90, 200, 250, .14);
+        border-color: rgba(90, 200, 250, .5);
+        box-shadow: 0 6px 18px rgba(0, 122, 255, .25);
+    }
+    .yl_btn:active { transform: translateY(0) scale(.97); }
+    .yl_btn.yl_primary {
+        background: linear-gradient(135deg, #007aff, #af52de);
+        border-color: transparent;
+        color: #fff;
+        font-weight: 600;
+        box-shadow: 0 8px 22px rgba(0, 122, 255, .35);
+    }
+    .yl_btn.yl_on {
+        background: rgba(52, 199, 89, .16);
+        border-color: rgba(52, 199, 89, .55);
+        color: #8ff0ad;
+    }
+
+    .yl_stats {
+        margin-left: auto;
+        display: flex;
+        gap: 18px;
+        font-family: var(--yl-mono);
+        font-size: 12px;
+        color: #7f8db0;
+    }
+    .yl_stats b { color: #dfe6f5; font-weight: 600; }
+
+    .yl_cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 14px;
+        margin-top: 30px;
+    }
+    .yl_card {
+        padding: 18px 20px;
+        border-radius: 14px;
+        background: linear-gradient(160deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .02));
+        border: 1px solid var(--yl-line);
+        transition: border-color .2s, transform .2s;
+    }
+    .yl_card:hover { border-color: rgba(90, 200, 250, .4); transform: translateY(-3px); }
+    .yl_card h3 {
+        font-size: 14px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #fff;
+    }
+    .yl_card h3 span { font-family: var(--yl-mono); font-size: 11px; color: #5ac8fa; }
+    .yl_card p { font-size: 12.5px; color: #97a3c1; line-height: 1.75; }
+    .yl_card code {
+        font-family: var(--yl-mono);
+        font-size: 11.5px;
+        color: #ffd479;
+        background: rgba(255, 149, 0, .12);
+        padding: 1px 5px;
+        border-radius: 4px;
+    }
+
+    .yl_footer {
+        text-align: center;
+        padding: 26px 20px 40px;
+        font-size: 12px;
+        color: #5d6a89;
+        border-top: 1px solid var(--yl-line);
+        margin-top: 20px;
+    }
+
+    @media (max-width: 720px) {
+        .yl_stage { height: 360px; }
+        .yl_stats { margin-left: 0; width: 100%; }
+    }
+</style>
+</head>
+<body>
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  建立时间：2026-11-05 13:35:07
+  使用的大模型：DeepSeek-V4.1-Flash
+  功能：Canvas 粒子文字动画 —— 粒子汇聚成「袁磊」二字，支持鼠标排斥、波浪浮动与重播
+-->
+<header class="yl_hero">
+    <h1>Canvas 粒子文字动画</h1>
+    <p>采样文字像素 → 生成粒子目标点 → 逐帧插值收敛，纯原生 Canvas 2D</p>
+    <div class="yl_tagline">袁磊</div>
+</header>
+
+<main class="yl_main">
+    <div class="yl_stage" id="yl_stage">
+        <span class="yl_badge"><i></i>CANVAS 2D · PARTICLE TEXT</span>
+        <canvas id="yl_canvas"></canvas>
+    </div>
+
+    <div class="yl_toolbar">
+        <button class="yl_btn yl_primary" id="yl_btnReplay">↻ 散开重聚</button>
+        <button class="yl_btn" id="yl_btnPause">⏸ 暂停</button>
+        <button class="yl_btn yl_on" id="yl_btnPush">🧲 鼠标排斥</button>
+        <button class="yl_btn yl_on" id="yl_btnWave">🌊 波浪浮动</button>
+        <div class="yl_stats">
+            <span>粒子 <b id="yl_count">0</b></span>
+            <span>FPS <b id="yl_fps">60</b></span>
+            <span>状态 <b id="yl_state">运行中</b></span>
+        </div>
+    </div>
+
+    <section class="yl_cards">
+        <div class="yl_card">
+            <h3><span>01</span>文字像素采样</h3>
+            <p>把「袁磊」画在离屏 canvas 上，用 <code>getImageData</code> 逐像素读取 alpha，凡是不透明的点就是一个粒子的目标坐标。</p>
+        </div>
+        <div class="yl_card">
+            <h3><span>02</span>逐帧插值收敛</h3>
+            <p>每个粒子以 <code>x += (目标 - x) * 0.085</code> 的方式逼近目标点，天然带缓出效果，看起来像被文字「吸」过去。</p>
+        </div>
+        <div class="yl_card">
+            <h3><span>03</span>交互与重绘</h3>
+            <p>鼠标靠近时产生斥力偏移，<code>requestAnimationFrame</code> 每帧重绘，配合半透明底色形成粒子拖尾。</p>
+        </div>
+    </section>
+</main>
+
+<footer class="yl_footer">
+    © 2026 宁瑞祥 ·《高级网页设计》课堂实践 · 纯原生 HTML / CSS / Canvas，未使用任何 CDN
+</footer>
+
+<script>
+(function () {
+    'use strict';
+
+    var yl_cv = document.getElementById('yl_canvas');
+    var yl_ctx = yl_cv.getContext('2d');
+    var yl_stage = document.getElementById('yl_stage');
+    var yl_dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    var yl_W = 0;
+    var yl_H = 0;
+    var yl_scale = 1;
+    var yl_parts = [];
+    var yl_t = 0;
+    var yl_paused = false;
+    var yl_pushOn = true;
+    var yl_waveOn = true;
+    var yl_last = 0;
+    var yl_fpsAcc = 0;
+    var yl_fpsCnt = 0;
+    var yl_mouse = { x: -9999, y: -9999, on: false };
+
+    var yl_elCount = document.getElementById('yl_count');
+    var yl_elFps = document.getElementById('yl_fps');
+    var yl_elState = document.getElementById('yl_state');
+    var yl_btnPause = document.getElementById('yl_btnPause');
+    var yl_btnPush = document.getElementById('yl_btnPush');
+    var yl_btnWave = document.getElementById('yl_btnWave');
+
+    /* 生成粒子：随机起点 + 目标点 + 颜色 */
+    function yl_spawn(pt) {
+        return {
+            x: Math.random() * yl_W,
+            y: Math.random() * yl_H,
+            tx: pt.x,
+            ty: pt.y,
+            r: 1.2 + Math.random() * 1.8,
+            hue: 190 + (pt.x / Math.max(1, yl_W)) * 118,
+            color: ''
+        };
+    }
+
+    function yl_colorize(p) {
+        p.color = 'hsla(' + p.hue.toFixed(0) + ',95%,64%,0.95)';
+    }
+
+    function yl_build() {
+        var off = document.createElement('canvas');
+        off.width = yl_W;
+        off.height = yl_H;
+        var o = off.getContext('2d');
+
+        var fs = Math.min(yl_W * 0.22, yl_H * 0.72, 320);
+        fs = Math.max(70, fs);
+
+        o.fillStyle = '#ffffff';
+        o.textAlign = 'center';
+        o.textBaseline = 'middle';
+        o.font = '800 ' + fs.toFixed(0) + 'px "PingFang SC","Microsoft YaHei","Heiti SC",sans-serif';
+        o.fillText('袁 磊', yl_W / 2, yl_H / 2);
+
+        var img = o.getImageData(0, 0, yl_W, yl_H).data;
+        var gap = Math.max(3, Math.round(fs / 46));
+        var pts = [];
+
+        for (var y = 0; y < yl_H; y += gap) {
+            for (var x = 0; x < yl_W; x += gap) {
+                if (img[(y * yl_W + x) * 4 + 3] > 128) {
+                    pts.push({ x: x + (Math.random() - 0.5) * 1.6, y: y + (Math.random() - 0.5) * 1.6 });
+                }
+            }
+        }
+
+        var yl_max = 2600;
+        if (pts.length > yl_max) {
+            var step = Math.ceil(pts.length / yl_max);
+            var slim = [];
+            for (var i = 0; i < pts.length; i += step) slim.push(pts[i]);
+            pts = slim;
+        }
+
+        yl_parts = pts.map(yl_spawn);
+        yl_parts.forEach(yl_colorize);
+        yl_elCount.textContent = yl_parts.length;
+    }
+
+    function yl_resize() {
+        var rect = yl_stage.getBoundingClientRect();
+        yl_W = Math.max(320, Math.floor(rect.width));
+        yl_H = Math.max(260, Math.floor(rect.height));
+        yl_scale = yl_W / Math.max(1, rect.width);
+
+        yl_cv.width = Math.floor(yl_W * yl_dpr);
+        yl_cv.height = Math.floor(yl_H * yl_dpr);
+        yl_cv.style.width = yl_W + 'px';
+        yl_cv.style.height = yl_H + 'px';
+
+        yl_ctx.setTransform(yl_dpr, 0, 0, yl_dpr, 0, 0);
+        yl_ctx.fillStyle = '#0a0e1b';
+        yl_ctx.fillRect(0, 0, yl_W, yl_H);
+
+        yl_build();
+    }
+
+    function yl_frame(now) {
+        requestAnimationFrame(yl_frame);
+
+        if (!yl_last) yl_last = now;
+        var yl_dt = Math.min(2.4, (now - yl_last) / 16.667);
+        yl_last = now;
+        yl_t += 0.016 * yl_dt;
+
+        yl_fpsAcc += yl_dt;
+        yl_fpsCnt++;
+        if (yl_fpsCnt >= 24) {
+            yl_elFps.textContent = Math.round(yl_fpsCnt / Math.max(0.001, yl_fpsAcc / 60));
+            yl_fpsAcc = 0;
+            yl_fpsCnt = 0;
+        }
+
+        if (yl_paused) return;
+
+        /* 半透明底色 → 粒子拖尾 */
+        yl_ctx.fillStyle = 'rgba(10,14,27,0.19)';
+        yl_ctx.fillRect(0, 0, yl_W, yl_H);
+
+        for (var i = 0; i < yl_parts.length; i++) {
+            var p = yl_parts[i];
+            var tx = p.tx;
+            var ty = p.ty;
+
+            if (yl_waveOn) {
+                ty += Math.sin(yl_t * 1.7 + p.tx * 0.028) * 5.2;
+                tx += Math.cos(yl_t * 1.1 + p.ty * 0.021) * 1.6;
+            }
+
+            if (yl_pushOn && yl_mouse.on) {
+                var dx = p.x - yl_mouse.x;
+                var dy = p.y - yl_mouse.y;
+                var d2 = dx * dx + dy * dy;
+                var rl = 105;
+                if (d2 < rl * rl && d2 > 0.01) {
+                    var d = Math.sqrt(d2);
+                    var f = (1 - d / rl) * 46;
+                    tx += (dx / d) * f;
+                    ty += (dy / d) * f;
+                }
+            }
+
+            p.x += (tx - p.x) * 0.085 * yl_dt;
+            p.y += (ty - p.y) * 0.085 * yl_dt;
+
+            yl_ctx.fillStyle = p.color;
+            yl_ctx.fillRect(p.x - p.r * 0.5, p.y - p.r * 0.5, p.r, p.r);
+        }
+    }
+
+    function yl_scatter() {
+        for (var i = 0; i < yl_parts.length; i++) {
+            var p = yl_parts[i];
+            var ang = Math.random() * Math.PI * 2;
+            var dist = 260 + Math.random() * 420;
+            p.x = yl_W / 2 + Math.cos(ang) * dist;
+            p.y = yl_H / 2 + Math.sin(ang) * dist;
+        }
+    }
+
+    /* 交互 */
+    yl_stage.addEventListener('pointermove', function (e) {
+        var rect = yl_stage.getBoundingClientRect();
+        yl_mouse.x = (e.clientX - rect.left) * yl_scale;
+        yl_mouse.y = (e.clientY - rect.top) * yl_scale;
+        yl_mouse.on = true;
+    });
+    yl_stage.addEventListener('pointerleave', function () {
+        yl_mouse.on = false;
+        yl_mouse.x = -9999;
+        yl_mouse.y = -9999;
+    });
+
+    document.getElementById('yl_btnReplay').addEventListener('click', function () {
+        yl_scatter();
+        if (yl_paused) {
+            yl_paused = false;
+            yl_btnPause.textContent = '⏸ 暂停';
+            yl_elState.textContent = '运行中';
+            yl_last = 0;
+        }
+    });
+
+    yl_btnPause.addEventListener('click', function () {
+        yl_paused = !yl_paused;
+        yl_btnPause.textContent = yl_paused ? '▶ 继续' : '⏸ 暂停';
+        yl_elState.textContent = yl_paused ? '已暂停' : '运行中';
+        if (!yl_paused) yl_last = 0;
+    });
+
+    yl_btnPush.addEventListener('click', function () {
+        yl_pushOn = !yl_pushOn;
+        yl_btnPush.classList.toggle('yl_on', yl_pushOn);
+    });
+
+    yl_btnWave.addEventListener('click', function () {
+        yl_waveOn = !yl_waveOn;
+        yl_btnWave.classList.toggle('yl_on', yl_waveOn);
+    });
+
+    var yl_timer = 0;
+    window.addEventListener('resize', function () {
+        clearTimeout(yl_timer);
+        yl_timer = setTimeout(yl_resize, 160);
+    });
+
+    yl_resize();
+    requestAnimationFrame(yl_frame);
+})();
+</script>
+</body>
+</html>

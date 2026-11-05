@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>18-7 · Three.js 两个 3D 图表</title>
+    <link rel="icon" href="data:,">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            color: #1f2937;
+            background:
+                radial-gradient(circle at 10% 6%, rgba(13, 148, 136, 0.10) 0%, transparent 42%),
+                radial-gradient(circle at 90% 2%, rgba(99, 102, 241, 0.10) 0%, transparent 40%),
+                #f6f8fb;
+            line-height: 1.65;
+        }
+
+        .yl_hero {
+            padding: 54px 24px 46px;
+            text-align: center;
+            color: #ffffff;
+            background: linear-gradient(135deg, #0f766e 0%, #0d9488 45%, #4f46e5 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .yl_hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 72% 18%, rgba(255, 255, 255, 0.22) 0%, transparent 45%);
+            pointer-events: none;
+        }
+
+        .yl_hero h1 {
+            position: relative;
+            font-size: clamp(1.7em, 3.6vw, 2.5em);
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .yl_hero .yl_sub {
+            position: relative;
+            margin-top: 10px;
+            font-size: 0.98em;
+            opacity: 0.92;
+        }
+
+        .yl_badge {
+            position: relative;
+            display: inline-block;
+            margin-top: 16px;
+            padding: 5px 16px;
+            border-radius: 999px;
+            font-size: 0.84em;
+            letter-spacing: 1px;
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.36);
+            backdrop-filter: blur(6px);
+        }
+
+        .yl_wrap {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 34px 20px 64px;
+            display: grid;
+            gap: 26px;
+        }
+
+        .yl_card {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.06);
+            border-radius: 20px;
+            padding: 22px 22px 18px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.07);
+        }
+
+        .yl_cHead {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 10px;
+            margin-bottom: 14px;
+            padding-left: 12px;
+            border-left: 4px solid #0d9488;
+        }
+
+        .yl_cHead h2 {
+            font-size: 1.16em;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .yl_tag {
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 0.75em;
+            letter-spacing: 0.4px;
+            color: #0f766e;
+            background: #e6f6f4;
+            border: 1px solid #b7e4de;
+        }
+
+        .yl_tag.yl_indigo {
+            color: #4338ca;
+            background: #eef0fe;
+            border-color: #c7cbfb;
+        }
+
+        .yl_desc {
+            margin-bottom: 14px;
+            font-size: 0.9em;
+            color: #64748b;
+        }
+
+        .yl_desc code,
+        .yl_note code {
+            padding: 1px 6px;
+            border-radius: 5px;
+            font-size: 0.92em;
+            color: #0f766e;
+            background: #f1f7f6;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+        }
+
+        .yl_legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 12px;
+            font-size: 0.84em;
+            color: #475569;
+        }
+
+        .yl_legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .yl_dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* ===== 3D 画布 ===== */
+        .yl_stage {
+            position: relative;
+            height: 450px;
+            border-radius: 14px;
+            border: 1px solid rgba(15, 23, 42, 0.06);
+            background: linear-gradient(180deg, #fcfdff 0%, #eef6fa 100%);
+            overflow: hidden;
+            cursor: grab;
+        }
+
+        .yl_stage:active {
+            cursor: grabbing;
+        }
+
+        .yl_stage canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .yl_tip {
+            position: absolute;
+            left: 0;
+            top: 0;
+            transform: translate(-50%, -100%);
+            padding: 6px 10px;
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.88);
+            color: #ffffff;
+            font-size: 12px;
+            line-height: 1.5;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.12s ease;
+        }
+
+        .yl_hint {
+            position: absolute;
+            right: 12px;
+            bottom: 10px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            font-size: 0.75em;
+            color: #64748b;
+            pointer-events: none;
+        }
+
+        .yl_cFoot {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(15, 23, 42, 0.09);
+            font-size: 0.82em;
+            color: #94a3b8;
+        }
+
+        .yl_note {
+            background: #ffffff;
+            border: 1px dashed rgba(13, 148, 136, 0.35);
+            border-radius: 16px;
+            padding: 18px 22px;
+            font-size: 0.88em;
+            color: #475569;
+        }
+
+        .yl_note h3 {
+            font-size: 0.98em;
+            color: #0f766e;
+            margin-bottom: 8px;
+        }
+
+        .yl_note li {
+            margin-left: 18px;
+            padding: 2px 0;
+        }
+
+        @media (max-width: 720px) {
+            .yl_wrap { padding: 24px 14px 46px; }
+            .yl_card { padding: 16px 14px 12px; }
+            .yl_stage { height: 340px; }
+        }
+    </style>
+</head>
+<body>
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  建立时间：2026-11-05 14:28:20
+  使用的大模型：DeepSeek-V4.1-Flash
+  功能：Three.js 双 3D 图表（3D 立体柱状图 + 3D 散点图，本地 cdn/three.min.js 离线渲染，含拖拽旋转 / 滚轮缩放 / 悬停提示）
+-->
+<header class="yl_hero">
+    <h1>Three.js · 两个 3D 图表</h1>
+    <p class="yl_sub">3D 立体柱状图 × 3D 散点图</p>
+    <span class="yl_badge">18-7 · 本地 cdn/three.min.js 离线渲染</span>
+</header>
+
+<main class="yl_wrap">
+    <section class="yl_card">
+        <div class="yl_cHead">
+            <h2>① 3D 立体柱状图</h2>
+            <span class="yl_tag">BoxGeometry</span>
+            <span class="yl_tag">Raycaster 悬停提示</span>
+        </div>
+        <p class="yl_desc">2026 年 1–6 月，四条产品线的销量（单位：千台）。柱体高度按数值映射，颜色在同一色相内由浅到深表示高低；鼠标悬停可读取具体数值。</p>
+        <div class="yl_legend" id="yl_legend"></div>
+        <div class="yl_stage" id="yl_barStage">
+            <canvas id="yl_barCanvas"></canvas>
+            <div class="yl_tip" id="yl_barTip"></div>
+            <div class="yl_hint">拖动旋转 · 滚轮缩放 · 双击复位</div>
+        </div>
+        <div class="yl_cFoot">柱体高度用线性插值逐帧"生长"到位；命中检测调用 Raycaster 与柱体网格求交，结果写入画布上的浮层提示。</div>
+    </section>
+
+    <section class="yl_card">
+        <div class="yl_cHead">
+            <h2>② 3D 散点图</h2>
+            <span class="yl_tag yl_indigo">Points + 顶点色</span>
+            <span class="yl_tag yl_indigo">自动旋转</span>
+        </div>
+        <p class="yl_desc">240 个智能客服会话样本，在"意图置信度 × 满意度 × 平均时长"三维空间中的分布；点的颜色随高度渐变，外层线框标出数据范围。</p>
+        <div class="yl_stage" id="yl_ptStage">
+            <canvas id="yl_ptCanvas"></canvas>
+            <div class="yl_hint">拖动旋转 · 滚轮缩放 · 双击复位</div>
+        </div>
+        <div class="yl_cFoot">用 BufferGeometry 一次性写入 240 个顶点与颜色属性，PointsMaterial 开启 vertexColors 与 sizeAttenuation，整体缓慢自转。</div>
+    </section>
+
+    <section class="yl_note">
+        <h3>本例要点</h3>
+        <ul>
+            <li>three.js 离线引入：<code>&lt;script src="cdn/three.min.js"&gt;</code>，文件从 CDN 下载后放于 <code>cdn/</code> 目录（本页使用 r140 的 UMD 构建，全局暴露 <code>THREE</code>）。</li>
+            <li>未引入 OrbitControls（其官方版本为 ES Module），改为手写 pointerdown / pointermove / wheel 事件驱动相机与场景旋转，避免模块化加载问题。</li>
+            <li>两个图表各自独立 scene / camera / renderer，共用一个 <code>requestAnimationFrame</code> 主循环；容器尺寸变化时同步更新 <code>setSize</code> 与相机 <code>aspect</code>。</li>
+        </ul>
+    </section>
+</main>
+
+<script src="cdn/three.min.js"></script>
+<script>
+    (function () {
+        if (typeof THREE === 'undefined') {
+            document.getElementById('yl_barStage').innerHTML =
+                '<p style="padding:24px;color:#b91c1c">未找到 cdn/three.min.js，请确认 cdn 目录已随页面一起拷贝。</p>';
+            return;
+        }
+
+        var yl_months = ['1月', '2月', '3月', '4月', '5月', '6月'];
+        var yl_products = [
+            { name: '手机', hue: 174, color: '#0d9488', values: [82, 96, 110, 128, 102, 140] },
+            { name: '平板', hue: 205, color: '#0284c7', values: [60, 72, 86, 79, 94, 108] },
+            { name: 'PC', hue: 248, color: '#4f46e5', values: [48, 55, 63, 70, 66, 74] },
+            { name: '耳机', hue: 32, color: '#d97706', values: [30, 42, 58, 76, 88, 96] }
+        ];
+        var yl_barScale = 0.05;
+
+        /* ===== 图例 ===== */
+        var yl_legendBox = document.getElementById('yl_legend');
+        yl_products.forEach(function (yl_p) {
+            var yl_span = document.createElement('span');
+            yl_span.innerHTML = '<i class="yl_dot" style="background:' + yl_p.color + '"></i>' + yl_p.name;
+            yl_legendBox.appendChild(yl_span);
+        });
+
+        /* ================= ① 3D 柱状图 ================= */
+        var yl_barStage = document.getElementById('yl_barStage');
+        var yl_barCanvas = document.getElementById('yl_barCanvas');
+        var yl_barTip = document.getElementById('yl_barTip');
+
+        var yl_barRenderer = new THREE.WebGLRenderer({ canvas: yl_barCanvas, antialias: true, alpha: true });
+        yl_barRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+        var yl_barScene = new THREE.Scene();
+        var yl_barCamera = new THREE.PerspectiveCamera(38, 1, 0.1, 200);
+        var yl_barGroup = new THREE.Group();
+        yl_barScene.add(yl_barGroup);
+
+        var yl_ambient = new THREE.AmbientLight(0xffffff, 0.86);
+        yl_barScene.add(yl_ambient);
+        var yl_dirLight = new THREE.DirectionalLight(0xffffff, 0.55);
+        yl_dirLight.position.set(6, 12, 8);
+        yl_barScene.add(yl_dirLight);
+
+        var yl_grid = new THREE.GridHelper(9, 9, 0x9ecfc8, 0xdbe7ef);
+        yl_grid.material.transparent = true;
+        yl_grid.material.opacity = 0.6;
+        yl_barGroup.add(yl_grid);
+
+        var yl_barGeo = new THREE.BoxGeometry(0.62, 1, 0.62);
+        yl_barGeo.translate(0, 0.5, 0);
+        var yl_bars = [];
+
+        yl_products.forEach(function (yl_p, yl_j) {
+            yl_p.values.forEach(function (yl_v, yl_i) {
+                var yl_norm = yl_v / 140;
+                var yl_color = new THREE.Color().setHSL(yl_p.hue / 360, 0.58, 0.78 - 0.30 * yl_norm);
+                var yl_mat = new THREE.MeshStandardMaterial({ color: yl_color, roughness: 0.55, metalness: 0.12 });
+                var yl_bar = new THREE.Mesh(yl_barGeo, yl_mat);
+                yl_bar.position.set((yl_i - 2.5) * 1.05, 0, (yl_j - 1.5) * 1.05);
+                yl_bar.scale.y = 0.02;
+                yl_bar.userData = {
+                    month: yl_months[yl_i],
+                    product: yl_p.name,
+                    value: yl_v,
+                    target: yl_v * yl_barScale
+                };
+                yl_barGroup.add(yl_bar);
+                yl_bars.push(yl_bar);
+            });
+        });
+
+        /* 柱体生长的目标高度 */
+        var yl_raycaster = new THREE.Raycaster();
+        var yl_pointer = new THREE.Vector2();
+        var yl_hovered = null;
+
+        function yl_fitBar() {
+            var yl_w = yl_barStage.clientWidth;
+            var yl_h = yl_barStage.clientHeight;
+            if (!yl_w || !yl_h) return;
+            yl_barRenderer.setSize(yl_w, yl_h, false);
+            yl_barCamera.aspect = yl_w / yl_h;
+            yl_barCamera.updateProjectionMatrix();
+        }
+
+        /* ================= ② 3D 散点图 ================= */
+        var yl_ptStage = document.getElementById('yl_ptStage');
+        var yl_ptCanvas = document.getElementById('yl_ptCanvas');
+
+        var yl_ptRenderer = new THREE.WebGLRenderer({ canvas: yl_ptCanvas, antialias: true, alpha: true });
+        yl_ptRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+        var yl_ptScene = new THREE.Scene();
+        var yl_ptCamera = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
+        var yl_ptGroup = new THREE.Group();
+        yl_ptScene.add(yl_ptGroup);
+
+        yl_ptScene.add(new THREE.AmbientLight(0xffffff, 0.9));
+
+        var yl_ptColors = [];
+        var yl_ptPos = [];
+        var yl_seed = 20261105;
+
+        function yl_rand() {
+            yl_seed = (yl_seed * 16807) % 2147483647;
+            return yl_seed / 2147483647;
+        }
+
+        for (var yl_k = 0; yl_k < 240; yl_k++) {
+            var yl_x = (yl_rand() - 0.5) * 9;
+            var yl_y = (yl_rand() - 0.5) * 9;
+            var yl_z = (yl_rand() - 0.5) * 9;
+            yl_ptPos.push(yl_x, yl_y, yl_z);
+            var yl_c = new THREE.Color().setHSL((200 + (yl_y + 4.5) / 9 * 95) / 360, 0.72, 0.62);
+            yl_ptColors.push(yl_c.r, yl_c.g, yl_c.b);
+        }
+
+        var yl_ptGeo = new THREE.BufferGeometry();
+        yl_ptGeo.setAttribute('position', new THREE.Float32BufferAttribute(yl_ptPos, 3));
+        yl_ptGeo.setAttribute('color', new THREE.Float32BufferAttribute(yl_ptColors, 3));
+
+        var yl_ptMat = new THREE.PointsMaterial({
+            size: 0.26,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.95,
+            sizeAttenuation: true
+        });
+        var yl_ptCloud = new THREE.Points(yl_ptGeo, yl_ptMat);
+        yl_ptGroup.add(yl_ptCloud);
+
+        var yl_boxEdges = new THREE.LineSegments(
+            new THREE.EdgesGeometry(new THREE.BoxGeometry(9, 9, 9)),
+            new THREE.LineBasicMaterial({ color: 0x9ecfc8, transparent: true, opacity: 0.7 })
+        );
+        yl_ptGroup.add(yl_boxEdges);
+
+        var yl_ptGrid = new THREE.GridHelper(9, 6, 0x9ecfc8, 0xdbe7ef);
+        yl_ptGroup.add(yl_ptGrid);
+        yl_ptGrid.position.y = -4.5;
+        yl_ptGrid.material.transparent = true;
+        yl_ptGrid.material.opacity = 0.55;
+
+        function yl_fitPt() {
+            var yl_w = yl_ptStage.clientWidth;
+            var yl_h = yl_ptStage.clientHeight;
+            if (!yl_w || !yl_h) return;
+            yl_ptRenderer.setSize(yl_w, yl_h, false);
+            yl_ptCamera.aspect = yl_w / yl_h;
+            yl_ptCamera.updateProjectionMatrix();
+        }
+
+        /* ================= 交互：拖拽旋转 / 滚轮缩放 ================= */
+        function yl_bindOrbit(yl_cv, yl_group, yl_cam, yl_state, yl_lookY) {
+            var yl_drag = false;
+            var yl_px = 0;
+            var yl_py = 0;
+
+            yl_cv.addEventListener('pointerdown', function (e) {
+                yl_drag = true;
+                yl_px = e.clientX;
+                yl_py = e.clientY;
+                if (yl_cv.setPointerCapture) yl_cv.setPointerCapture(e.pointerId);
+            });
+
+            yl_cv.addEventListener('pointermove', function (e) {
+                if (!yl_drag) return;
+                yl_state.ry += (e.clientX - yl_px) * 0.008;
+                yl_state.rx += (e.clientY - yl_py) * 0.005;
+                yl_state.rx = Math.max(-0.55, Math.min(0.25, yl_state.rx));
+                yl_px = e.clientX;
+                yl_py = e.clientY;
+            });
+
+            function yl_stop() {
+                yl_drag = false;
+            }
+            yl_cv.addEventListener('pointerup', yl_stop);
+            yl_cv.addEventListener('pointercancel', yl_stop);
+            yl_cv.addEventListener('pointerleave', yl_stop);
+
+            yl_cv.addEventListener('wheel', function (e) {
+                e.preventDefault();
+                yl_state.dist += e.deltaY * 0.02;
+                yl_state.dist = Math.max(6, Math.min(30, yl_state.dist));
+            }, { passive: false });
+
+            yl_cv.addEventListener('dblclick', function () {
+                yl_state.ry = 0;
+                yl_state.rx = 0;
+                yl_state.dist = 15;
+                yl_cam.position.set(0, 7.5, yl_state.dist);
+                yl_cam.lookAt(0, yl_lookY, 0);
+            });
+        }
+
+        var yl_barState = { ry: 0, rx: 0, dist: 15 };
+        var yl_ptState = { ry: 0.4, rx: 0.08, dist: 15 };
+
+        yl_bindOrbit(yl_barCanvas, yl_barGroup, yl_barCamera, yl_barState, 2.2);
+        yl_bindOrbit(yl_ptCanvas, yl_ptGroup, yl_ptCamera, yl_ptState, 0);
+
+        /* 柱状图悬停提示 */
+        yl_barCanvas.addEventListener('pointermove', function (e) {
+            var yl_rect = yl_barCanvas.getBoundingClientRect();
+            yl_pointer.x = ((e.clientX - yl_rect.left) / yl_rect.width) * 2 - 1;
+            yl_pointer.y = -((e.clientY - yl_rect.top) / yl_rect.height) * 2 + 1;
+            yl_raycaster.setFromCamera(yl_pointer, yl_barCamera);
+            var yl_hits = yl_raycaster.intersectObjects(yl_bars, false);
+
+            if (yl_hits.length) {
+                var yl_obj = yl_hits[0].object;
+                if (yl_hovered !== yl_obj) {
+                    if (yl_hovered) yl_hovered.material.emissive.setHex(0x000000);
+                    yl_hovered = yl_obj;
+                    yl_hovered.material.emissive.setHex(0x2dd4bf);
+                    yl_hovered.material.emissiveIntensity = 0.22;
+                }
+                yl_barTip.textContent = yl_obj.userData.product + ' · ' + yl_obj.userData.month + '：' + yl_obj.userData.value + ' 千台';
+                yl_barTip.style.opacity = 1;
+                yl_barTip.style.left = (e.clientX - yl_rect.left) + 'px';
+                yl_barTip.style.top = (e.clientY - yl_rect.top - 10) + 'px';
+            } else {
+                if (yl_hovered) {
+                    yl_hovered.material.emissive.setHex(0x000000);
+                    yl_hovered = null;
+                }
+                yl_barTip.style.opacity = 0;
+            }
+        });
+
+        yl_barCanvas.addEventListener('pointerleave', function () {
+            if (yl_hovered) {
+                yl_hovered.material.emissive.setHex(0x000000);
+                yl_hovered = null;
+            }
+            yl_barTip.style.opacity = 0;
+        });
+
+        /* ================= 主循环 ================= */
+        function yl_resizeAll() {
+            yl_fitBar();
+            yl_fitPt();
+        }
+
+        yl_resizeAll();
+        window.addEventListener('resize', yl_resizeAll);
+        if (window.ResizeObserver) {
+            var yl_roBar = new ResizeObserver(yl_resizeAll);
+            yl_roBar.observe(yl_barStage);
+            var yl_roPt = new ResizeObserver(yl_resizeAll);
+            yl_roPt.observe(yl_ptStage);
+        }
+
+        function yl_frame() {
+            requestAnimationFrame(yl_frame);
+
+            /* 柱体生长动画 */
+            for (var yl_i = 0; yl_i < yl_bars.length; yl_i++) {
+                var yl_b = yl_bars[yl_i];
+                yl_b.scale.y += (yl_b.userData.target - yl_b.scale.y) * 0.11;
+            }
+
+            yl_barGroup.rotation.y = yl_barState.ry;
+            yl_barGroup.rotation.x = yl_barState.rx;
+            yl_barCamera.position.set(0, 7.5, yl_barState.dist);
+            yl_barCamera.lookAt(0, 2.2, 0);
+            yl_barRenderer.render(yl_barScene, yl_barCamera);
+
+            /* 散点图缓慢自转（拖动时叠加） */
+            yl_ptGroup.rotation.y = yl_ptState.ry + (performance.now() * 0.00012);
+            yl_ptGroup.rotation.x = yl_ptState.rx;
+            yl_ptCamera.position.set(0, 5, yl_ptState.dist);
+            yl_ptCamera.lookAt(0, 0, 0);
+            yl_ptRenderer.render(yl_ptScene, yl_ptCamera);
+        }
+
+        yl_frame();
+    })();
+</script>
+</body>
+</html>

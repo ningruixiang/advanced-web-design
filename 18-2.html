@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canvas 电商系统架构图 · 宁瑞祥 · 计算机23005</title>
+<style>
+    :root {
+        --yl-blue: #007aff;
+        --yl-teal: #5ac8fa;
+        --yl-purple: #af52de;
+        --yl-green: #34c759;
+        --yl-orange: #ff9500;
+        --yl-line: rgba(255, 255, 255, .10);
+        --yl-mono: "SF Mono", Menlo, Consolas, monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+        background: #080b14;
+        color: #e8ecf6;
+        min-height: 100vh;
+        line-height: 1.6;
+    }
+
+    .yl_hero {
+        position: relative;
+        padding: 40px 20px 30px;
+        text-align: center;
+        background:
+            radial-gradient(circle at 20% 20%, rgba(90, 200, 250, .2) 0%, transparent 45%),
+            radial-gradient(circle at 80% 80%, rgba(255, 149, 0, .18) 0%, transparent 45%),
+            linear-gradient(135deg, #0b1020 0%, #141a2e 55%, #0b1020 100%);
+        border-bottom: 1px solid var(--yl-line);
+    }
+    .yl_hero h1 {
+        font-size: clamp(1.5em, 3.6vw, 2.1em);
+        font-weight: 800;
+        letter-spacing: .04em;
+        background: linear-gradient(100deg, #5ac8fa, #ffffff 45%, #ff9500);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+    .yl_hero p { margin-top: 8px; font-size: .9em; color: #9aa6c2; }
+
+    .yl_main { max-width: 1200px; margin: 0 auto; padding: 26px 20px 44px; }
+
+    .yl_stage {
+        position: relative;
+        width: 100%;
+        border-radius: 18px;
+        overflow: hidden;
+        border: 1px solid rgba(90, 200, 250, .2);
+        background: #090d19;
+        box-shadow: 0 18px 48px rgba(0, 0, 0, .55), inset 0 0 70px rgba(0, 122, 255, .07);
+    }
+    #yl_canvas { display: block; width: 100%; }
+
+    .yl_toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        margin-top: 16px;
+    }
+    .yl_btn {
+        padding: 9px 18px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, .14);
+        background: rgba(255, 255, 255, .05);
+        color: #dfe6f5;
+        font-size: 13px;
+        font-family: inherit;
+        cursor: pointer;
+        transition: transform .18s, background .18s, border-color .18s, box-shadow .18s;
+    }
+    .yl_btn:hover {
+        transform: translateY(-2px);
+        background: rgba(90, 200, 250, .14);
+        border-color: rgba(90, 200, 250, .5);
+        box-shadow: 0 6px 18px rgba(0, 122, 255, .25);
+    }
+    .yl_btn:active { transform: translateY(0) scale(.97); }
+    .yl_btn.yl_primary {
+        background: linear-gradient(135deg, #007aff, #af52de);
+        border-color: transparent;
+        color: #fff;
+        font-weight: 600;
+        box-shadow: 0 8px 22px rgba(0, 122, 255, .35);
+    }
+    .yl_btn.yl_on {
+        background: rgba(52, 199, 89, .16);
+        border-color: rgba(52, 199, 89, .55);
+        color: #8ff0ad;
+    }
+    .yl_hintText {
+        margin-left: auto;
+        font-family: var(--yl-mono);
+        font-size: 12px;
+        color: #7f8db0;
+    }
+    .yl_hintText b { color: #dfe6f5; }
+
+    .yl_detail {
+        margin-top: 16px;
+        padding: 18px 20px;
+        border-radius: 14px;
+        background: linear-gradient(160deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .02));
+        border: 1px solid var(--yl-line);
+        transition: border-color .25s;
+    }
+    .yl_detail.yl_has { border-color: rgba(90, 200, 250, .45); }
+    .yl_detailHead {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .yl_dot {
+        width: 9px; height: 9px; border-radius: 50%;
+        background: #5ac8fa;
+        box-shadow: 0 0 12px #5ac8fa;
+        flex: none;
+    }
+    .yl_detailHead h3 { font-size: 15px; color: #fff; font-weight: 700; }
+    .yl_dLayer {
+        font-family: var(--yl-mono);
+        font-size: 11px;
+        padding: 2px 9px;
+        border-radius: 999px;
+        color: #5ac8fa;
+        background: rgba(90, 200, 250, .14);
+        border: 1px solid rgba(90, 200, 250, .35);
+    }
+    .yl_detail p { margin-top: 8px; font-size: 12.8px; color: #97a3c1; line-height: 1.75; }
+
+    .yl_footer {
+        text-align: center;
+        padding: 22px 20px 38px;
+        font-size: 12px;
+        color: #5d6a89;
+        border-top: 1px solid var(--yl-line);
+    }
+
+    @media (max-width: 720px) {
+        .yl_hintText { margin-left: 0; width: 100%; }
+    }
+</style>
+</head>
+<body>
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  建立时间：2026-11-05 13:35:07
+  使用的大模型：DeepSeek-V4.1-Flash
+  功能：基于 Canvas 的全站系统架构图（电商系统），五层架构 + 流动调用链路 + 悬停查看详情
+-->
+<header class="yl_hero">
+    <h1>电商系统全站架构图</h1>
+    <p>用户层 → 接入层 → 业务层 → 中间件 → 数据层，Canvas 2D 逐帧绘制 + 调用链路动态流向</p>
+</header>
+
+<main class="yl_main">
+    <div class="yl_stage" id="yl_stage">
+        <canvas id="yl_canvas"></canvas>
+    </div>
+
+    <div class="yl_toolbar">
+        <button class="yl_btn yl_primary" id="yl_btnTour">▶ 自动巡览</button>
+        <button class="yl_btn" id="yl_btnClear">✕ 清除高亮</button>
+        <button class="yl_btn" id="yl_btnPng">⤓ 导出 PNG</button>
+        <div class="yl_hintText">共 <b id="yl_count">24</b> 个模块 · 悬停查看 · 点击详情</div>
+    </div>
+
+    <div class="yl_detail" id="yl_detail">
+        <div class="yl_detailHead">
+            <span class="yl_dot"></span>
+            <h3 id="yl_dName">未选择模块</h3>
+            <span class="yl_dLayer" id="yl_dLayer">—</span>
+        </div>
+        <p id="yl_dDesc">把鼠标移到画布里的任一模块上，或直接点击模块，这里会显示它的职责说明。</p>
+    </div>
+</main>
+
+<footer class="yl_footer">
+    © 2026 宁瑞祥 ·《高级网页设计》课堂实践 · 纯原生 HTML / CSS / Canvas，未使用任何 CDN
+</footer>
+
+<script>
+(function () {
+    'use strict';
+
+    var yl_cv = document.getElementById('yl_canvas');
+    var yl_ctx = yl_cv.getContext('2d');
+    var yl_stage = document.getElementById('yl_stage');
+    var yl_detail = document.getElementById('yl_detail');
+    var yl_dName = document.getElementById('yl_dName');
+    var yl_dLayer = document.getElementById('yl_dLayer');
+    var yl_dDesc = document.getElementById('yl_dDesc');
+    var yl_btnTour = document.getElementById('yl_btnTour');
+    var yl_btnClear = document.getElementById('yl_btnClear');
+    var yl_btnPng = document.getElementById('yl_btnPng');
+
+    var yl_dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var yl_W = 1240;
+    var yl_H = 862;
+    var yl_M = 34;
+    var yl_scale = 1;
+    var yl_t = 0;
+    var yl_last = 0;
+    var yl_bg = null;
+
+    var yl_mouse = { x: -999, y: -999, on: false };
+    var yl_hover = null;
+    var yl_selected = null;
+    var yl_tour = false;
+    var yl_tourIdx = 0;
+    var yl_tourClock = 0;
+    var yl_flat = [];
+
+    var yl_layers = [
+        {
+            key: 'user', name: '用户层', en: 'CLIENT', color: '#5ac8fa', y: 62, h: 90, rows: 1,
+            items: [
+                { n: '🌐 Web 商城', s: 'PC 浏览器', d: '面向 PC 端的商城页面，商品浏览、购物车、下单支付全部走 HTTPS 请求。' },
+                { n: '📱 移动 App', s: 'iOS / Android', d: '原生或 Hybrid App，通过统一网关接入后端，支持推送唤回与离线缓存。' },
+                { n: '💬 微信小程序', s: '社交裂变入口', d: '依赖微信登录态，走小程序专用网关，主打拼团、秒杀与分享场景。' },
+                { n: '🖥️ 运营后台', s: '商家 / 平台管理', d: '内部运营系统，负责商品上下架、订单处理、活动配置与数据看板。' }
+            ]
+        },
+        {
+            key: 'access', name: '接入层', en: 'EDGE', color: '#007aff', y: 200, h: 90, rows: 1,
+            items: [
+                { n: '🚀 CDN 加速', s: '静态资源分发', d: '图片、脚本、视频走 CDN 边缘节点，命中率决定首屏速度，回源走对象存储。' },
+                { n: '⚖️ 负载均衡', s: 'Nginx / SLB', d: '四层与七层负载均衡，按权重轮询后端实例，配合健康检查自动摘除故障节点。' },
+                { n: '🚪 API 网关', s: '鉴权 · 限流 · 路由', d: '统一入口，负责 Token 鉴权、接口限流、灰度分流与协议转换，是服务的第一道防线。' }
+            ]
+        },
+        {
+            key: 'biz', name: '业务层', en: 'SERVICE', color: '#af52de', y: 338, h: 160, rows: 2,
+            items: [
+                { n: '👤 用户服务', s: '注册 · 登录 · 会员', d: '账号体系与会员等级，签发 JWT 登录态，维护收货地址与积分。' },
+                { n: '🛒 商品服务', s: 'SPU · SKU · 类目', d: '商品主数据管理，维护类目树、规格属性、上下架状态与价格体系。' },
+                { n: '🔍 搜索服务', s: 'ES 分词 · 推荐', d: '基于 Elasticsearch 的全文检索，结合用户行为做搜索排序与猜你喜欢。' },
+                { n: '📦 订单服务', s: '下单 · 拆单 · 状态机', d: '订单创建与状态流转核心，负责库存预占、拆单合并、超时关闭与售后。' },
+                { n: '💳 支付服务', s: '微信 · 支付宝 · 回调', d: '对接第三方支付渠道，处理预支付、异步回调、对账以及退款链路。' },
+                { n: '🏬 库存服务', s: '扣减 · 锁库 · 回滚', d: '管理可售库存，秒杀场景用 Redis 预扣 + 消息队列异步落库，防止超卖。' },
+                { n: '🎁 营销服务', s: '优惠券 · 秒杀 · 拼团', d: '活动规则引擎，负责优惠券发放、满减计算与秒杀限购校验。' },
+                { n: '🔔 消息服务', s: '短信 · 推送 · 站内信', d: '统一消息出口，模板化管理短信、App 推送与站内通知，支持失败重试。' }
+            ]
+        },
+        {
+            key: 'mid', name: '中间件', en: 'MIDDLEWARE', color: '#ff9500', y: 552, h: 90, rows: 1,
+            items: [
+                { n: '⚡ Redis 缓存', s: '热点数据 · 分布式锁', d: '缓存商品详情与会话，承接秒杀流量，同时提供分布式锁与限流计数。' },
+                { n: '📨 Kafka 消息队列', s: '削峰 · 异步解耦', d: '订单、库存、支付回调通过消息异步解耦，削峰填谷并保证最终一致。' },
+                { n: '🧭 Nacos 注册中心', s: '服务发现 · 配置', d: '服务注册与发现，动态配置推送，配合负载均衡完成实例上下线。' },
+                { n: '⏰ 任务调度', s: 'XXL-Job 定时任务', d: '订单超时关闭、库存回补、报表生成等定时作业的统一调度中心。' }
+            ]
+        },
+        {
+            key: 'data', name: '数据层', en: 'STORAGE', color: '#34c759', y: 690, h: 104, rows: 1,
+            items: [
+                { n: '🐬 MySQL 集群', s: '主从 · 分库分表', d: '核心交易数据落库，主从读写分离，按用户 ID 分库分表扛住高并发写入。' },
+                { n: '🍃 MongoDB', s: '商品详情 · 评论', d: '存储结构灵活的文档型数据，如商品详情富文本与用户评论。' },
+                { n: '🔎 Elasticsearch', s: '搜索索引', d: '为商品与订单建立倒排索引，支撑关键词搜索、聚合筛选与日志检索。' },
+                { n: '🗄️ 对象存储 OSS', s: '图片 · 视频', d: '商品图片、短视频与备份文件的底层存储，配合 CDN 回源分发。' },
+                { n: '📊 数据仓库', s: '报表 · 离线分析', d: '通过 ETL 汇聚交易数据，产出经营报表、用户画像与推荐特征。' }
+            ]
+        }
+    ];
+
+    /* ---------- 工具 ---------- */
+    function yl_rr(c, x, y, w, h, r) {
+        var rr = Math.min(r, w / 2, h / 2);
+        c.beginPath();
+        c.moveTo(x + rr, y);
+        c.lineTo(x + w - rr, y);
+        c.arcTo(x + w, y, x + w, y + rr, rr);
+        c.lineTo(x + w, y + h - rr);
+        c.arcTo(x + w, y + h, x + w - rr, y + h, rr);
+        c.lineTo(x + rr, y + h);
+        c.arcTo(x, y + h, x, y + h - rr, rr);
+        c.lineTo(x, y + rr);
+        c.arcTo(x, y, x + rr, y, rr);
+        c.closePath();
+    }
+
+    function yl_hexA(hex, a) {
+        var v = hex.replace('#', '');
+        var r = parseInt(v.substring(0, 2), 16);
+        var g = parseInt(v.substring(2, 4), 16);
+        var b = parseInt(v.substring(4, 6), 16);
+        return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+    }
+
+    function yl_layout() {
+        yl_flat = [];
+        yl_layers.forEach(function (L) {
+            var cols = Math.ceil(L.items.length / L.rows);
+            var padX = 22, padY = 20, gapX = 16, gapY = 12;
+            var innerW = (yl_W - 2 * yl_M) - padX * 2;
+            var innerH = L.h - padY * 2;
+            var iw = (innerW - gapX * (cols - 1)) / cols;
+            var ih = (innerH - gapY * (L.rows - 1)) / L.rows;
+
+            L.items.forEach(function (it, i) {
+                var r = Math.floor(i / cols);
+                var c = i % cols;
+                it.x = yl_M + padX + c * (iw + gapX);
+                it.y = L.y + padY + r * (ih + gapY);
+                it.w = iw;
+                it.h = ih;
+                it.layer = L.name;
+                it.layerEn = L.en;
+                it.color = L.color;
+                yl_flat.push(it);
+            });
+        });
+        document.getElementById('yl_count').textContent = yl_flat.length;
+    }
+
+    function yl_resize() {
+        var rect = yl_stage.getBoundingClientRect();
+        var cssW = Math.max(320, Math.floor(rect.width));
+        var cssH = Math.round(yl_H * (cssW / yl_W));
+        yl_scale = cssW / yl_W;
+
+        yl_cv.width = Math.floor(cssW * yl_dpr);
+        yl_cv.height = Math.floor(cssH * yl_dpr);
+        yl_cv.style.height = cssH + 'px';
+
+        yl_ctx.setTransform(yl_dpr * yl_scale, 0, 0, yl_dpr * yl_scale, 0, 0);
+
+        yl_bg = yl_ctx.createLinearGradient(0, 0, 0, yl_H);
+        yl_bg.addColorStop(0, '#0a1120');
+        yl_bg.addColorStop(0.55, '#0c1322');
+        yl_bg.addColorStop(1, '#080c16');
+    }
+
+    /* ---------- 绘制 ---------- */
+    function yl_drawGrid() {
+        yl_ctx.strokeStyle = 'rgba(90,200,250,0.045)';
+        yl_ctx.lineWidth = 1;
+        for (var x = 0; x <= yl_W; x += 40) {
+            yl_ctx.beginPath();
+            yl_ctx.moveTo(x, 0);
+            yl_ctx.lineTo(x, yl_H);
+            yl_ctx.stroke();
+        }
+        for (var y = 0; y <= yl_H; y += 40) {
+            yl_ctx.beginPath();
+            yl_ctx.moveTo(0, y);
+            yl_ctx.lineTo(yl_W, y);
+            yl_ctx.stroke();
+        }
+    }
+
+    function yl_drawConnectors() {
+        for (var i = 0; i < yl_layers.length - 1; i++) {
+            var A = yl_layers[i];
+            var B = yl_layers[i + 1];
+            var y1 = A.y + A.h;
+            var y2 = B.y - 6;
+            var n = 4;
+
+            for (var k = 0; k < n; k++) {
+                var x = yl_M + 150 + (yl_W - 2 * yl_M - 300) * (k / (n - 1));
+
+                yl_ctx.strokeStyle = yl_hexA(B.color, 0.38);
+                yl_ctx.lineWidth = 1.3;
+                yl_ctx.setLineDash([5, 8]);
+                yl_ctx.lineDashOffset = -yl_t * 26;
+                yl_ctx.beginPath();
+                yl_ctx.moveTo(x, y1 + 4);
+                yl_ctx.lineTo(x, y2);
+                yl_ctx.stroke();
+                yl_ctx.setLineDash([]);
+
+                /* 箭头 */
+                yl_ctx.fillStyle = yl_hexA(B.color, 0.55);
+                yl_ctx.beginPath();
+                yl_ctx.moveTo(x, y2 + 2);
+                yl_ctx.lineTo(x - 4, y2 - 6);
+                yl_ctx.lineTo(x + 4, y2 - 6);
+                yl_ctx.closePath();
+                yl_ctx.fill();
+
+                /* 流动光点 */
+                var ph = (yl_t * 0.75 + k * 0.27 + i * 0.13) % 1;
+                var py = y1 + 6 + (y2 - y1 - 12) * ph;
+                var gr = yl_ctx.createRadialGradient(x, py, 0, x, py, 7);
+                gr.addColorStop(0, yl_hexA(B.color, 0.95));
+                gr.addColorStop(1, yl_hexA(B.color, 0));
+                yl_ctx.fillStyle = gr;
+                yl_ctx.beginPath();
+                yl_ctx.arc(x, py, 7, 0, Math.PI * 2);
+                yl_ctx.fill();
+            }
+        }
+    }
+
+    function yl_drawLayer(L) {
+        /* 分层底板 */
+        yl_rr(yl_ctx, yl_M, L.y, yl_W - 2 * yl_M, L.h, 12);
+        yl_ctx.fillStyle = 'rgba(255,255,255,0.030)';
+        yl_ctx.fill();
+        yl_ctx.strokeStyle = yl_hexA(L.color, 0.22);
+        yl_ctx.lineWidth = 1;
+        yl_ctx.stroke();
+
+        /* 左侧色条 */
+        yl_ctx.fillStyle = yl_hexA(L.color, 0.75);
+        yl_ctx.beginPath();
+        yl_ctx.roundRect ? yl_ctx.roundRect(yl_M, L.y + 14, 4, L.h - 28, 2) : yl_ctx.rect(yl_M, L.y + 14, 4, L.h - 28);
+        yl_ctx.fill();
+
+        /* 层标签 */
+        yl_ctx.font = '600 13px "PingFang SC","Microsoft YaHei",sans-serif';
+        var tw = yl_ctx.measureText(L.name).width;
+        yl_rr(yl_ctx, yl_M + 10, L.y - 25, tw + 20, 20, 6);
+        yl_ctx.fillStyle = yl_hexA(L.color, 0.16);
+        yl_ctx.fill();
+        yl_ctx.strokeStyle = yl_hexA(L.color, 0.45);
+        yl_ctx.lineWidth = 1;
+        yl_ctx.stroke();
+
+        yl_ctx.fillStyle = L.color;
+        yl_ctx.textBaseline = 'middle';
+        yl_ctx.textAlign = 'left';
+        yl_ctx.fillText(L.name, yl_M + 20, L.y - 15);
+
+        yl_ctx.font = '11px Menlo,Consolas,monospace';
+        yl_ctx.fillStyle = 'rgba(255,255,255,0.28)';
+        yl_ctx.fillText(L.en, yl_M + 36 + tw, L.y - 15);
+    }
+
+    function yl_drawItem(it, focus) {
+        var hov = it === focus;
+        var sel = it === yl_selected;
+
+        yl_rr(yl_ctx, it.x, it.y, it.w, it.h, 10);
+        yl_ctx.fillStyle = hov ? 'rgba(30,42,72,0.95)' : 'rgba(17,23,40,0.92)';
+        yl_ctx.fill();
+
+        if (hov || sel) {
+            yl_ctx.save();
+            yl_ctx.shadowColor = yl_hexA(it.color, 0.75);
+            yl_ctx.shadowBlur = 20;
+            yl_ctx.strokeStyle = yl_hexA(it.color, 0.95);
+            yl_ctx.lineWidth = 1.6;
+            yl_rr(yl_ctx, it.x, it.y, it.w, it.h, 10);
+            yl_ctx.stroke();
+            yl_ctx.restore();
+        } else {
+            yl_ctx.strokeStyle = yl_hexA(it.color, 0.30);
+            yl_ctx.lineWidth = 1;
+            yl_rr(yl_ctx, it.x, it.y, it.w, it.h, 10);
+            yl_ctx.stroke();
+        }
+
+        /* 名称 */
+        yl_ctx.textAlign = 'center';
+        yl_ctx.textBaseline = 'middle';
+        yl_ctx.font = '600 14px "PingFang SC","Microsoft YaHei",sans-serif';
+        yl_ctx.fillStyle = hov ? '#ffffff' : '#e6ecfa';
+        yl_ctx.fillText(it.n, it.x + it.w / 2, it.y + it.h / 2 - (it.h > 46 ? 9 : 5));
+
+        /* 说明 */
+        yl_ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
+        yl_ctx.fillStyle = hov ? yl_hexA(it.color, 0.95) : 'rgba(160,172,198,0.85)';
+        yl_ctx.fillText(it.s, it.x + it.w / 2, it.y + it.h / 2 + (it.h > 46 ? 10 : 9));
+    }
+
+    function yl_wrapText(text, perLine) {
+        var arr = [];
+        for (var i = 0; i < text.length; i += perLine) {
+            arr.push(text.substring(i, i + perLine));
+        }
+        return arr;
+    }
+
+    function yl_drawTip(it) {
+        var lines = yl_wrapText(it.d, 22);
+        var w = 292;
+        var lh = 20;
+        var h = 46 + lines.length * lh;
+        var x = yl_mouse.x + 18;
+        var y = yl_mouse.y + 18;
+
+        if (x + w > yl_W - 8) x = yl_mouse.x - w - 18;
+        if (y + h > yl_H - 8) y = yl_mouse.y - h - 18;
+        if (x < 8) x = 8;
+        if (y < 8) y = 8;
+
+        yl_ctx.save();
+        yl_ctx.shadowColor = 'rgba(0,0,0,0.55)';
+        yl_ctx.shadowBlur = 22;
+        yl_rr(yl_ctx, x, y, w, h, 12);
+        yl_ctx.fillStyle = 'rgba(13,19,34,0.97)';
+        yl_ctx.fill();
+        yl_ctx.restore();
+
+        yl_rr(yl_ctx, x, y, w, h, 12);
+        yl_ctx.strokeStyle = yl_hexA(it.color, 0.6);
+        yl_ctx.lineWidth = 1.2;
+        yl_ctx.stroke();
+
+        yl_ctx.textAlign = 'left';
+        yl_ctx.textBaseline = 'top';
+        yl_ctx.font = '600 14px "PingFang SC","Microsoft YaHei",sans-serif';
+        yl_ctx.fillStyle = '#ffffff';
+        yl_ctx.fillText(it.n, x + 14, y + 12);
+
+        yl_ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
+        yl_ctx.fillStyle = yl_hexA(it.color, 0.9);
+        yl_ctx.fillText(it.layer, x + w - 14 - yl_ctx.measureText(it.layer).width, y + 15);
+
+        yl_ctx.font = '12px "PingFang SC","Microsoft YaHei",sans-serif';
+        yl_ctx.fillStyle = 'rgba(170,182,208,0.95)';
+        lines.forEach(function (ln, i) {
+            yl_ctx.fillText(ln, x + 14, y + 40 + i * lh);
+        });
+    }
+
+    function yl_drawLegend() {
+        var y = yl_H - 34;
+        var items = [
+            { c: '#5ac8fa', t: '虚线 = 分层依赖' },
+            { c: '#ff9500', t: '光点 = 调用流向' },
+            { c: '#34c759', t: '悬停 / 点击 = 模块详情' }
+        ];
+        var totalW = 520;
+        var sx = (yl_W - totalW) / 2;
+        var gap = 172;
+
+        yl_ctx.textBaseline = 'middle';
+        yl_ctx.font = '12px "PingFang SC","Microsoft YaHei",sans-serif';
+        items.forEach(function (o, i) {
+            var x = sx + i * gap;
+            yl_ctx.fillStyle = o.c;
+            yl_ctx.globalAlpha = 0.85;
+            yl_ctx.beginPath();
+            yl_ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+            yl_ctx.fill();
+            yl_ctx.globalAlpha = 1;
+            yl_ctx.fillStyle = 'rgba(150,162,190,0.9)';
+            yl_ctx.textAlign = 'left';
+            yl_ctx.fillText(o.t, x + 10, y);
+        });
+    }
+
+    function yl_draw() {
+        yl_ctx.setTransform(yl_dpr * yl_scale, 0, 0, yl_dpr * yl_scale, 0, 0);
+
+        yl_ctx.fillStyle = yl_bg;
+        yl_ctx.fillRect(0, 0, yl_W, yl_H);
+        yl_drawGrid();
+        yl_drawConnectors();
+
+        yl_layers.forEach(yl_drawLayer);
+
+        var focus = yl_hover || (yl_tour ? yl_flat[yl_tourIdx] : null);
+
+        yl_flat.forEach(function (it) {
+            yl_drawItem(it, focus);
+        });
+
+        yl_drawLegend();
+
+        if (yl_hover) yl_drawTip(yl_hover);
+    }
+
+    /* ---------- 交互 ---------- */
+    function yl_hit(px, py) {
+        for (var i = 0; i < yl_flat.length; i++) {
+            var it = yl_flat[i];
+            if (px >= it.x && px <= it.x + it.w && py >= it.y && py <= it.y + it.h) return it;
+        }
+        return null;
+    }
+
+    function yl_local(e) {
+        var rect = yl_stage.getBoundingClientRect();
+        return {
+            x: (e.clientX - rect.left) / yl_scale,
+            y: (e.clientY - rect.top) / yl_scale
+        };
+    }
+
+    function yl_showDetail(it) {
+        yl_dName.textContent = it.n;
+        yl_dLayer.textContent = it.layer + ' · ' + it.layerEn;
+        yl_dLayer.style.color = it.color;
+        yl_dLayer.style.borderColor = yl_hexA(it.color, 0.35);
+        yl_dLayer.style.background = yl_hexA(it.color, 0.14);
+        yl_dDesc.textContent = it.d;
+        yl_detail.classList.add('yl_has');
+    }
+
+    yl_stage.addEventListener('pointermove', function (e) {
+        var p = yl_local(e);
+        yl_mouse.x = p.x;
+        yl_mouse.y = p.y;
+        yl_mouse.on = true;
+        var h = yl_hit(p.x, p.y);
+        yl_hover = h;
+        yl_stage.style.cursor = h ? 'pointer' : 'default';
+        if (h) yl_showDetail(h);
+    });
+
+    yl_stage.addEventListener('pointerleave', function () {
+        yl_hover = null;
+        yl_mouse.on = false;
+        yl_stage.style.cursor = 'default';
+    });
+
+    yl_stage.addEventListener('click', function (e) {
+        var p = yl_local(e);
+        var h = yl_hit(p.x, p.y);
+        if (h) {
+            yl_selected = h;
+            yl_showDetail(h);
+        } else {
+            yl_selected = null;
+        }
+    });
+
+    yl_btnTour.addEventListener('click', function () {
+        yl_tour = !yl_tour;
+        yl_tourIdx = 0;
+        yl_tourClock = 0;
+        yl_btnTour.classList.toggle('yl_on', yl_tour);
+        yl_btnTour.textContent = yl_tour ? '⏸ 停止巡览' : '▶ 自动巡览';
+        if (yl_tour) yl_showDetail(yl_flat[0]);
+    });
+
+    yl_btnClear.addEventListener('click', function () {
+        yl_selected = null;
+        yl_hover = null;
+        yl_detail.classList.remove('yl_has');
+        yl_dName.textContent = '未选择模块';
+        yl_dLayer.textContent = '—';
+        yl_dLayer.style.color = '#5ac8fa';
+        yl_dLayer.style.borderColor = 'rgba(90,200,250,.35)';
+        yl_dLayer.style.background = 'rgba(90,200,250,.14)';
+        yl_dDesc.textContent = '把鼠标移到画布里的任一模块上，或直接点击模块，这里会显示它的职责说明。';
+        if (yl_tour) {
+            yl_tour = false;
+            yl_btnTour.classList.remove('yl_on');
+            yl_btnTour.textContent = '▶ 自动巡览';
+        }
+    });
+
+    yl_btnPng.addEventListener('click', function () {
+        var a = document.createElement('a');
+        a.href = yl_cv.toDataURL('image/png');
+        a.download = '电商系统架构图.png';
+        a.click();
+    });
+
+    function yl_frame(now) {
+        requestAnimationFrame(yl_frame);
+        if (!yl_last) yl_last = now;
+        var dt = Math.min(0.05, (now - yl_last) / 1000);
+        yl_last = now;
+        yl_t += dt;
+
+        if (yl_tour) {
+            yl_tourClock += dt;
+            if (yl_tourClock >= 1.1) {
+                yl_tourClock = 0;
+                yl_tourIdx = (yl_tourIdx + 1) % yl_flat.length;
+                yl_showDetail(yl_flat[yl_tourIdx]);
+            }
+        }
+
+        yl_draw();
+    }
+
+    var yl_rt = 0;
+    window.addEventListener('resize', function () {
+        clearTimeout(yl_rt);
+        yl_rt = setTimeout(yl_resize, 140);
+    });
+
+    yl_layout();
+    yl_resize();
+    requestAnimationFrame(yl_frame);
+})();
+</script>
+</body>
+</html>
