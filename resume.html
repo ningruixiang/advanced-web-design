@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宁瑞祥 · 个人简历</title>
+    <link rel="icon" href="data:,">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --yl_ink: #14202b;
+            --yl_ink2: #33414f;
+            --yl_muted: #6b7684;
+            --yl_line: #dfe4ea;
+            --yl_navy: #10305c;
+            --yl_navySoft: #eaf0f8;
+            --yl_paper: #ffffff;
+            --yl_bg: #eef1f5;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            font-size: 13.5px;
+            line-height: 1.72;
+            color: var(--yl_ink);
+            background: var(--yl_bg);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ===== A4 纸张 ===== */
+        .yl_cv {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 26px auto;
+            padding: 16mm 15mm 14mm;
+            background: var(--yl_paper);
+            box-shadow: 0 18px 44px rgba(20, 32, 43, 0.16);
+        }
+
+        /* ===== 抬头 ===== */
+        .yl_cvHead {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 12px 24px;
+            padding-bottom: 12px;
+            border-bottom: 2.5px solid var(--yl_navy);
+        }
+
+        .yl_cvName h1 {
+            font-family: Georgia, "Songti SC", SimSun, serif;
+            font-size: 34px;
+            line-height: 1.15;
+            letter-spacing: 4px;
+            color: var(--yl_navy);
+        }
+
+        .yl_cvRole {
+            margin-top: 6px;
+            font-size: 13px;
+            letter-spacing: 0.4px;
+            color: var(--yl_ink2);
+        }
+
+        .yl_cvRole b {
+            color: var(--yl_navy);
+            font-weight: 600;
+        }
+
+        .yl_cvContact {
+            list-style: none;
+            display: grid;
+            grid-template-columns: auto auto;
+            gap: 3px 22px;
+            font-size: 12.5px;
+            color: var(--yl_ink2);
+        }
+
+        .yl_cvContact li {
+            display: flex;
+            gap: 7px;
+            white-space: nowrap;
+        }
+
+        .yl_cvContact .yl_ctKey {
+            color: var(--yl_muted);
+            min-width: 38px;
+        }
+
+        .yl_cvContact a {
+            color: var(--yl_navy);
+            text-decoration: none;
+            border-bottom: 1px solid #c9d6e8;
+        }
+
+        .yl_cvContact a:hover {
+            border-color: var(--yl_navy);
+        }
+
+        /* ===== 板块 ===== */
+        .yl_sec {
+            margin-top: 16px;
+        }
+
+        .yl_secTitle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: Georgia, "Songti SC", SimSun, serif;
+            font-size: 16px;
+            letter-spacing: 3px;
+            color: var(--yl_navy);
+        }
+
+        .yl_secTitle::before {
+            content: "";
+            width: 4px;
+            height: 15px;
+            border-radius: 1px;
+            background: var(--yl_navy);
+        }
+
+        .yl_secTitle span {
+            font-family: -apple-system, "Segoe UI", sans-serif;
+            font-size: 10.5px;
+            letter-spacing: 1.6px;
+            color: #9aa6b4;
+            font-weight: 400;
+        }
+
+        .yl_secBody {
+            margin-top: 8px;
+            padding-left: 12px;
+        }
+
+        /* ===== 核心优势 ===== */
+        .yl_adv {
+            list-style: none;
+            display: grid;
+            gap: 5px;
+        }
+
+        .yl_adv li {
+            padding-left: 13px;
+            position: relative;
+            font-size: 13.2px;
+            line-height: 1.7;
+            color: var(--yl_ink2);
+            text-align: justify;
+        }
+
+        .yl_adv li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 8px;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--yl_navy);
+            opacity: 0.75;
+        }
+
+        .yl_adv b {
+            color: var(--yl_navy);
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
+        /* ===== 教育 ===== */
+        .yl_eduHead {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 4px 16px;
+        }
+
+        .yl_eduHead h3 {
+            font-size: 14.5px;
+            font-weight: 600;
+            color: var(--yl_navy);
+        }
+
+        .yl_eduHead .yl_date {
+            font-size: 12px;
+            color: var(--yl_muted);
+        }
+
+        .yl_kv {
+            margin-top: 4px;
+            font-size: 12.8px;
+            color: var(--yl_ink2);
+        }
+
+        .yl_kv em {
+            font-style: normal;
+            color: var(--yl_muted);
+            margin-right: 6px;
+        }
+
+        /* ===== 技能 ===== */
+        .yl_skills {
+            display: grid;
+            gap: 6px;
+        }
+
+        .yl_skillRow {
+            display: grid;
+            grid-template-columns: 96px minmax(0, 1fr);
+            gap: 10px;
+            font-size: 12.8px;
+            line-height: 1.68;
+        }
+
+        .yl_skillRow dt {
+            color: var(--yl_navy);
+            font-weight: 600;
+        }
+
+        .yl_skillRow dd {
+            color: var(--yl_ink2);
+            text-align: justify;
+        }
+
+        .yl_skillRow dd .yl_lv {
+            display: inline-block;
+            margin-left: 4px;
+            padding: 0 6px;
+            border-radius: 3px;
+            font-size: 10.5px;
+            color: var(--yl_navy);
+            background: var(--yl_navySoft);
+            vertical-align: 1px;
+        }
+
+        /* ===== 项目 ===== */
+        .yl_proj + .yl_proj {
+            margin-top: 12px;
+            padding-top: 11px;
+            border-top: 1px dashed var(--yl_line);
+        }
+
+        .yl_projHead {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 4px 14px;
+        }
+
+        .yl_projHead h3 {
+            font-size: 14.5px;
+            font-weight: 600;
+            color: var(--yl_navy);
+        }
+
+        .yl_projHead h3 .yl_projRole {
+            margin-left: 8px;
+            font-size: 12px;
+            font-weight: 400;
+            color: var(--yl_ink2);
+        }
+
+        .yl_projHead .yl_date {
+            font-size: 12px;
+            color: var(--yl_muted);
+            white-space: nowrap;
+        }
+
+        .yl_stack {
+            margin-top: 3px;
+            font-size: 11.8px;
+            color: var(--yl_muted);
+            font-family: "SF Mono", Menlo, Consolas, "Microsoft YaHei", monospace;
+        }
+
+        .yl_bullets {
+            margin-top: 5px;
+            list-style: none;
+        }
+
+        .yl_bullets li {
+            position: relative;
+            padding-left: 13px;
+            font-size: 12.9px;
+            line-height: 1.72;
+            color: var(--yl_ink2);
+            text-align: justify;
+        }
+
+        .yl_bullets li::before {
+            content: "";
+            position: absolute;
+            left: 2px;
+            top: 9px;
+            width: 4px;
+            height: 4px;
+            background: #9fb0c4;
+            border-radius: 50%;
+        }
+
+        .yl_bullets b {
+            color: var(--yl_navy);
+            font-weight: 600;
+        }
+
+        /* ===== 自我评价 ===== */
+        .yl_eval {
+            font-size: 13px;
+            line-height: 1.8;
+            color: var(--yl_ink2);
+            text-align: justify;
+        }
+
+        .yl_eval::first-letter {
+            font-family: Georgia, "Songti SC", SimSun, serif;
+            font-size: 1.9em;
+            float: left;
+            line-height: 1;
+            margin: 3px 5px 0 0;
+            color: var(--yl_navy);
+        }
+
+        /* ===== 页脚 ===== */
+        .yl_cvFoot {
+            margin-top: 18px;
+            padding-top: 9px;
+            border-top: 1px solid var(--yl_line);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 4px 16px;
+            font-size: 11.5px;
+            color: var(--yl_muted);
+        }
+
+        .yl_cvFoot a {
+            color: var(--yl_navy);
+            text-decoration: none;
+        }
+
+        /* ===== 打印按钮（屏幕） ===== */
+        .yl_printBtn {
+            position: fixed;
+            right: 26px;
+            bottom: 26px;
+            padding: 11px 22px;
+            border: none;
+            border-radius: 999px;
+            font-family: inherit;
+            font-size: 13.5px;
+            color: #fff;
+            background: var(--yl_navy);
+            box-shadow: 0 12px 26px rgba(16, 48, 92, 0.32);
+            cursor: pointer;
+            transition: transform 0.16s ease, background 0.16s ease;
+            z-index: 20;
+        }
+
+        .yl_printBtn:hover {
+            background: #17427c;
+            transform: translateY(-2px);
+        }
+
+        /* ===== 打印 ===== */
+        @page {
+            size: A4;
+            margin: 12mm 12mm;
+        }
+
+        @media print {
+            body {
+                background: #fff;
+                font-size: 12.4px;
+            }
+
+            .yl_cv {
+                width: auto;
+                min-height: 0;
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+            }
+
+            .yl_printBtn {
+                display: none;
+            }
+
+            .yl_sec,
+            .yl_proj {
+                break-inside: avoid;
+            }
+
+            .yl_cvContact a {
+                border-bottom: none;
+                color: var(--yl_navy);
+            }
+        }
+
+        @media (max-width: 800px) {
+            .yl_cv {
+                width: 100%;
+                min-height: 0;
+                margin: 0;
+                padding: 22px 18px 26px;
+                box-shadow: none;
+            }
+
+            .yl_cvHead {
+                align-items: flex-start;
+            }
+
+            .yl_cvName h1 {
+                font-size: 28px;
+            }
+
+            .yl_cvContact {
+                grid-template-columns: 1fr;
+            }
+
+            .yl_skillRow {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+
+            .yl_printBtn {
+                right: 14px;
+                bottom: 14px;
+                padding: 9px 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  建立时间：2026-11-26 14:47:36
+  使用的大模型：DeepSeek-V4.1-Flash
+  功能：单页个人简历（A4 打印版式，浏览器 Ctrl+P 可导出 PDF）
+-->
+<div class="yl_cv">
+
+    <header class="yl_cvHead">
+        <div class="yl_cvName">
+            <h1>宁瑞祥</h1>
+            <p class="yl_cvRole">求职意向｜<b>前端开发工程师（实习）</b> / <b>HarmonyOS 应用开发（初级）</b></p>
+        </div>
+        <ul class="yl_cvContact">
+            <li><span class="yl_ctKey">GitHub</span><a href="https://github.com/ningruixiang" target="_blank" rel="noopener">github.com/ningruixiang</a></li>
+            <li><span class="yl_ctKey">在线作品</span><a href="https://ningruixiang.github.io/advanced-web-design/" target="_blank" rel="noopener">ningruixiang.github.io/advanced-web-design</a></li>
+        </ul>
+    </header>
+
+    <section class="yl_sec">
+        <h2 class="yl_secTitle">核心优势 <span>CORE STRENGTHS</span></h2>
+        <div class="yl_secBody">
+            <ul class="yl_adv">
+                <li><b>原生前端功底</b>不依赖框架与 CDN，纯手写 HTML5 / CSS3 / 原生 JavaScript（ES6+），独立完成 30 余个静态页面与整套课程实训站点，熟悉语义化结构、Flex / Grid 布局、媒体查询与过渡动画。</li>
+                <li><b>可视化与三维渲染</b>用 ECharts 做过桑基图、雷达图、三列数据大屏与省级地图，用 Mermaid 画业务流程图与 ER 图，用 Three.js 实现 3D 柱状图、散点图、3D 地球与拉伸式 3D 中国地图。</li>
+                <li><b>云端 BaaS 全栈</b>在 Supabase 上建表、写索引与行级安全策略（RLS），配合 supabase-js 完成匿名只读 + 管理员鉴权的新闻列表与后台管理，前端可直接跑通"页面 → 接口 → 数据库"。</li>
+                <li><b>AI 协作与工程习惯</b>用规则文件（AGENTS.md）约束 AI 产出的命名、目录与注释规范，提示词逐条留痕、Git 按功能提交，保证每段代码都能讲清来由。</li>
+            </ul>
+        </div>
+    </section>
+
+    <section class="yl_sec">
+        <h2 class="yl_secTitle">教育背景 <span>EDUCATION</span></h2>
+        <div class="yl_secBody">
+            <div class="yl_eduHead">
+                <h3>计算机类专业（2023 级）　|　计算机23005 班</h3>
+                <span class="yl_date">2023.09 – 至今</span>
+            </div>
+            <p class="yl_kv"><em>学号</em>2001010503</p>
+            <p class="yl_kv"><em>核心课程</em>网页设计基础、高级网页设计（HTML5 / CSS3 / JavaScript）、数据库原理与应用、数据结构、程序设计基础、移动应用开发</p>
+        </div>
+    </section>
+
+    <section class="yl_sec">
+        <h2 class="yl_secTitle">专业技能 <span>SKILLS</span></h2>
+        <div class="yl_secBody">
+            <dl class="yl_skills">
+                <div class="yl_skillRow">
+                    <dt>前端开发<span class="yl_lv">熟练</span></dt>
+                    <dd>HTML5 语义化标签、CSS3（Flex / Grid / 媒体查询 / 过渡与动画 / 层叠与继承）、原生 JavaScript（DOM、事件委托、ES6+、异步 Promise / async）、Canvas 绘制、响应式与移动端适配、无障碍基础（键盘操作与语义角色）</dd>
+                </div>
+                <div class="yl_skillRow">
+                    <dt>数据可视化<span class="yl_lv">熟练</span></dt>
+                    <dd>ECharts 5（折线 / 柱状 / 环形饼 / 雷达 / 桑基 / 地图 + visualMap / effectScatter / lines 飞线）、Mermaid 11（flowchart 子图与 classDef、erDiagram）、大屏分栏布局与 ResizeObserver 自适应</dd>
+                </div>
+                <div class="yl_skillRow">
+                    <dt>三维渲染<span class="yl_lv">掌握</span></dt>
+                    <dd>Three.js（Scene / Camera / WebGLRenderer、ExtrudeGeometry 拉伸建模、BufferGeometry 顶点色、Points 粒子、Raycaster 拾取、手写轨道交互与球面坐标投影）</dd>
+                </div>
+                <div class="yl_skillRow">
+                    <dt>后端与数据<span class="yl_lv">掌握</span></dt>
+                    <dd>Supabase（PostgreSQL 建表 / 索引 / check 约束 / RLS 策略、Auth 邮箱登录、app_metadata 角色鉴权、PostgREST 查询）、RESTful 接口消费、Node.js 调试用静态服务、JSON 与数组字段处理</dd>
+                </div>
+                <div class="yl_skillRow">
+                    <dt>工程与协作<span class="yl_lv">熟练</span></dt>
+                    <dd>Git 分支与提交规范（Conventional Commits）、GitHub / Gitee 双远程同步、GitHub Pages 部署、第三方库离线化（下载至本地 cdn 目录）、浏览器 DevTools 联调与截图验收</dd>
+                </div>
+                <div class="yl_skillRow">
+                    <dt>AI 工具链<span class="yl_lv">熟练</span></dt>
+                    <dd>Trae / 豆包等 AI 编程工具协作，AGENTS.md 规则约束、提示词记录（时间 + 模型 + 原文）、AI 产出的逐行复核与二次验证</dd>
+                </div>
+                <div class="yl_skillRow">
+                    <dt>了解<span class="yl_lv">进阶中</span></dt>
+                    <dd>ArkTS / HarmonyOS 应用开发、Vue3、微信小程序、MySQL、Linux 常用命令、Nginx 基础部署</dd>
+                </div>
+            </dl>
+        </div>
+    </section>
+
+    <section class="yl_sec">
+        <h2 class="yl_secTitle">项目经历 <span>PROJECTS</span></h2>
+        <div class="yl_secBody">
+
+            <article class="yl_proj">
+                <div class="yl_projHead">
+                    <h3>校园二手交易系统<span class="yl_projRole">课程选题 · 个人独立开发</span></h3>
+                    <span class="yl_date">2026.09 – 进行中</span>
+                </div>
+                <p class="yl_stack">HarmonyOS / ArkTS · 页面原型 · 数据结构设计</p>
+                <ul class="yl_bullets">
+                    <li>选题《基于 HarmonyOS 的校园二手交易系统》，面向校内二手物品流转场景，梳理"发布—浏览—沟通—成交"主流程与用户、商品、分类、消息四类核心数据。</li>
+                    <li>完成需求拆解与页面规划：首页推荐、分类列表、商品详情、发布、我的五个主页面，统一卡片、标签与空态的组件规范。</li>
+                    <li>同步沉淀交互与视觉规范（配色、字号阶梯、间距系统），为后续 ArkTS 页面实现提供可直接复用的设计基线。</li>
+                </ul>
+            </article>
+
+            <article class="yl_proj">
+                <div class="yl_projHead">
+                    <h3>高级网页设计课程作品集<span class="yl_projRole">个人项目 · 已部署</span></h3>
+                    <span class="yl_date">2026.09 – 2026.11</span>
+                </div>
+                <p class="yl_stack">原生 HTML5 / CSS3 / JavaScript · ECharts · Mermaid · Three.js · GitHub Pages</p>
+                <ul class="yl_bullets">
+                    <li>独立完成 30 余个单页实训作品并统一用卡片网格导航，全部<b>零框架、零在线依赖</b>，断网可直接打开；第三方库统一下载到本地 <code>cdn/</code> 目录。</li>
+                    <li>可视化方向完成 ECharts 桑基图 + 雷达图双图页、三列数据大屏（中间为全国高校用户分布地图，含涟漪光点与飞线），以及 Mermaid 智能客服流程图与 11 实体 ER 图。</li>
+                    <li>三维方向完成 Three.js 3D 柱状图 + 3D 散点图（Raycaster 悬停提示），以及 3D 地球（球面海岸线、城市光点、北京出发飞线）与省级拉伸式 3D 中国地图。</li>
+                    <li>为支持高清与跨设备验收，逐页用真实浏览器截图核对排版与控制台报错，最终零报错上线 GitHub Pages。</li>
+                </ul>
+            </article>
+
+            <article class="yl_proj">
+                <div class="yl_projHead">
+                    <h3>校园新闻中心 · 新闻列表与后台管理<span class="yl_projRole">Supabase 全栈练习</span></h3>
+                    <span class="yl_date">2026.11</span>
+                </div>
+                <p class="yl_stack">Supabase（PostgreSQL / Auth / RLS）· supabase-js · 原生 JavaScript</p>
+                <ul class="yl_bullets">
+                    <li>在 Supabase 建立 <b>yl_news</b> 新闻表（15 个字段 + 分类约束 + 2 个索引），写入 20 条模拟数据，并用 RLS 实现"匿名只读已发布、管理员可读写"的两级权限。</li>
+                    <li>前端实现分类筛选、关键词搜索、三种排序、分页加载与详情弹窗，含骨架屏、空态与错误态，桌面 / 移动双端适配。</li>
+                    <li>后台管理页用 Supabase Auth 邮箱登录 + <b>app_metadata.role = admin</b> 鉴权，完成新闻的新增、编辑、发布 / 转草稿、置顶与删除，并落库记录数据库结构与权限说明文档。</li>
+                </ul>
+            </article>
+
+        </div>
+    </section>
+
+    <section class="yl_sec">
+        <h2 class="yl_secTitle">实践与荣誉 <span>PRACTICE &amp; HONORS</span></h2>
+        <div class="yl_secBody">
+            <ul class="yl_bullets">
+                <li><b>代码托管</b>GitHub 公开课程作品仓库 <b>advanced-web-design</b>，Gitee 同步镜像；每个作品独立成页并配导航索引，提交信息按 feat / fix / docs 分类。</li>
+                <li><b>规范实践</b>在仓库根目录维护 AGENTS.md 与提示词记录文件，统一 <b>yl_</b> 命名前缀、页面头注释（姓名 / 学号 / 建立时间 / 大模型 / 功能）与目录分层。</li>
+            </ul>
+        </div>
+    </section>
+
+    <section class="yl_sec">
+        <h2 class="yl_secTitle">自我评价 <span>SELF ASSESSMENT</span></h2>
+        <div class="yl_secBody">
+            <p class="yl_eval">计算机类专业在读，原生前端基础扎实，能独立走完"页面设计 → 交互实现 → 接口对接 → 数据库建模 → 上线部署"的完整链路；对数据可视化与三维场景有持续兴趣，习惯先查规范再动手。日常使用 AI 工具提效，但坚持先定规则、再让 AI 写、最后人工复核与自测，交付的代码可读、可维护、可复现。目前正投入 HarmonyOS 校园二手交易系统的设计与实现，希望在实习中补齐工程化与团队协作经验。</p>
+        </div>
+    </section>
+
+    <footer class="yl_cvFoot">
+        <span>作品集　<a href="https://ningruixiang.github.io/advanced-web-design/" target="_blank" rel="noopener">ningruixiang.github.io/advanced-web-design</a></span>
+        <span>源码　<a href="https://github.com/ningruixiang/advanced-web-design" target="_blank" rel="noopener">github.com/ningruixiang/advanced-web-design</a></span>
+    </footer>
+
+</div>
+
+<button class="yl_printBtn" type="button" onclick="window.print()">打印 / 导出 PDF</button>
+</body>
+</html>
