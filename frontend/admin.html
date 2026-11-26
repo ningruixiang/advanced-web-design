@@ -15,6 +15,25 @@
   使用的大模型：DeepSeek-V4.1-Flash
   功能：新闻后台管理（Supabase Auth 登录 + 新闻增删改查、发布状态与置顶切换）
 -->
+<!-- ===== 前端口令（软保护层） ===== -->
+<div class="yl_gate" id="yl_gate">
+    <form class="yl_gateCard" id="yl_gateForm">
+        <span class="yl_gateMark">N</span>
+        <h2>访问口令</h2>
+        <p class="yl_gateSub">后台管理页已加一层访问口令。口令只做前端遮挡，真正的读写权限仍由 Supabase 登录与行级安全策略（RLS）控制。</p>
+
+        <label class="yl_field">
+            <span>口令</span>
+            <input id="yl_gateCode" type="password" placeholder="请输入后台访问口令" autocomplete="off" required>
+        </label>
+
+        <p class="yl_loginErr" id="yl_gateErr" hidden></p>
+
+        <button class="yl_btn yl_btn--primary yl_btn--block" type="submit">进入后台</button>
+        <p class="yl_gateFoot"><a class="yl_link" href="index.html">← 返回新闻列表</a></p>
+    </form>
+</div>
+
 <div class="yl_admin">
 
     <header class="yl_aHeader">
@@ -205,6 +224,7 @@
 
 <script src="cdn/supabase.js"></script>
 <script src="js/config.js"></script>
+<script src="js/gate.js"></script>
 <script src="js/admin.js"></script>
 </body>
 </html>

@@ -109,6 +109,8 @@ create policy "yl_news_admin_write" on public.yl_news
 | app_metadata | `{"provider":"email","providers":["email"],"role":"admin"}` |
 | user_metadata | `{"display_name":"宁瑞祥"}` |
 
+后台页还加了一层**前端访问口令**（`frontend/js/gate.js`，口令 `yl-admin-2026`，源码里只存 FNV-1a 哈希，通过后写入 `sessionStorage`）。它只做页面遮挡，可被绕过，真正的权限边界仍是上面的 Supabase Auth + RLS。
+
 权限验证结果（已实测）：
 
 | 操作 | 匿名 | 管理员 |

@@ -709,3 +709,61 @@ code {
     .yl_op { padding: 2px 7px; font-size: 11px; }
     .yl_drawerCard { width: 100%; }
 }
+
+/* ===== 前端口令（软保护层） ===== */
+.yl_gate {
+    position: fixed;
+    inset: 0;
+    z-index: 95;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background:
+        radial-gradient(circle at 18% 12%, rgba(15, 107, 92, 0.10) 0%, transparent 46%),
+        radial-gradient(circle at 86% 88%, rgba(23, 33, 43, 0.08) 0%, transparent 44%),
+        var(--yl_paper);
+}
+
+.yl_gateCard {
+    width: min(430px, 100%);
+    padding: 30px 32px 22px;
+    border: 1px solid var(--yl_line);
+    border-top: 3px solid var(--yl_accent);
+    border-radius: 6px;
+    background: var(--yl_card);
+    box-shadow: 0 18px 48px rgba(23, 33, 43, 0.12);
+}
+
+.yl_gateMark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    margin-bottom: 12px;
+    border-radius: 50%;
+    font-family: Georgia, serif;
+    font-size: 18px;
+    color: #fff;
+    background: var(--yl_accent);
+}
+
+.yl_gateCard h2 {
+    font-family: Georgia, "Songti SC", SimSun, serif;
+    font-size: 21px;
+    margin-bottom: 6px;
+}
+
+.yl_gateSub {
+    margin-bottom: 20px;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--yl_muted);
+}
+
+.yl_gateFoot {
+    margin-top: 14px;
+    text-align: center;
+    font-size: 12.5px;
+}
