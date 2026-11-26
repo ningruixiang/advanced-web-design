@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新闻后台管理 · 校园新闻中心</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  建立时间：2026-11-26 14:38:05
+  使用的大模型：DeepSeek-V4.1-Flash
+  功能：新闻后台管理（Supabase Auth 登录 + 新闻增删改查、发布状态与置顶切换）
+-->
+<div class="yl_admin">
+
+    <header class="yl_aHeader">
+        <div class="yl_aBrand">
+            <span class="yl_aMark">N</span>
+            <div>
+                <h1>新闻后台管理</h1>
+                <p>CAMPUS NEWS · ADMIN CONSOLE</p>
+            </div>
+        </div>
+        <div class="yl_aActions">
+            <a class="yl_link" href="index.html">← 返回新闻列表</a>
+            <div class="yl_aUser" id="yl_aUser" hidden>
+                <span class="yl_aEmail" id="yl_aEmail"></span>
+                <button class="yl_btn yl_btn--ghost" id="yl_logout" type="button">退出登录</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== 登录 ===== -->
+    <section class="yl_loginWrap" id="yl_loginView">
+        <form class="yl_loginCard" id="yl_loginForm" autocomplete="on">
+            <h2>管理员登录</h2>
+            <p class="yl_loginSub">基于 Supabase Auth 邮箱密码登录，仅 <code>app_metadata.role = admin</code> 的账号可进入</p>
+
+            <label class="yl_field">
+                <span>邮箱</span>
+                <input id="yl_email" type="email" value="admin@ylnews.cn" required>
+            </label>
+            <label class="yl_field">
+                <span>密码</span>
+                <input id="yl_password" type="password" placeholder="请输入登录密码" required>
+            </label>
+
+            <p class="yl_loginErr" id="yl_loginErr" hidden></p>
+
+            <button class="yl_btn yl_btn--primary yl_btn--block" id="yl_loginBtn" type="submit">登录后台</button>
+            <p class="yl_loginHint">课程演示账号：<b>admin@ylnews.cn</b> / <b>YlNews@2026</b></p>
+        </form>
+    </section>
+
+    <!-- ===== 控制台 ===== -->
+    <main class="yl_console" id="yl_consoleView" hidden>
+        <section class="yl_stats" id="yl_stats"></section>
+
+        <section class="yl_panel">
+            <div class="yl_panelHead">
+                <div class="yl_panelTitle">
+                    <h2>新闻管理</h2>
+                    <span class="yl_panelCount" id="yl_panelCount"></span>
+                </div>
+                <div class="yl_panelTools">
+                    <input class="yl_input" id="yl_kw" type="search" placeholder="搜索标题、摘要或作者" autocomplete="off">
+                    <select class="yl_select" id="yl_statusFilter">
+                        <option value="all">全部状态</option>
+                        <option value="published">已发布</option>
+                        <option value="draft">草稿</option>
+                    </select>
+                    <button class="yl_btn yl_btn--ghost" id="yl_refresh" type="button">刷新</button>
+                    <button class="yl_btn yl_btn--primary" id="yl_new" type="button">+ 新建新闻</button>
+                </div>
+            </div>
+
+            <div class="yl_tableWrap">
+                <table class="yl_table">
+                    <thead>
+                        <tr>
+                            <th class="yl_colTitle">标题</th>
+                            <th>分类</th>
+                            <th>作者</th>
+                            <th>状态</th>
+                            <th class="yl_colNum">浏览</th>
+                            <th>发布时间</th>
+                            <th class="yl_colOps">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="yl_tbody"></tbody>
+                </table>
+                <div class="yl_tableState" id="yl_tableState" hidden></div>
+            </div>
+
+            <div class="yl_tableFoot" id="yl_tfoot"></div>
+        </section>
+    </main>
+</div>
+
+<!-- ===== 编辑抽屉 ===== -->
+<div class="yl_drawer" id="yl_editor" hidden>
+    <div class="yl_drawerMask" data-yl-close="1"></div>
+    <form class="yl_drawerCard" id="yl_editorForm">
+        <div class="yl_drawerHead">
+            <h2 id="yl_editorTitle">新建新闻</h2>
+            <button class="yl_iconBtn" id="yl_editorClose" type="button" aria-label="关闭">×</button>
+        </div>
+
+        <div class="yl_drawerBody">
+            <label class="yl_field">
+                <span>标题 <i>*</i></span>
+                <input id="yl_f_title" type="text" maxlength="80" required>
+            </label>
+            <label class="yl_field">
+                <span>摘要 <i>*</i>（列表页展示，建议 40–60 字）</span>
+                <textarea id="yl_f_summary" rows="2" maxlength="160" required></textarea>
+            </label>
+            <label class="yl_field">
+                <span>正文（空行分段）</span>
+                <textarea id="yl_f_content" rows="6"></textarea>
+            </label>
+
+            <div class="yl_grid2">
+                <label class="yl_field">
+                    <span>分类 <i>*</i></span>
+                    <select id="yl_f_category">
+                        <option value="校园">校园</option>
+                        <option value="科技">科技</option>
+                        <option value="学术">学术</option>
+                        <option value="活动">活动</option>
+                        <option value="就业">就业</option>
+                        <option value="生活">生活</option>
+                    </select>
+                </label>
+                <label class="yl_field">
+                    <span>封面配色</span>
+                    <select id="yl_f_theme">
+                        <option value="cyan">青 cyan</option>
+                        <option value="blue">蓝 blue</option>
+                        <option value="violet">紫 violet</option>
+                        <option value="emerald">绿 emerald</option>
+                        <option value="amber">橙 amber</option>
+                        <option value="rose">红 rose</option>
+                    </select>
+                </label>
+                <label class="yl_field">
+                    <span>作者 <i>*</i></span>
+                    <input id="yl_f_author" type="text" maxlength="40" required>
+                </label>
+                <label class="yl_field">
+                    <span>来源</span>
+                    <input id="yl_f_source" type="text" maxlength="40">
+                </label>
+                <label class="yl_field">
+                    <span>标签（英文逗号分隔）</span>
+                    <input id="yl_f_tags" type="text" placeholder="人工智能,竞赛">
+                </label>
+                <label class="yl_field">
+                    <span>发布时间</span>
+                    <input id="yl_f_time" type="datetime-local">
+                </label>
+                <label class="yl_field">
+                    <span>浏览量</span>
+                    <input id="yl_f_views" type="number" min="0" step="1" value="0">
+                </label>
+                <label class="yl_field">
+                    <span>点赞数</span>
+                    <input id="yl_f_likes" type="number" min="0" step="1" value="0">
+                </label>
+            </div>
+
+            <div class="yl_switchRow">
+                <label class="yl_switch"><input id="yl_f_top" type="checkbox"><span>置顶显示</span></label>
+                <label class="yl_switch"><input id="yl_f_published" type="checkbox" checked><span>立即发布</span></label>
+            </div>
+
+            <p class="yl_formErr" id="yl_formErr" hidden></p>
+        </div>
+
+        <div class="yl_drawerFoot">
+            <button class="yl_btn yl_btn--ghost" id="yl_editorCancel" type="button">取消</button>
+            <button class="yl_btn yl_btn--primary" id="yl_editorSave" type="submit">保存</button>
+        </div>
+    </form>
+</div>
+
+<!-- ===== 删除确认 ===== -->
+<div class="yl_dialog" id="yl_confirm" hidden>
+    <div class="yl_dialogMask" data-yl-close="1"></div>
+    <div class="yl_dialogCard" role="alertdialog" aria-labelledby="yl_confirmTitle">
+        <h3 id="yl_confirmTitle">确认删除这条新闻？</h3>
+        <p id="yl_confirmText">删除后不可恢复。</p>
+        <div class="yl_dialogFoot">
+            <button class="yl_btn yl_btn--ghost" id="yl_confirmNo" type="button">取消</button>
+            <button class="yl_btn yl_btn--danger" id="yl_confirmYes" type="button">确认删除</button>
+        </div>
+    </div>
+</div>
+
+<div class="yl_toast" id="yl_toast" hidden></div>
+
+<script src="cdn/supabase.js"></script>
+<script src="js/config.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

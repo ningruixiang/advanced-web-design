@@ -1,0 +1,711 @@
+/* ===== 后台管理样式 ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --yl_ink: #17212b;
+    --yl_ink2: #3d4a57;
+    --yl_muted: #6b7683;
+    --yl_line: #e3ded4;
+    --yl_paper: #f7f4ee;
+    --yl_card: #ffffff;
+    --yl_accent: #0f6b5c;
+    --yl_accentSoft: #e3f0ec;
+    --yl_danger: #b3261e;
+    --yl_dangerSoft: #fbeceb;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+body {
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: var(--yl_ink);
+    background: var(--yl_paper);
+    line-height: 1.65;
+}
+
+code {
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.92em;
+    color: var(--yl_accent);
+    background: var(--yl_accentSoft);
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+}
+
+.yl_admin {
+    max-width: 1220px;
+    margin: 0 auto;
+    padding: 0 24px 56px;
+}
+
+/* ===== 头部 ===== */
+.yl_aHeader {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 22px 0 16px;
+    border-bottom: 2px solid var(--yl_ink);
+}
+
+.yl_aBrand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.yl_aMark {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 6px;
+    font-family: Georgia, "Songti SC", SimSun, serif;
+    font-size: 21px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--yl_ink);
+}
+
+.yl_aBrand h1 {
+    font-family: Georgia, "Songti SC", SimSun, serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.yl_aBrand p {
+    font-size: 10px;
+    letter-spacing: 2.4px;
+    color: var(--yl_muted);
+    margin-top: -2px;
+}
+
+.yl_aActions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.yl_link {
+    font-size: 13px;
+    color: var(--yl_ink2);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--yl_line);
+    padding-bottom: 1px;
+}
+
+.yl_link:hover {
+    color: var(--yl_accent);
+    border-color: var(--yl_accent);
+}
+
+.yl_aUser {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.yl_aEmail {
+    font-size: 12.5px;
+    color: var(--yl_ink2);
+    padding: 4px 11px;
+    border-radius: 999px;
+    background: var(--yl_accentSoft);
+}
+
+/* ===== 按钮 ===== */
+.yl_btn {
+    padding: 7px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--yl_line);
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--yl_ink);
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.16s ease;
+    white-space: nowrap;
+}
+
+.yl_btn:hover {
+    border-color: var(--yl_ink);
+}
+
+.yl_btn--primary {
+    color: #fff;
+    background: var(--yl_ink);
+    border-color: var(--yl_ink);
+}
+
+.yl_btn--primary:hover {
+    background: #22303d;
+}
+
+.yl_btn--ghost {
+    background: transparent;
+}
+
+.yl_btn--danger {
+    color: #fff;
+    background: var(--yl_danger);
+    border-color: var(--yl_danger);
+}
+
+.yl_btn--danger:hover {
+    background: #991b16;
+}
+
+.yl_btn--block {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 14px;
+}
+
+.yl_btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* ===== 登录 ===== */
+.yl_loginWrap {
+    display: grid;
+    place-items: center;
+    padding: 68px 0 40px;
+}
+
+.yl_loginCard {
+    width: min(400px, 100%);
+    padding: 34px 32px 26px;
+    border: 1px solid var(--yl_line);
+    border-top: 3px solid var(--yl_accent);
+    border-radius: 6px;
+    background: var(--yl_card);
+    box-shadow: 0 14px 38px rgba(23, 33, 43, 0.07);
+}
+
+.yl_loginCard h2 {
+    font-family: Georgia, "Songti SC", SimSun, serif;
+    font-size: 21px;
+    margin-bottom: 6px;
+}
+
+.yl_loginSub {
+    font-size: 12.5px;
+    color: var(--yl_muted);
+    margin-bottom: 20px;
+    line-height: 1.7;
+}
+
+.yl_field {
+    display: block;
+    margin-bottom: 14px;
+}
+
+.yl_field > span {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 12.5px;
+    color: var(--yl_ink2);
+}
+
+.yl_field > span i {
+    color: var(--yl_danger);
+    font-style: normal;
+}
+
+.yl_field input,
+.yl_field textarea,
+.yl_field select,
+.yl_input,
+.yl_select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--yl_line);
+    border-radius: 6px;
+    font-size: 13.5px;
+    font-family: inherit;
+    color: var(--yl_ink);
+    background: #fff;
+    outline: none;
+    transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.yl_field textarea {
+    resize: vertical;
+    line-height: 1.7;
+}
+
+.yl_field input:focus,
+.yl_field textarea:focus,
+.yl_field select:focus,
+.yl_input:focus,
+.yl_select:focus {
+    border-color: var(--yl_accent);
+    box-shadow: 0 0 0 3px rgba(15, 107, 92, 0.10);
+}
+
+.yl_loginErr,
+.yl_formErr {
+    margin-bottom: 14px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    color: var(--yl_danger);
+    background: var(--yl_dangerSoft);
+    border: 1px solid rgba(179, 38, 30, 0.18);
+}
+
+.yl_loginHint {
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--yl_muted);
+    text-align: center;
+}
+
+/* ===== 控制台 ===== */
+.yl_console {
+    padding-top: 22px;
+}
+
+.yl_stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.yl_stat {
+    padding: 14px 18px;
+    border: 1px solid var(--yl_line);
+    border-radius: 6px;
+    background: var(--yl_card);
+}
+
+.yl_stat span {
+    display: block;
+    font-size: 12px;
+    color: var(--yl_muted);
+}
+
+.yl_stat b {
+    display: block;
+    margin-top: 2px;
+    font-size: 24px;
+    font-family: Georgia, "Songti SC", SimSun, serif;
+    font-variant-numeric: tabular-nums;
+}
+
+.yl_stat--accent b { color: var(--yl_accent); }
+.yl_stat--warn b { color: #b45309; }
+
+.yl_panel {
+    border: 1px solid var(--yl_line);
+    border-radius: 6px;
+    background: var(--yl_card);
+    overflow: hidden;
+}
+
+.yl_panelHead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--yl_line);
+}
+
+.yl_panelTitle {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.yl_panelTitle h2 {
+    font-family: Georgia, "Songti SC", SimSun, serif;
+    font-size: 17px;
+}
+
+.yl_panelCount {
+    font-size: 12px;
+    color: var(--yl_muted);
+}
+
+.yl_panelTools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.yl_input {
+    width: 200px;
+}
+
+.yl_select {
+    width: auto;
+}
+
+/* ===== 表格 ===== */
+.yl_tableWrap {
+    position: relative;
+    overflow-x: auto;
+}
+
+.yl_table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.yl_table th {
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--yl_muted);
+    background: #faf8f4;
+    border-bottom: 1px solid var(--yl_line);
+    white-space: nowrap;
+}
+
+.yl_table td {
+    padding: 12px;
+    border-bottom: 1px solid #f0ece4;
+    vertical-align: middle;
+}
+
+.yl_table tbody tr:hover {
+    background: rgba(15, 107, 92, 0.035);
+}
+
+.yl_colTitle {
+    min-width: 300px;
+}
+
+.yl_table td:nth-child(2),
+.yl_table td:nth-child(3),
+.yl_table td:nth-child(4),
+.yl_table td:nth-child(5),
+.yl_table td:nth-child(6),
+.yl_table th:nth-child(2),
+.yl_table th:nth-child(3),
+.yl_table th:nth-child(4),
+.yl_table th:nth-child(5),
+.yl_table th:nth-child(6) {
+    white-space: nowrap;
+}
+
+.yl_table th:nth-child(2) { width: 72px; }
+.yl_table th:nth-child(3) { width: 172px; }
+.yl_table th:nth-child(4) { width: 122px; }
+.yl_table th:nth-child(5) { width: 82px; }
+.yl_table th:nth-child(6) { width: 134px; }
+
+.yl_colNum {
+    width: 84px;
+    text-align: right;
+}
+
+.yl_colOps {
+    width: 264px;
+}
+
+.yl_tTitle {
+    font-weight: 600;
+    color: var(--yl_ink);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    max-width: 420px;
+}
+
+.yl_tMeta {
+    margin-top: 4px;
+    font-size: 11.5px;
+    color: var(--yl_muted);
+}
+
+.yl_badge {
+    display: inline-block;
+    padding: 1px 9px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    white-space: nowrap;
+}
+
+.yl_badge--pub {
+    color: #0f6b5c;
+    background: var(--yl_accentSoft);
+}
+
+.yl_badge--draft {
+    color: #b45309;
+    background: #fdf1e0;
+}
+
+.yl_badge--top {
+    color: #fff;
+    background: var(--yl_danger);
+    margin-left: 5px;
+}
+
+.yl_ops {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.yl_op {
+    flex: 0 0 auto;
+    padding: 3px 9px;
+    border: 1px solid var(--yl_line);
+    border-radius: 4px;
+    font-size: 11.5px;
+    color: var(--yl_ink2);
+    background: #fff;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.yl_op:hover {
+    border-color: var(--yl_accent);
+    color: var(--yl_accent);
+}
+
+.yl_op--danger:hover {
+    border-color: var(--yl_danger);
+    color: var(--yl_danger);
+}
+
+.yl_tableState {
+    padding: 46px 20px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--yl_muted);
+}
+
+.yl_tableFoot {
+    padding: 12px 18px;
+    font-size: 12px;
+    color: var(--yl_muted);
+    border-top: 1px solid var(--yl_line);
+    background: #faf8f4;
+}
+
+/* ===== 抽屉 ===== */
+.yl_drawer {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.yl_drawerMask {
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 26, 32, 0.45);
+}
+
+.yl_drawerCard {
+    position: relative;
+    width: min(560px, 100%);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #fffdf9;
+    box-shadow: -18px 0 46px rgba(20, 26, 32, 0.20);
+    animation: yl_slideIn 0.22s ease-out;
+}
+
+@keyframes yl_slideIn {
+    from { transform: translateX(26px); opacity: 0.4; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.yl_drawerHead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--yl_line);
+}
+
+.yl_drawerHead h2 {
+    font-family: Georgia, "Songti SC", SimSun, serif;
+    font-size: 19px;
+}
+
+.yl_iconBtn {
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    line-height: 1;
+    color: var(--yl_muted);
+    background: transparent;
+    cursor: pointer;
+}
+
+.yl_iconBtn:hover {
+    color: var(--yl_ink);
+    background: #f0ece4;
+}
+
+.yl_drawerBody {
+    flex: 1;
+    overflow: auto;
+    padding: 18px 22px;
+}
+
+.yl_grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 14px;
+}
+
+.yl_switchRow {
+    display: flex;
+    gap: 22px;
+    padding: 6px 0 4px;
+}
+
+.yl_switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    color: var(--yl_ink2);
+    cursor: pointer;
+}
+
+.yl_switch input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--yl_accent);
+    cursor: pointer;
+}
+
+.yl_drawerFoot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 22px;
+    border-top: 1px solid var(--yl_line);
+    background: #faf8f4;
+}
+
+/* ===== 确认框 ===== */
+.yl_dialog {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+}
+
+.yl_dialogMask {
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 26, 32, 0.5);
+}
+
+.yl_dialogCard {
+    position: relative;
+    width: min(400px, 100%);
+    padding: 24px 26px 20px;
+    border-radius: 8px;
+    background: #fffdf9;
+    box-shadow: 0 20px 50px rgba(15, 23, 32, 0.28);
+}
+
+.yl_dialogCard h3 {
+    font-family: Georgia, "Songti SC", SimSun, serif;
+    font-size: 17px;
+    margin-bottom: 8px;
+}
+
+.yl_dialogCard p {
+    font-size: 13px;
+    color: var(--yl_muted);
+    margin-bottom: 18px;
+    word-break: break-all;
+}
+
+.yl_dialogFoot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* ===== Toast ===== */
+.yl_toast {
+    position: fixed;
+    left: 50%;
+    bottom: 34px;
+    transform: translateX(-50%);
+    z-index: 90;
+    padding: 9px 20px;
+    border-radius: 999px;
+    font-size: 13px;
+    color: #fff;
+    background: rgba(23, 33, 43, 0.92);
+    box-shadow: 0 10px 28px rgba(15, 23, 32, 0.28);
+    animation: yl_toastIn 0.2s ease-out;
+}
+
+.yl_toast--err {
+    background: rgba(179, 38, 30, 0.95);
+}
+
+@keyframes yl_toastIn {
+    from { opacity: 0; transform: translate(-50%, 8px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 900px) {
+    .yl_stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .yl_panelTools { width: 100%; }
+    .yl_input { flex: 1; width: auto; min-width: 130px; }
+    .yl_colOps { width: auto; }
+}
+
+@media (max-width: 640px) {
+    .yl_admin { padding: 0 14px 40px; }
+    .yl_aHeader { padding: 16px 0 12px; }
+    .yl_aBrand h1 { font-size: 19px; }
+    .yl_aActions { width: 100%; justify-content: space-between; }
+    .yl_loginWrap { padding: 30px 0 20px; }
+    .yl_loginCard { padding: 24px 20px 20px; }
+    .yl_grid2 { grid-template-columns: 1fr; }
+    .yl_table th:nth-child(2),
+    .yl_table td:nth-child(2),
+    .yl_table th:nth-child(3),
+    .yl_table td:nth-child(3),
+    .yl_table th:nth-child(5),
+    .yl_table td:nth-child(5),
+    .yl_table th:nth-child(6),
+    .yl_table td:nth-child(6) { display: none; }
+    .yl_colTitle { min-width: 0; }
+    .yl_tTitle { max-width: none; }
+    .yl_colOps { width: 118px; }
+    .yl_ops { gap: 4px; }
+    .yl_op { padding: 2px 7px; font-size: 11px; }
+    .yl_drawerCard { width: 100%; }
+}

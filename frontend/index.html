@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园新闻中心 · 新闻列表</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<!--
+  姓名：宁瑞祥
+  学号：2001010503
+  建立时间：2026-11-26 14:36:12
+  使用的大模型：DeepSeek-V4.1-Flash
+  功能：新闻列表页（Supabase 云端数据读取、分类筛选、关键词搜索、排序、分页与详情弹窗）
+-->
+<div class="yl_page">
+
+    <header class="yl_header">
+        <div class="yl_brand">
+            <span class="yl_mark">N</span>
+            <div class="yl_brandText">
+                <h1>校园新闻中心</h1>
+                <p>CAMPUS NEWS CENTER</p>
+            </div>
+        </div>
+        <div class="yl_headerSide">
+            <div class="yl_status">
+                <span class="yl_dot" id="yl_dot"></span>
+                <span id="yl_statusText">正在连接数据库…</span>
+            </div>
+            <a class="yl_adminLink" href="admin.html">后台管理 →</a>
+        </div>
+    </header>
+
+    <section class="yl_toolbar">
+        <div class="yl_filters" id="yl_filters"></div>
+        <div class="yl_tools">
+            <label class="yl_search">
+                <span class="yl_searchIcon">⌕</span>
+                <input id="yl_search" type="search" placeholder="搜索标题、摘要、标签或作者" autocomplete="off">
+            </label>
+            <label class="yl_sortBox">
+                <select id="yl_sort" class="yl_sort">
+                    <option value="latest">最新发布</option>
+                    <option value="views">最多浏览</option>
+                    <option value="likes">最多点赞</option>
+                </select>
+            </label>
+        </div>
+    </section>
+
+    <main class="yl_main">
+        <section class="yl_featured" id="yl_featured" aria-label="置顶新闻"></section>
+
+        <section class="yl_stream" aria-label="新闻列表">
+            <div class="yl_streamHead">
+                <h2 id="yl_streamTitle">最新报道</h2>
+                <span class="yl_streamCount" id="yl_count"></span>
+            </div>
+            <div class="yl_list" id="yl_list"></div>
+            <div class="yl_moreWrap">
+                <button class="yl_more" id="yl_more" type="button" hidden>加载更多</button>
+            </div>
+        </section>
+    </main>
+
+    <footer class="yl_footer">
+        <span>数据来源：Supabase Postgres · 表 <code>public.yl_news</code></span>
+        <span>《高级网页设计》课程实训 · 宁瑞祥</span>
+    </footer>
+</div>
+
+<div class="yl_modal" id="yl_modal" hidden>
+    <div class="yl_modalMask" data-yl-close="1"></div>
+    <div class="yl_modalCard" role="dialog" aria-modal="true" aria-labelledby="yl_mTitle">
+        <button class="yl_modalClose" id="yl_mClose" type="button" aria-label="关闭">×</button>
+        <div class="yl_mMeta" id="yl_mMeta"></div>
+        <h3 class="yl_mTitle" id="yl_mTitle"></h3>
+        <div class="yl_mTags" id="yl_mTags"></div>
+        <div class="yl_mBody" id="yl_mBody"></div>
+        <div class="yl_mFoot" id="yl_mFoot"></div>
+    </div>
+</div>
+
+<script src="cdn/supabase.js"></script>
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
